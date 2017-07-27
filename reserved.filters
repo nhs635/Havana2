@@ -1,0 +1,399 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Data Control">
+      <UniqueIdentifier>
+      </UniqueIdentifier>
+      <Extensions>cpp;h</Extensions>
+    </Filter>
+    <Filter Include="Generated Files\Debug">
+      <UniqueIdentifier>{25e8125f-efc4-446c-98a2-031aba3969b6}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{8524c9d3-3217-42ed-be0d-2b847bc99efc}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Havana2">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;cpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Device Control">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;cpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Havana2\Dialog">
+      <UniqueIdentifier>{89c111aa-808b-435b-a840-e6b0f06aeee8}</UniqueIdentifier>
+      <Extensions>h;cpp</Extensions>
+    </Filter>
+    <Filter Include="Havana2\Viewer">
+      <UniqueIdentifier>{4137bec7-2232-4891-a475-4c141c1f0bb7}</UniqueIdentifier>
+      <Extensions>h;cpp</Extensions>
+    </Filter>
+    <Filter Include="Data Control\Data Acquisition">
+      <UniqueIdentifier>{e25829e8-53c1-40db-8b80-99790a4dd0b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data Control\Data Acquisition\SignatecDAQ">
+      <UniqueIdentifier>{8c9e82bb-52f1-4094-9ae2-5a0ac4837c4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data Control\Memory Buffer">
+      <UniqueIdentifier>{c647dbac-a2c3-435a-b5ba-cfd9f6df3f7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data Control\Data Process">
+      <UniqueIdentifier>{05e8fba1-aacd-44e4-86c3-8e2a593ca0ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device Control\ECG Module Control">
+      <UniqueIdentifier>{b140654e-da42-47c4-b26a-b82d0bd47fc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device Control\FLIM Control">
+      <UniqueIdentifier>{991dedd7-7e4c-44c6-9272-bad421eec08a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device Control\Pullback Device">
+      <UniqueIdentifier>{dc1e39f9-cca1-45fc-ba9a-6d7ce5673837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device Control\Galvo Scanner">
+      <UniqueIdentifier>{cf066b26-e5e0-409a-9cfb-2558128f82c9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="Debug\moc_SaveResultDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_SaveResultDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QStreamTab.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QStreamTab.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_DigitizerSetupDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_DigitizerSetupDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QDeviceControlTab.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QDeviceControlTab.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QCalibScope.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QCalibScope.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QImageView.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QImageView.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_MemoryBuffer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_MemoryBuffer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_MainWindow.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_MainWindow.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_FlimCalibDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_FlimCalibDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_DataAcquisition.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_DataAcquisition.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QScope.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QScope.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QResultTab.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QResultTab.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QSerialComm.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QSerialComm.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QScope2.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QScope2.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_PulseReviewDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_PulseReviewDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_OctCalibDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_OctCalibDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QEcgScope.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QEcgScope.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_QOperationTab.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QOperationTab.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\DigitizerSetupDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Havana2.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\MainWindow.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QDeviceControlTab.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QOperationTab.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QResultTab.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QStreamTab.cpp">
+      <Filter>Havana2</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\FlimCalibDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\OctCalibDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\PulseReviewDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\SaveResultDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QCalibScope.cpp">
+      <Filter>Havana2\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QEcgScope.cpp">
+      <Filter>Havana2\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QImageView.cpp">
+      <Filter>Havana2\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QScope.cpp">
+      <Filter>Havana2\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QScope2.cpp">
+      <Filter>Havana2\Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="DataAcquisition\DataAcquisition.cpp">
+      <Filter>Data Control\Data Acquisition</Filter>
+    </ClCompile>
+    <ClCompile Include="DataAcquisition\SignatecDAQ\SignatecDAQ.cpp">
+      <Filter>Data Control\Data Acquisition\SignatecDAQ</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBuffer\MemoryBuffer.cpp">
+      <Filter>Data Control\Memory Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess\FLIMProcess\FLIMProcess.cpp">
+      <Filter>Data Control\Data Process</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess\OCTProcess\OCTProcess.cpp">
+      <Filter>Data Control\Data Process</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess\ThreadManager.cpp">
+      <Filter>Data Control\Data Process</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ECGMonitoring\EcgMonitoring.cpp">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.cpp">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ECGMonitoring\Voltage800RPS.cpp">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FLIMControl\ElforlightLaser.cpp">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FLIMControl\PmtGainControl.cpp">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FLIMControl\SyncFLIM.cpp">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.cpp">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ZaberStage\ZaberStage.cpp">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ZaberStage\zb_serial.cpp">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\GalvoScan\GalvoScan.cpp">
+      <Filter>Device Control\Galvo Scanner</Filter>
+    </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <CustomBuild Include="Havana2\MainWindow.h">
+      <Filter>Havana2</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QDeviceControlTab.h">
+      <Filter>Havana2</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QOperationTab.h">
+      <Filter>Havana2</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QResultTab.h">
+      <Filter>Havana2</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QStreamTab.h">
+      <Filter>Havana2</Filter>
+    </CustomBuild>
+    <ClInclude Include="GeneratedFiles\ui_MainWindow.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
+      <Filter>Data Control\Data Acquisition\SignatecDAQ</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\FLIMProcess\FLIMProcess.h">
+      <Filter>Data Control\Data Process</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\OCTProcess\OCTProcess.h">
+      <Filter>Data Control\Data Process</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\ThreadManager.h">
+      <Filter>Data Control\Data Process</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoring.h">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.h">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ECGMonitoring\Voltage800RPS.h">
+      <Filter>Device Control\ECG Module Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FLIMControl\ElforlightLaser.h">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FLIMControl\PmtGainControl.h">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FLIMControl\SyncFLIM.h">
+      <Filter>Device Control\FLIM Control</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.h">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ZaberStage\ZaberStage.h">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ZaberStage\zb_serial.h">
+      <Filter>Device Control\Pullback Device</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\GalvoScan\GalvoScan.h">
+      <Filter>Device Control\Galvo Scanner</Filter>
+    </ClInclude>
+  </ItemGroup>
+
+  <ItemGroup>
+    <CustomBuild Include="debug\moc_predefs.h.cbt">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="release\moc_predefs.h.cbt">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\DigitizerSetupDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\FlimCalibDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\OctCalibDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\PulseReviewDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\SaveResultDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QCalibScope.h">
+      <Filter>Havana2\Viewer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QEcgScope.h">
+      <Filter>Havana2\Viewer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QImageView.h">
+      <Filter>Havana2\Viewer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QScope.h">
+      <Filter>Havana2\Viewer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QScope2.h">
+      <Filter>Havana2\Viewer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DeviceControl\QSerialComm.h">
+      <Filter>Device Control</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DataAcquisition\DataAcquisition.h">
+      <Filter>Data Control\Data Acquisition</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MemoryBuffer\MemoryBuffer.h">
+      <Filter>Data Control\Memory Buffer</Filter>
+    </CustomBuild>
+  </ItemGroup>
+
+  <ItemGroup>
+    <CustomBuild Include="Havana2\MainWindow.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Havana2.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Havana2\Configuration.h" />
+  </ItemGroup>
+</Project>
