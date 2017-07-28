@@ -1,0 +1,16 @@
+.vs/
+bin/
+Debug/
+GeneratedFiles/
+include/
+install/
+lib/
+Release/
+x64/
+bg.bin
+calibration.dat
+d1.bin
+d2.bin
+flim_mask.dat
+Havana2.sdf
+Havana2.VC.db
