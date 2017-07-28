@@ -18,6 +18,7 @@
 
 /*** Untracked files on git ***/
 
+.vs/
 bin/
 Debug/
 GeneratedFiles/
@@ -39,3 +40,4 @@ Havana2.VC.db
 /*** Update History ***/
 - 170728 Havana2 v1.1.0 Final Version 
   (Lifetime colortable combobox added. Saving current value for device control added.)
+  (.gitignore added.)
