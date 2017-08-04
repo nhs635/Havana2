@@ -130,6 +130,18 @@ void QDeviceControlTab::createEcgModuleControl()
 	m_pToggledButton_EcgTriggering->setText("ECG Triggering On");
 	m_pToggledButton_EcgTriggering->setEnabled(false);
 
+	m_pLabel_EcgDelayRate = new QLabel("Delay Rate  ", pGroupBox_EcgModuleControl);
+	m_pLabel_EcgDelayRate->setEnabled(false);
+
+	m_pDoubleSpinBox_EcgDelayRate = new QDoubleSpinBox(pGroupBox_EcgModuleControl);
+	m_pDoubleSpinBox_EcgDelayRate->setFixedWidth(50);
+	m_pDoubleSpinBox_EcgDelayRate->setRange(0.0, 1.0);
+	m_pDoubleSpinBox_EcgDelayRate->setSingleStep(0.01);
+	m_pDoubleSpinBox_EcgDelayRate->setValue((double)m_pConfig->ecgDelayRate);
+	m_pDoubleSpinBox_EcgDelayRate->setDecimals(2);
+	m_pDoubleSpinBox_EcgDelayRate->setAlignment(Qt::AlignCenter);
+	m_pDoubleSpinBox_EcgDelayRate->setDisabled(true);
+	
 	m_pEcgScope = new QEcgScope({ 0, N_VIS_SAMPS_ECG }, { -1, 1 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
 	m_pEcgScope->setFixedHeight(120);
 	m_pEcgScope->setEnabled(false);
@@ -159,15 +171,23 @@ void QDeviceControlTab::createEcgModuleControl()
 	QGridLayout *pGridLayout_Ecg = new QGridLayout;
 	pGridLayout_Ecg->setSpacing(3);
 
-	pGridLayout_Ecg->addWidget(m_pCheckBox_EcgModuleControl, 0, 0, 1, 2);
+	pGridLayout_Ecg->addWidget(m_pCheckBox_EcgModuleControl, 0, 0, 1, 3);
 
-	pGridLayout_Ecg->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
-	pGridLayout_Ecg->addWidget(m_pToggledButton_EcgTriggering, 1, 1);
+	QVBoxLayout *pVBoxLayout_Delay = new QVBoxLayout;
+	pVBoxLayout_Delay->setSpacing(0);
+	pVBoxLayout_Delay->addWidget(m_pLabel_EcgDelayRate);
+	pVBoxLayout_Delay->addWidget(m_pDoubleSpinBox_EcgDelayRate);
 
-	pGridLayout_Ecg->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
-	pGridLayout_Ecg->addWidget(m_pLabel_EcgBitPerMinute, 2, 1);
+	QVBoxLayout *pVBoxLayout_Triggering = new QVBoxLayout;
+	pVBoxLayout_Triggering->setSpacing(3);
+	pVBoxLayout_Triggering->addWidget(m_pToggledButton_EcgTriggering);
+	pVBoxLayout_Triggering->addWidget(m_pLabel_EcgBitPerMinute);
 
-	pGridLayout_Ecg->addWidget(m_pEcgScope, 3, 0, 1, 2);
+	pGridLayout_Ecg->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0, 2, 1);
+	pGridLayout_Ecg->addItem(pVBoxLayout_Delay, 1, 1, 2, 1);
+	pGridLayout_Ecg->addItem(pVBoxLayout_Triggering, 1, 2, 2, 1);
+	
+	pGridLayout_Ecg->addWidget(m_pEcgScope, 3, 0, 1, 3);
 		
 	QGridLayout *pGridLayout_Voltage800Rps = new QGridLayout;
 	pGridLayout_Voltage800Rps->setSpacing(3);
@@ -188,6 +208,7 @@ void QDeviceControlTab::createEcgModuleControl()
 	// Connect signal and slot
 	connect(m_pCheckBox_EcgModuleControl, SIGNAL(toggled(bool)), this, SLOT(enableEcgModuleControl(bool)));
 	connect(m_pToggledButton_EcgTriggering, SIGNAL(toggled(bool)), this, SLOT(toggleEcgTriggerButton(bool)));
+	connect(m_pDoubleSpinBox_EcgDelayRate, SIGNAL(valueChanged(double)), this, SLOT(changeEcgDelayRate(double)));
 	connect(m_pCheckBox_Voltage800Rps, SIGNAL(toggled(bool)), this, SLOT(enable800rpsVoltControl(bool)));
 	connect(m_pToggledButton_Voltage800Rps, SIGNAL(toggled(bool)), this, SLOT(toggle800rpsVoltButton(bool)));
 	connect(m_pDoubleSpinBox_Voltage800Rps, SIGNAL(valueChanged(double)), this, SLOT(set800rpsVoltage(double)));
@@ -475,13 +496,18 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 #if NI_ENABLE
 void QDeviceControlTab::setEcgRecording(bool set)
 {
-      if (set) std::deque<double>().swap(m_pEcgMonitoring->deque_record_ecg);
-      m_pEcgMonitoring->isRecording = set;
+    if (set) std::deque<double>().swap(m_pEcgMonitoring->deque_record_ecg);
+    m_pEcgMonitoring->isRecording = set;
+}
+
+double QDeviceControlTab::getEcgHeartInterval()
+{
+	return m_pEcgMonitoring->heart_interval;
 }
 
 std::deque<double>* QDeviceControlTab::getRecordedEcg()
 {
-      return &m_pEcgMonitoring->deque_record_ecg;
+	return &m_pEcgMonitoring->deque_record_ecg;
 }
 #endif        
 #endif
@@ -499,6 +525,8 @@ void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 		// Set enabled true for ECG module widgets
 		m_pLabel_EcgBitPerMinute->setEnabled(true);
 		m_pToggledButton_EcgTriggering->setEnabled(true);
+		m_pLabel_EcgDelayRate->setEnabled(true);
+		m_pDoubleSpinBox_EcgDelayRate->setEnabled(true);
 		m_pEcgScope->setEnabled(true);
 
 		// Create ECG monitoring objects
@@ -551,6 +579,8 @@ void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 		// Set enabled false for ECG module widgets
 		m_pLabel_EcgBitPerMinute->setEnabled(false);
 		m_pToggledButton_EcgTriggering->setEnabled(false);
+		m_pLabel_EcgDelayRate->setEnabled(false);
+		m_pDoubleSpinBox_EcgDelayRate->setEnabled(false);
 		m_pEcgScope->setEnabled(false);
 
 		// Set text
@@ -567,6 +597,11 @@ void QDeviceControlTab::toggleEcgTriggerButton(bool toggled)
 	else
 		m_pToggledButton_EcgTriggering->setText("ECG Triggering On");
 #endif
+}
+
+void QDeviceControlTab::changeEcgDelayRate(double d)
+{
+	m_pConfig->ecgDelayRate = (float)d;
 }
 
 void QDeviceControlTab::enable800rpsVoltControl(bool toggled)

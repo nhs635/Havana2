@@ -254,11 +254,16 @@ end
 ecgname = [dfilenm,'.ecg'];
 if (exist(ecgname,'file') ~= 0)
     fid_ecg = fopen(ecgname,'r');    
-    rec_ecg = fread(fid_mask,'float64');
-    fclose(rec_ecg);
+    rec_ecg = fread(fid_ecg,'float64');
+    fclose(fid_ecg);
     
-    t = [1 : length(rec_ecg)] / 1000;
-    figure(277); plot(t,rec_ecg); ylim([-1 1]); grid on;
+    delay = rec_ecg(end)/1000;
+    rec_ecg = rec_ecg(1:end-1);
+    
+    t = (1 : length(rec_ecg)) / 1000;
+    figure(277); plot(t,rec_ecg,'r'); ylim([-1 1]); grid on;
+    hold on; plot([1 1]*delay,[-1 1],'k'); hold off;
+    xlabel('time (sec)'); ylabel('voltage (V)');
 end
 
 %% OCT FLIM data

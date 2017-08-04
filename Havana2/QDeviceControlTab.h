@@ -80,7 +80,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #if NI_ENABLE
 	// ECG Module Control
 	bool isEcgTriggered() { return m_pToggledButton_EcgTriggering->isChecked(); }
+	double getEcgDelayRate() { return m_pDoubleSpinBox_EcgDelayRate->value(); }
 	void setEcgRecording(bool set);
+	double getEcgHeartInterval();
 	std::deque<double>* getRecordedEcg();
 #endif	
 #endif
@@ -99,6 +101,7 @@ private slots: /////////////////////////////////////////////////////////////////
 	// ECG Module Control
 	void enableEcgModuleControl(bool);
 	void toggleEcgTriggerButton(bool);
+	void changeEcgDelayRate(double);
 	void enable800rpsVoltControl(bool);
 	void toggle800rpsVoltButton(bool);
 	void set800rpsVoltage(double);
@@ -197,6 +200,8 @@ private: ///////////////////////////////////////////////////////////////////////
 	QPushButton *m_pToggledButton_EcgTriggering;
 	QLabel *m_pLabel_EcgBitPerMinute;	
 	QEcgScope *m_pEcgScope;
+	QLabel *m_pLabel_EcgDelayRate;
+	QDoubleSpinBox *m_pDoubleSpinBox_EcgDelayRate;
 
 	QCheckBox *m_pCheckBox_Voltage800Rps;
 	QPushButton *m_pToggledButton_Voltage800Rps;

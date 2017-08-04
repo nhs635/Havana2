@@ -46,3 +46,4 @@ Havana2.VC*
 - 170804 Havana2 v.1.1.1 
   (ECG triggering writing mode + MATLAB access script added.)
   (Faulhaber rotation direction & Zaber microstepsize added to configuration.)
+  (ECG triggering delay rate widget and delaying recording added.)

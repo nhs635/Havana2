@@ -130,7 +130,10 @@ bool MemoryBuffer::startRecording()
 		m_pDeviceControlTab->m_cvRpeakDetected.wait(mlock);
 		if (m_pDeviceControlTab->m_bRpeakNotDetected)
 			return false; // Cancel recording process
-		m_pDeviceControlTab->setEcgRecording(true);
+		m_pDeviceControlTab->setEcgRecording(true); // Start ECG recording
+
+		long delay = long(m_pDeviceControlTab->getEcgDelayRate() * m_pDeviceControlTab->getEcgHeartInterval()); // milliseconds
+		std::this_thread::sleep_for(std::chrono::milliseconds(delay)); // Wait for stable phase
 	}
 #endif
 
@@ -314,6 +317,9 @@ void MemoryBuffer::write()
 			for (int i = 0; i < pDequeEcg->size(); i++)
 				ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
 		}
+		double delay = m_pDeviceControlTab->getEcgDelayRate() * m_pDeviceControlTab->getEcgHeartInterval(); // milliseconds
+		ecgFile.write(reinterpret_cast<char*>(&delay), sizeof(double));
+
 		ecgFile.close();
 		std::deque<double>().swap(*pDequeEcg);
 	}

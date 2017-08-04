@@ -27,6 +27,7 @@ public:
 	std::deque<double> deque_record_ecg;
 	std::deque<int> deque_period;
 	int prev_peak_pos;
+	double heart_interval;
 	bool isRecording;
 
 private:

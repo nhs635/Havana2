@@ -137,11 +137,12 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 				{
 					pEcgMonitor->deque_period.pop_front();
 
-					double heart_period = 0;
+					double heart_interval = 0;
 					for (int i = 0; i < 5; i++)
-						heart_period += (double)pEcgMonitor->deque_period.at(i) / 5.0;
+						heart_interval += (double)pEcgMonitor->deque_period.at(i) / 5.0;
 
-					pEcgMonitor->renewHeartRate(60.0 / heart_period * 1000.0);
+					pEcgMonitor->heart_interval = heart_interval; // milliseconds
+					pEcgMonitor->renewHeartRate(60.0 / heart_interval * 1000.0);
 				}
 			}
 		}

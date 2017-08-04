@@ -67,7 +67,7 @@
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			50
 #else
-#define WRITING_BUFFER_SIZE	        500
+#define WRITING_BUFFER_SIZE	        1000
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -173,6 +173,9 @@ public:
 		flimLifetimeRange.min = settings.value("flimLifetimeRangeMin").toFloat();
 #endif
 		// Device control
+#ifdef ECG_TRIGGERING
+		ecgDelayRate = settings.value("ecgDelayRate").toFloat();
+#endif
 #ifdef OCT_FLIM
 		pmtGainVoltage = settings.value("pmtGainVoltage").toFloat();
 #endif
@@ -255,6 +258,9 @@ public:
 		settings.setValue("flimLifetimeRangeMin", QString::number(flimLifetimeRange.min, 'f', 1)); 
 #endif	
 		// Device control
+#ifdef ECG_TRIGGERING
+		settings.setValue("ecgDelayRate", QString::number(ecgDelayRate, 'f', 2));
+#endif
 #ifdef OCT_FLIM
 		settings.setValue("pmtGainVoltage", QString::number(pmtGainVoltage, 'f', 2));
 #endif
@@ -325,6 +331,9 @@ public:
 	bool erasmus;
 
 	// Device control
+#ifdef ECG_TRIGGERING
+	float ecgDelayRate;
+#endif
 #ifdef OCT_FLIM
 	float pmtGainVoltage;
 #endif
