@@ -32,6 +32,9 @@ calibration.dat
 d1.bin
 d2.bin
 flim_mask.dat
+Havana2.sln
+Havana2.vcxproj
+Havana2.vcxproj.*
 Havana2.sdf
 Havana2.VC.db
 
@@ -43,3 +46,4 @@ Havana2.VC.db
   (.gitignore added.)
 - 170804 Havana2 v.1.1.1 
   (ECG triggering writing mode + MATLAB access script added.)
+  (Faulhaber rotation direction & Zaber microstepsize added to configuration.)

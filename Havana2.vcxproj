@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2212358D-08F8-3AB9-8AC8-9AD13E7DFF7A}</ProjectGuid>
+    <ProjectGuid>{13283E6C-590D-3FBC-BDE0-C6AED3BC3561}</ProjectGuid>
     <RootNamespace>Havana2</RootNamespace>
     <Keyword>Qt4VSv1.0</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <PlatformToolSet>Intel C++ Compiler 17.0</PlatformToolSet>
+    <PlatformToolSet>v140</PlatformToolSet>
     <OutputDirectory>release\</OutputDirectory>
     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
     <CharacterSet>NotSet</CharacterSet>
@@ -26,7 +26,7 @@
     <PrimaryOutput>Havana2</PrimaryOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <PlatformToolSet>Intel C++ Compiler 17.0</PlatformToolSet>
+    <PlatformToolSet>v140</PlatformToolSet>
     <OutputDirectory>debug\</OutputDirectory>
     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
     <CharacterSet>NotSet</CharacterSet>
@@ -73,15 +73,9 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
-      <Parallelization>true</Parallelization>
-      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
-      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
-      <UseProcessorExtensions>AVX2</UseProcessorExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>C:\Users\BOP-FLIM\Desktop\Havana2\lib\PX14_64.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\NIDAQmx.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippch.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippcc.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippcore.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippi.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ipps.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippvm.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\vc14\tbb_debug.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\vc14\tbb.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_core.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_tbb_thread.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_intel_lp64.lib;$(QTDIR)\lib\Qt5Widgets.lib;$(QTDIR)\lib\Qt5Gui.lib;$(QTDIR)\lib\Qt5SerialPort.lib;$(QTDIR)\lib\Qt5Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\hp\Desktop\Havana2\lib\PX14_64.lib;C:\Users\hp\Desktop\Havana2\lib\NIDAQmx.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippch.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippcc.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippcore.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippi.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ipps.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippvm.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\vc14\tbb_debug.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\vc14\tbb.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_core.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_tbb_thread.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_intel_lp64.lib;$(QTDIR)\lib\Qt5Widgets.lib;$(QTDIR)\lib\Qt5Gui.lib;$(QTDIR)\lib\Qt5SerialPort.lib;$(QTDIR)\lib\Qt5Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\QT\5.8\MSVC2015_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
@@ -112,7 +106,7 @@
       <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CONSOLE;UNICODE;WIN32;WIN64;QT_DEPRECATED_WARNINGS;QT_WIDGETS_LIB;QT_GUI_LIB;QT_SERIALPORT_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -122,14 +116,9 @@
       <WarningLevel>Level3</WarningLevel>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
-      <Parallelization>true</Parallelization>
-      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
-      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
-      <UseProcessorExtensions>AVX2</UseProcessorExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>C:\Users\BOP-FLIM\Desktop\Havana2\lib\PX14_64.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\NIDAQmx.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippch.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippcc.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippcore.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippi.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ipps.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\ippvm.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\vc14\tbb_debug.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\vc14\tbb.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_core.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_tbb_thread.lib;C:\Users\BOP-FLIM\Desktop\Havana2\lib\intel64_win\mkl_intel_lp64.lib;$(QTDIR)\lib\Qt5Widgetsd.lib;$(QTDIR)\lib\Qt5Guid.lib;$(QTDIR)\lib\Qt5SerialPortd.lib;$(QTDIR)\lib\Qt5Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\hp\Desktop\Havana2\lib\PX14_64.lib;C:\Users\hp\Desktop\Havana2\lib\NIDAQmx.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippch.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippcc.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippcore.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippi.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ipps.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\ippvm.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\vc14\tbb_debug.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\vc14\tbb.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_core.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_tbb_thread.lib;C:\Users\hp\Desktop\Havana2\lib\intel64_win\mkl_intel_lp64.lib;$(QTDIR)\lib\Qt5Widgetsd.lib;$(QTDIR)\lib\Qt5Guid.lib;$(QTDIR)\lib\Qt5SerialPortd.lib;$(QTDIR)\lib\Qt5Cored.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\QT\5.8\MSVC2015_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
@@ -236,6 +225,212 @@
     <ClCompile Include="DeviceControl\ECGMonitoring\Voltage800RPS.cpp" />
     <ClCompile Include="DeviceControl\ZaberStage\ZaberStage.cpp" />
     <ClCompile Include="DeviceControl\ZaberStage\zb_serial.cpp" />
+    <ClCompile Include="Release\moc_QStreamTab.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Release\moc_SaveResultDlg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GeneratedFiles\ui_MainWindow.h" />
+    <ClInclude Include="Havana2\Configuration.h" />
+    <CustomBuild Include="DataAcquisition\DataAcquisition.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing DataAcquisition.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing DataAcquisition.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\DigitizerSetupDlg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing DigitizerSetupDlg.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing DigitizerSetupDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoring.h" />
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.h" />
+    <ClInclude Include="DeviceControl\FLIMControl\ElforlightLaser.h" />
+    <ClInclude Include="DataProcess\FLIMProcess\FLIMProcess.h" />
+    <ClInclude Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.h" />
+    <CustomBuild Include="Havana2\Dialog\FlimCalibDlg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing FlimCalibDlg.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing FlimCalibDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="DeviceControl\GalvoScan\GalvoScan.h" />
+    <CustomBuild Include="Havana2\MainWindow.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing MainWindow.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing MainWindow.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="MemoryBuffer\MemoryBuffer.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing MemoryBuffer.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing MemoryBuffer.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="DataProcess\OCTProcess\OCTProcess.h" />
+    <CustomBuild Include="Havana2\Dialog\OctCalibDlg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing OctCalibDlg.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing OctCalibDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="DeviceControl\FLIMControl\PmtGainControl.h" />
+    <CustomBuild Include="Havana2\Dialog\PulseReviewDlg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing PulseReviewDlg.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing PulseReviewDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QCalibScope.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QCalibScope.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QCalibScope.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QDeviceControlTab.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QDeviceControlTab.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QDeviceControlTab.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QEcgScope.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QEcgScope.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QEcgScope.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QImageView.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QImageView.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QImageView.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QOperationTab.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QOperationTab.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QOperationTab.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QResultTab.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QResultTab.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QResultTab.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QScope.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QScope.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QScope.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Viewer\QScope2.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QScope2.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QScope2.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="DeviceControl\QSerialComm.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QSerialComm.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QSerialComm.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\QStreamTab.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QStreamTab.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QStreamTab.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Havana2\Dialog\SaveResultDlg.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing SaveResultDlg.h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing SaveResultDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h" />
+    <ClInclude Include="DeviceControl\FLIMControl\SyncFLIM.h" />
+    <ClInclude Include="DataProcess\ThreadManager.h" />
+    <ClInclude Include="DeviceControl\ECGMonitoring\Voltage800RPS.h" />
+    <ClInclude Include="DeviceControl\ZaberStage\ZaberStage.h" />
+    <ClInclude Include="DeviceControl\ZaberStage\zb_serial.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Release\moc_DataAcquisition.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -251,224 +446,6 @@
     <ClCompile Include="Release\moc_MemoryBuffer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Release\moc_QEcgScope.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Release\moc_QOperationTab.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Release\moc_QResultTab.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Release\moc_QScope.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Release\moc_QSerialComm.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Release\moc_SaveResultDlg.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GeneratedFiles\ui_MainWindow.h" />
-    <ClInclude Include="Havana2\Configuration.h" />
-    <CustomBuild Include="DataAcquisition\DataAcquisition.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing DataAcquisition.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing DataAcquisition.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Dialog\DigitizerSetupDlg.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing DigitizerSetupDlg.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing DigitizerSetupDlg.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoring.h" />
-    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.h" />
-    <ClInclude Include="DeviceControl\FLIMControl\ElforlightLaser.h" />
-    <ClInclude Include="DataProcess\FLIMProcess\FLIMProcess.h" />
-    <ClInclude Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.h" />
-    <CustomBuild Include="Havana2\Dialog\FlimCalibDlg.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing FlimCalibDlg.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing FlimCalibDlg.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="DeviceControl\GalvoScan\GalvoScan.h" />
-    <CustomBuild Include="Havana2\MainWindow.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing MainWindow.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing MainWindow.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="MemoryBuffer\MemoryBuffer.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing MemoryBuffer.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing MemoryBuffer.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="DataProcess\OCTProcess\OCTProcess.h" />
-    <CustomBuild Include="Havana2\Dialog\OctCalibDlg.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing OctCalibDlg.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing OctCalibDlg.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="DeviceControl\FLIMControl\PmtGainControl.h" />
-    <CustomBuild Include="Havana2\Dialog\PulseReviewDlg.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing PulseReviewDlg.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing PulseReviewDlg.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Viewer\QCalibScope.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QCalibScope.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QCalibScope.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\QDeviceControlTab.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QDeviceControlTab.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QDeviceControlTab.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Viewer\QEcgScope.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QEcgScope.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QEcgScope.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Viewer\QImageView.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QImageView.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QImageView.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\QOperationTab.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QOperationTab.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QOperationTab.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\QResultTab.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QResultTab.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QResultTab.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Viewer\QScope.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QScope.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QScope.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Viewer\QScope2.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QScope2.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QScope2.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="DeviceControl\QSerialComm.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QSerialComm.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QSerialComm.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\QStreamTab.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QStreamTab.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing QStreamTab.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="Havana2\Dialog\SaveResultDlg.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\release" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing SaveResultDlg.h...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_CONSOLE -DUNICODE -DWIN32 -DWIN64 -DQT_DEPRECATED_WARNINGS -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB  "-I." "-I.\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtWidgets" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtGui" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtANGLE" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtSerialPort" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\include\QtCore" "-I.\debug" "-I.\..\..\..\..\QT\5.8\MSVC2015_64\mkspecs\win32-msvc2015" "-I.\GeneratedFiles"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing SaveResultDlg.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h" />
-    <ClInclude Include="DeviceControl\FLIMControl\SyncFLIM.h" />
-    <ClInclude Include="DataProcess\ThreadManager.h" />
-    <ClInclude Include="DeviceControl\ECGMonitoring\Voltage800RPS.h" />
-    <ClInclude Include="DeviceControl\ZaberStage\ZaberStage.h" />
-    <ClInclude Include="DeviceControl\ZaberStage\zb_serial.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Release\moc_OctCalibDlg.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -481,13 +458,25 @@
     <ClCompile Include="Release\moc_QDeviceControlTab.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Release\moc_QEcgScope.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Release\moc_QImageView.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QOperationTab.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QResultTab.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Release\moc_QScope.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Release\moc_QScope2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Release\moc_QStreamTab.cpp">
+    <ClCompile Include="Release\moc_QSerialComm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <CustomBuild Include="debug\moc_predefs.h.cbt">

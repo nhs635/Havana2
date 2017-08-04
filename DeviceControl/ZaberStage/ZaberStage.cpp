@@ -10,7 +10,7 @@ ZaberStage::ZaberStage() :
 	micro_resolution(ZABER_MICRO_RESOLUTION),
 	conversion_factor(ZABER_CONVERSION_FACTOR),
 	port(INVALID_HANDLE_VALUE),
-	microstep_size(0.09921875), // micro-meter
+	microstep_size(ZABER_MICRO_STEPSIZE),
 	_running(false)
 {
 	memset(home, 0, sizeof(home));
