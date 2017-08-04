@@ -30,6 +30,7 @@
 #endif
 
 #include <iostream>
+#include <deque>
 #include <thread>
 #include <chrono>
 
@@ -129,7 +130,7 @@ void QDeviceControlTab::createEcgModuleControl()
 	m_pToggledButton_EcgTriggering->setText("ECG Triggering On");
 	m_pToggledButton_EcgTriggering->setEnabled(false);
 
-	m_pEcgScope = new QEcgScope({ 0, 2000 }, { -5, 5 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
+	m_pEcgScope = new QEcgScope({ 0, N_VIS_SAMPS_ECG }, { -1, 1 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
 	m_pEcgScope->setFixedHeight(120);
 	m_pEcgScope->setEnabled(false);
 
@@ -202,11 +203,10 @@ void QDeviceControlTab::createPmtGainControl()
 
     m_pCheckBox_PmtGainControl = new QCheckBox(m_pGroupBox_FlimControl);
     m_pCheckBox_PmtGainControl->setText("Enable PMT Gain Control");
-	m_pCheckBox_PmtGainControl->setFixedWidth(140);
 
     m_pLineEdit_PmtGainVoltage = new QLineEdit(m_pGroupBox_FlimControl);
     m_pLineEdit_PmtGainVoltage->setFixedWidth(35);
-    m_pLineEdit_PmtGainVoltage->setText(QString::number(m_pConfig->pmtGainVoltage, 'f', 2));
+    m_pLineEdit_PmtGainVoltage->setText("0.50");
 	m_pLineEdit_PmtGainVoltage->setAlignment(Qt::AlignCenter);
     m_pLineEdit_PmtGainVoltage->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_pLineEdit_PmtGainVoltage->setEnabled(true);
@@ -223,7 +223,6 @@ void QDeviceControlTab::createPmtGainControl()
 
 	// Connect signal and slot
 	connect(m_pCheckBox_PmtGainControl, SIGNAL(toggled(bool)), this, SLOT(enablePmtGainControl(bool)));
-	connect(m_pLineEdit_PmtGainVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage(const QString &)));
 }
 
 void QDeviceControlTab::createFlimLaserSyncControl()
@@ -310,13 +309,13 @@ void QDeviceControlTab::createGalvanoMirrorControl()
 
     m_pLineEdit_PeakToPeakVoltage = new QLineEdit(pGroupBox_GalvanoMirrorControl);
     m_pLineEdit_PeakToPeakVoltage->setFixedWidth(30);
-    m_pLineEdit_PeakToPeakVoltage->setText(QString::number(m_pConfig->galvoScanVoltage, 'f', 1));
+    m_pLineEdit_PeakToPeakVoltage->setText("2.0");
 	m_pLineEdit_PeakToPeakVoltage->setAlignment(Qt::AlignCenter);
     m_pLineEdit_PeakToPeakVoltage->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     m_pLineEdit_OffsetVoltage = new QLineEdit(pGroupBox_GalvanoMirrorControl);
     m_pLineEdit_OffsetVoltage->setFixedWidth(30);
-    m_pLineEdit_OffsetVoltage->setText(QString::number(m_pConfig->galvoScanVoltageOffset, 'f', 1));
+    m_pLineEdit_OffsetVoltage->setText("-2.5");
 	m_pLineEdit_OffsetVoltage->setAlignment(Qt::AlignCenter);
     m_pLineEdit_OffsetVoltage->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -328,9 +327,6 @@ void QDeviceControlTab::createGalvanoMirrorControl()
 
     m_pScrollBar_ScanAdjustment = new QScrollBar(pGroupBox_GalvanoMirrorControl);
     m_pScrollBar_ScanAdjustment->setOrientation(Qt::Horizontal);
-	m_pScrollBar_ScanAdjustment->setRange(0, m_pConfig->nAlines - 1);
-	m_pScrollBar_ScanAdjustment->setSingleStep(1);
-	m_pScrollBar_ScanAdjustment->setPageStep(m_pScrollBar_ScanAdjustment->maximum() / 10);
     m_pLabel_ScanAdjustment = new QLabel("Scan Adjustment", pGroupBox_GalvanoMirrorControl);
     m_pLabel_ScanAdjustment->setBuddy(m_pScrollBar_ScanAdjustment);
 
@@ -346,12 +342,6 @@ void QDeviceControlTab::createGalvanoMirrorControl()
 
     pGroupBox_GalvanoMirrorControl->setLayout(pGridLayout_GalvanoMirrorControl);
     m_pVBoxLayout->addWidget(pGroupBox_GalvanoMirrorControl);
-
-	// Connect signal and slot
-	connect(m_pCheckBox_GalvanoMirrorControl, SIGNAL(toggled(bool)), this, SLOT(enableGalvanoMirror(bool)));
-	connect(m_pScrollBar_ScanAdjustment, SIGNAL(valueChanged(int)), this, SLOT(scanAdjusting(int)));
-	connect(m_pLineEdit_PeakToPeakVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changeGalvoScanVoltage(const QString &)));
-	connect(m_pLineEdit_OffsetVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changeGalvoScanVoltageOffset(const QString &)));
 }
 #endif
 
@@ -383,12 +373,12 @@ void QDeviceControlTab::createZaberStageControl()
 
     m_pLineEdit_TargetSpeed = new QLineEdit(pGroupBox_ZaberStageControl);
     m_pLineEdit_TargetSpeed->setFixedWidth(25);
-    m_pLineEdit_TargetSpeed->setText(QString::number(m_pConfig->zaberPullbackSpeed));
+    m_pLineEdit_TargetSpeed->setText("10");
 	m_pLineEdit_TargetSpeed->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_TargetSpeed->setDisabled(true);
     m_pLineEdit_TravelLength = new QLineEdit(pGroupBox_ZaberStageControl);
     m_pLineEdit_TravelLength->setFixedWidth(25);
-    m_pLineEdit_TravelLength->setText(QString::number(m_pConfig->zaberPullbackLength));
+    m_pLineEdit_TravelLength->setText("30");
 	m_pLineEdit_TravelLength->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_TravelLength->setDisabled(true);
 
@@ -422,7 +412,6 @@ void QDeviceControlTab::createZaberStageControl()
 	connect(m_pCheckBox_ZaberStageControl, SIGNAL(toggled(bool)), this, SLOT(enableZaberStageControl(bool)));
 	connect(m_pPushButton_MoveAbsolute, SIGNAL(clicked(bool)), this, SLOT(moveAbsolute()));
 	connect(m_pLineEdit_TargetSpeed, SIGNAL(textChanged(const QString &)), this, SLOT(setTargetSpeed(const QString &)));
-	connect(m_pLineEdit_TravelLength, SIGNAL(textChanged(const QString &)), this, SLOT(changeZaberPullbackLength(const QString &)));
 	connect(m_pPushButton_Home, SIGNAL(clicked(bool)), this, SLOT(home()));
 	connect(m_pPushButton_Stop, SIGNAL(clicked(bool)), this, SLOT(stop()));
 }
@@ -444,7 +433,7 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 
     m_pLineEdit_RPM = new QLineEdit(pGroupBox_FaulhaberMotorControl);
     m_pLineEdit_RPM->setFixedWidth(35);
-    m_pLineEdit_RPM->setText(QString::number(m_pConfig->faulhaberRpm));
+    m_pLineEdit_RPM->setText("27234");
 	m_pLineEdit_RPM->setAlignment(Qt::AlignCenter);
     m_pLineEdit_RPM->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_pLineEdit_RPM->setDisabled(true);
@@ -466,11 +455,23 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 	// Connect signal and slot
 	connect(m_pCheckBox_FaulhaberMotorControl, SIGNAL(toggled(bool)), this, SLOT(enableFaulhaberMotorControl(bool)));
 	connect(m_pToggleButton_Rotate, SIGNAL(toggled(bool)), this, SLOT(rotate(bool)));
-	connect(m_pLineEdit_RPM, SIGNAL(textChanged(const QString &)), this, SLOT(changeFaulhaberRpm(const QString &)));
 }
 #endif
 
+#ifdef ECG_TRIGGERING
+#if NI_ENABLE
+void QDeviceControlTab::setEcgRecording(bool set)
+{
+	if (set) std::deque<double>().swap(m_pEcgMonitoring->deque_record_ecg);
+	m_pEcgMonitoring->isRecording = set;
+}
 
+std::deque<double>* QDeviceControlTab::getRecordedEcg()
+{
+	return &m_pEcgMonitoring->deque_record_ecg;
+}
+#endif	
+#endif
 
 #ifdef ECG_TRIGGERING
 void QDeviceControlTab::enableEcgModuleControl(bool toggled)
@@ -690,11 +691,6 @@ void QDeviceControlTab::enablePmtGainControl(bool toggled)
 	}
 }
 
-void QDeviceControlTab::changePmtGainVoltage(const QString &str)
-{
-	m_pConfig->pmtGainVoltage = str.toFloat();
-}
-
 
 void QDeviceControlTab::enableFlimLaserSyncControl(bool toggled)
 {
@@ -848,73 +844,10 @@ void QDeviceControlTab::decreaseLaserPower()
 #endif
 
 #ifdef GALVANO_MIRROR
-void QDeviceControlTab::enableGalvanoMirror(bool toggled)
-{
-	if (toggled)
-	{
+
 #if NI_ENABLE
-		// Set text
-		m_pCheckBox_GalvanoMirrorControl->setText("Disable Galvano Mirror Control");
-
-		// Set enabled false for Galvano mirror control widgets	
-		m_pLabel_ScanVoltage->setEnabled(false);
-		m_pLineEdit_PeakToPeakVoltage->setEnabled(false);
-		m_pLabel_ScanPlusMinus->setEnabled(false);
-		m_pLineEdit_OffsetVoltage->setEnabled(false);
-		m_pLabel_GalvanoVoltage->setEnabled(false);
-
-		// Create Galvano mirror control objects
-		m_pGalvoScan = new GalvoScan;
-		m_pGalvoScan->nAlines = m_pConfig->nAlines;
-		m_pGalvoScan->pp_voltage = m_pLineEdit_PeakToPeakVoltage->text().toDouble();
-		m_pGalvoScan->offset = m_pLineEdit_OffsetVoltage->text().toDouble();
-
-		// Initializing
-		if (!m_pGalvoScan->initialize())
-		{
-			m_pCheckBox_GalvanoMirrorControl->setChecked(false);
-			return;
-		}
-
-		// Start scanning with Galvano mirror
-		m_pGalvoScan->start();
-	}
-	else
-	{
-		// Delete Galvano mirror control objects
-		if (m_pGalvoScan)
-		{
-			m_pGalvoScan->stop();
-			delete m_pGalvoScan;
-		}
-
-		// Set enabled false for Galvano mirror control widgets	
-		m_pLabel_ScanVoltage->setEnabled(true);
-		m_pLineEdit_PeakToPeakVoltage->setEnabled(true);
-		m_pLabel_ScanPlusMinus->setEnabled(true);
-		m_pLineEdit_OffsetVoltage->setEnabled(true);
-		m_pLabel_GalvanoVoltage->setEnabled(true);
-
-		// Set text
-		m_pCheckBox_GalvanoMirrorControl->setText("Enable Galvano Mirror Control");
 #endif
-	}
-}
 
-void QDeviceControlTab::scanAdjusting(int)
-{
-	m_pStreamTab->invalidate();
-}
-
-void QDeviceControlTab::changeGalvoScanVoltage(const QString &str)
-{
-	m_pConfig->galvoScanVoltage = str.toFloat();
-}
-
-void QDeviceControlTab::changeGalvoScanVoltageOffset(const QString &str)
-{
-	m_pConfig->galvoScanVoltageOffset = str.toFloat();
-}
 #endif
 
 #ifdef PULLBACK_DEVICE
@@ -982,15 +915,9 @@ void QDeviceControlTab::moveAbsolute()
 	m_pZaberStage->MoveAbsoulte(m_pLineEdit_TravelLength->text().toDouble());
 }
 
-void QDeviceControlTab::setTargetSpeed(const QString &str)
+void QDeviceControlTab::setTargetSpeed(const QString & str)
 {
 	m_pZaberStage->SetTargetSpeed(str.toDouble());
-	m_pConfig->zaberPullbackSpeed = str.toInt();
-}
-
-void QDeviceControlTab::changeZaberPullbackLength(const QString &str)
-{
-	m_pConfig->zaberPullbackLength = str.toInt();
 }
 
 void QDeviceControlTab::home()
@@ -1062,10 +989,5 @@ void QDeviceControlTab::rotate(bool toggled)
 		m_pLineEdit_RPM->setEnabled(true);
 		m_pToggleButton_Rotate->setText("Rotate");
 	}
-}
-
-void QDeviceControlTab::changeFaulhaberRpm(const QString &str)
-{
-	m_pConfig->faulhaberRpm = str.toInt();
 }
 #endif

@@ -8,6 +8,7 @@
 #include <Havana2/Configuration.h>
 
 #include <iostream>
+#include <deque>
 #include <mutex>
 #include <condition_variable>
 
@@ -79,11 +80,12 @@ public: ////////////////////////////////////////////////////////////////////////
 #if NI_ENABLE
 	// ECG Module Control
 	bool isEcgTriggered() { return m_pToggledButton_EcgTriggering->isChecked(); }
+	void setEcgRecording(bool set);	
+	std::deque<double>* getRecordedEcg();
 #endif	
 #endif
 #ifdef GALVANO_MIRROR
-	int getScrollBarValue() { return m_pScrollBar_ScanAdjustment->value(); }
-	void setScrollBarRange(int alines) { m_pScrollBar_ScanAdjustment->setRange(0, alines - 1); }
+	// ?
 #endif
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
@@ -103,7 +105,6 @@ private slots: /////////////////////////////////////////////////////////////////
 #ifdef OCT_FLIM
 	// PMT Gain Control
 	void enablePmtGainControl(bool);
-	void changePmtGainVoltage(const QString &);
 
 	// FLIM Laser Synchronization Control
 	void enableFlimLaserSyncControl(bool);
@@ -115,25 +116,19 @@ private slots: /////////////////////////////////////////////////////////////////
 	void decreaseLaserPower();
 #endif
 #ifdef GALVANO_MIRROR
-	// Galvano Mirror
-	void enableGalvanoMirror(bool);
-	void scanAdjusting(int);
-	void changeGalvoScanVoltage(const QString &);
-	void changeGalvoScanVoltageOffset(const QString &);
+
 #endif
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
 	void enableZaberStageControl(bool);
 	void moveAbsolute();
 	void setTargetSpeed(const QString &);
-	void changeZaberPullbackLength(const QString &);
 	void home();
 	void stop();
 
 	// Faulhaber Motor Control
 	void enableFaulhaberMotorControl(bool);
 	void rotate(bool);
-	void changeFaulhaberRpm(const QString &);
 #endif
 
 // Variables ////////////////////////////////////////////

@@ -14,6 +14,7 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 EcgMonitoring::EcgMonitoring() :
 	_taskHandle(nullptr),
 	prev_peak_pos(0),
+	isRecording(false),
 	physicalChannel(NI_ECG_CHANNEL),
     sourceTerminal(NI_ECG_TRIG_SOURCE)
 {
@@ -114,6 +115,8 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 	n++;
 	pEcgMonitor->deque_ecg.push_back(data);
 	pEcgMonitor->deque_ecg.pop_front();
+	if (pEcgMonitor->isRecording)
+		pEcgMonitor->deque_record_ecg.push_back(data);
 
 	double derivative[2];
 	derivative[0] = pEcgMonitor->deque_ecg.at(N_VIS_SAMPS_ECG - 2) - pEcgMonitor->deque_ecg.at(N_VIS_SAMPS_ECG - 3);
