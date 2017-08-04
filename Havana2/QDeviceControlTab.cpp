@@ -30,6 +30,7 @@
 #endif
 
 #include <iostream>
+#include <deque>
 #include <thread>
 #include <chrono>
 
@@ -129,7 +130,7 @@ void QDeviceControlTab::createEcgModuleControl()
 	m_pToggledButton_EcgTriggering->setText("ECG Triggering On");
 	m_pToggledButton_EcgTriggering->setEnabled(false);
 
-	m_pEcgScope = new QEcgScope({ 0, 2000 }, { -5, 5 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
+	m_pEcgScope = new QEcgScope({ 0, N_VIS_SAMPS_ECG }, { -1, 1 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
 	m_pEcgScope->setFixedHeight(120);
 	m_pEcgScope->setEnabled(false);
 
@@ -443,7 +444,7 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 	m_pToggleButton_Rotate->setDisabled(true);
 
     m_pLineEdit_RPM = new QLineEdit(pGroupBox_FaulhaberMotorControl);
-    m_pLineEdit_RPM->setFixedWidth(35);
+    m_pLineEdit_RPM->setFixedWidth(40);
     m_pLineEdit_RPM->setText(QString::number(m_pConfig->faulhaberRpm));
 	m_pLineEdit_RPM->setAlignment(Qt::AlignCenter);
     m_pLineEdit_RPM->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -470,7 +471,20 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 }
 #endif
 
+#ifdef ECG_TRIGGERING
+#if NI_ENABLE
+void QDeviceControlTab::setEcgRecording(bool set)
+{
+      if (set) std::deque<double>().swap(m_pEcgMonitoring->deque_record_ecg);
+      m_pEcgMonitoring->isRecording = set;
+}
 
+std::deque<double>* QDeviceControlTab::getRecordedEcg()
+{
+      return &m_pEcgMonitoring->deque_record_ecg;
+}
+#endif        
+#endif
 
 #ifdef ECG_TRIGGERING
 void QDeviceControlTab::enableEcgModuleControl(bool toggled)
@@ -982,7 +996,7 @@ void QDeviceControlTab::moveAbsolute()
 	m_pZaberStage->MoveAbsoulte(m_pLineEdit_TravelLength->text().toDouble());
 }
 
-void QDeviceControlTab::setTargetSpeed(const QString &str)
+void QDeviceControlTab::setTargetSpeed(const QString & str)
 {
 	m_pZaberStage->SetTargetSpeed(str.toDouble());
 	m_pConfig->zaberPullbackSpeed = str.toInt();

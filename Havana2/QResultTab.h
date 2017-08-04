@@ -55,7 +55,9 @@ public:
 	inline QImageView* getCircImageView() const { return m_pImageView_CircImage; }
 	inline int getCurrentFrame() const { return m_pSlider_SelectFrame->value(); }
 	inline int getCurrentOctColorTable() const { return m_pComboBox_OctColorTable->currentIndex(); }
+#ifdef OCT_FLIM
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
+#endif
 	inline void setUserDefinedAlines(int nAlines) { m_pLineEdit_UserDefinedAlines->setText(QString::number(nAlines)); }
 	void setWidgetsText();
 

@@ -5,9 +5,15 @@
 #include <Havana2/QOperationTab.h>
 #include <Havana2/QDeviceControlTab.h>
 
+#ifdef ECG_TRIGGERING
+#include <DeviceControl/ECGMonitoring/EcgMonitoring.h>
+#endif
+
 #include <QtCore/QFile>
 #include <QtWidgets/QMessageBox.h>
 
+#include <iostream>
+#include <deque>
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
@@ -124,6 +130,7 @@ bool MemoryBuffer::startRecording()
 		m_pDeviceControlTab->m_cvRpeakDetected.wait(mlock);
 		if (m_pDeviceControlTab->m_bRpeakNotDetected)
 			return false; // Cancel recording process
+		m_pDeviceControlTab->setEcgRecording(true);
 	}
 #endif
 
@@ -166,6 +173,10 @@ void MemoryBuffer::stopRecording()
 {
 	// Stop recording
 	m_bIsRecording = false;
+	#ifdef ECG_TRIGGERING
+		if (m_pDeviceControlTab->isEcgTriggered()) // When ECG is triggered
+			m_pDeviceControlTab->setEcgRecording(false);
+	#endif
 		
 	if (m_nRecordedFrames != 0) // Not allowed when 'discard'
 	{
@@ -293,7 +304,21 @@ void MemoryBuffer::write()
 	if (false == QFile::copy("flim_mask.dat", fileTitle + ".flim_mask"))
 		printf("Error occurred while copying flim_mask data.\n");
 #endif
-	if (false == QFile::copy("Lumen_IP_octflim.m", filePath + "/Lumen_IP_octflim.m"))
+#ifdef ECG_TRIGGERING
+	auto pDequeEcg = m_pDeviceControlTab->getRecordedEcg();
+	if (pDequeEcg->size() != 0)
+	{
+		QFile ecgFile(fileTitle + ".ecg");
+		if (ecgFile.open(QIODevice::WriteOnly))
+		{
+			for (int i = 0; i < pDequeEcg->size(); i++)
+				ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
+		}
+		ecgFile.close();
+		std::deque<double>().swap(*pDequeEcg);
+	}
+#endif
+	if (false == QFile::copy("Lumen_IP_havana2.m", filePath + "/Lumen_IP_havana2.m"))
 		printf("Error occurred while copying MATLAB processing data.\n");
 	
 	// Send a signal to notify this thread is finished
