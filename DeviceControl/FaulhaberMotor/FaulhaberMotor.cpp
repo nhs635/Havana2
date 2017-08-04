@@ -76,7 +76,7 @@ void FaulhaberMotor::DisconnectDevice()
 void FaulhaberMotor::RotateMotor(int RPM)
 {
 	char buff[100];
-	sprintf_s(buff, sizeof(buff), "v%d\n", -RPM);
+	sprintf_s(buff, sizeof(buff), "v%d\n", (!FAULHABER_POSITIVE_ROTATION) ? -RPM : RPM);
 	
 	printf("FAULHABER: Send: %s", buff);
 	m_pSerialComm->writeSerialPort(buff);

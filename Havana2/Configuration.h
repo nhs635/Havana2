@@ -7,8 +7,8 @@
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 /////////////////////// System setup ////////////////////////
-#define OCT_FLIM
-//#define STANDALONE_OCT
+//#define OCT_FLIM
+#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 //#define DUAL_CHANNEL // not supported dual channel
@@ -18,8 +18,8 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define ECG_TRIGGERING
-#define GALVANO_MIRROR
+#define ECG_TRIGGERING
+//#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 ///////////////////// Library enabling //////////////////////
@@ -33,11 +33,11 @@
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 
 /////////////////////// Device setup ////////////////////////
-#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr1"
-#define NI_ECG_TRIG_SOURCE			"/Dev1/PFI4"
-#define NI_ECG_CHANNEL				"Dev1/ai14"
-#define N_VIS_SAMPS_ECG				2000 // cf. sampling rate for ecg signal : 1 kHz
-#define ECG_THRES_VALUE				1.5 // volt
+#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr0"
+#define NI_ECG_TRIG_SOURCE			"/Dev1/PFI15"
+#define NI_ECG_CHANNEL				"Dev1/ai4"
+#define N_VIS_SAMPS_ECG				5000 // cf. sampling rate for ecg signal : 1 kHz
+#define ECG_THRES_VALUE				0.25 // volt
 #define ECG_THRES_TIME				500 // millisecond
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
 
@@ -50,12 +50,14 @@
 
 #define ELFORLIGHT_PORT				"COM1"
 
-#define ZABER_PORT					"COM9"
+#define ZABER_PORT					"COM5"
 #define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64;
 #define ZABER_MICRO_RESOLUTION		32
-#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_CONVERSION_FACTOR		1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_MICRO_STEPSIZE		0.49609375 // micro-meter ///0.09921875
 
-#define FAULHABER_PORT				"COM2"
+#define FAULHABER_PORT				"COM4"
+#define FAULHABER_POSITIVE_ROTATION true
 
 //////////////////////// Processing /////////////////////////
 #define DATA_HALVING				false
@@ -80,13 +82,13 @@
 
 /////////////////////// Visualization ///////////////////////
 #define N_VIS_SAMPS_FLIM			200
-#define CIRC_RADIUS					1000 //
-#define RING_THICKNESS				80 //
-#define PROJECTION_OFFSET			180
+#define CIRC_RADIUS					800
+#define RING_THICKNESS				50
+#define PROJECTION_OFFSET			100
 
 #define INTENSITY_COLORTABLE		6 // fire
 
-#define RENEWAL_COUNT				20
+#define RENEWAL_COUNT				40
 
 
 
