@@ -41,4 +41,3 @@ Havana2.VC.db
 - 170728 Havana2 v1.1.0 Final Version 
   (Lifetime colortable combobox added. Saving current value for device control added.)
   (.gitignore added.)
-- 170804 ECG triggering writing mode + MATLAB access script added.
