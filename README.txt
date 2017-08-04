@@ -35,7 +35,7 @@ flim_mask.dat
 Havana2.sln
 Havana2.vcxproj*
 Havana2.sdf
-Havana2.VC.*
+Havana2.VC*
 
 
 
