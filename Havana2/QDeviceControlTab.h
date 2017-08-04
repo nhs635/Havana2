@@ -8,6 +8,7 @@
 #include <Havana2/Configuration.h>
 
 #include <iostream>
+#include <deque>
 #include <mutex>
 #include <condition_variable>
 
@@ -79,6 +80,8 @@ public: ////////////////////////////////////////////////////////////////////////
 #if NI_ENABLE
 	// ECG Module Control
 	bool isEcgTriggered() { return m_pToggledButton_EcgTriggering->isChecked(); }
+	void setEcgRecording(bool set);
+	std::deque<double>* getRecordedEcg();
 #endif	
 #endif
 #ifdef GALVANO_MIRROR

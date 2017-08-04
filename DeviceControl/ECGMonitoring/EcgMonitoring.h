@@ -24,8 +24,10 @@ public:
 			
 public:
 	std::deque<double> deque_ecg;
+	std::deque<double> deque_record_ecg;
 	std::deque<int> deque_period;
 	int prev_peak_pos;
+	bool isRecording;
 
 private:
 	const char* physicalChannel;
