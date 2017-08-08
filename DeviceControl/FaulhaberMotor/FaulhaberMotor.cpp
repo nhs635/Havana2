@@ -2,6 +2,7 @@
 #include "FaulhaberMotor.h"
 #include <Havana2/Configuration.h>
 
+#ifdef PULLBACK_DEVICE
 
 FaulhaberMotor::FaulhaberMotor() :
 	port_name(FAULHABER_PORT)
@@ -89,3 +90,5 @@ void FaulhaberMotor::StopMotor()
 	printf("FAULHABER: Send: %s", buff);
 	m_pSerialComm->writeSerialPort(buff);
 }
+
+#endif

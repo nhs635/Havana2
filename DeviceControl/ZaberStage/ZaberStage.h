@@ -1,6 +1,8 @@
 #ifndef _ZABER_STAGE_H_
 #define _ZABER_STAGE_H_
 
+#ifdef PULLBACK_DEVICE
+
 #include "zb_serial.h"
 #include <iostream>
 #include <thread>
@@ -42,4 +44,5 @@ private:
 
 };
 
+#endif
 #endif

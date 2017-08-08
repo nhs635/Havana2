@@ -1,6 +1,8 @@
 #ifndef _FAULHABER_MOTOR_H_
 #define _FAULHABER_MOTOR_H_
 
+#ifdef PULLBACK_DEVICE
+
 #include "../QSerialComm.h"
 
 
@@ -21,4 +23,5 @@ private:
 	const char* port_name;
 };
 
+#endif
 #endif

@@ -41,7 +41,7 @@ public:
 public:
 	int getWidth() const { return width; }
 	int getHeight() const { return height; }
-	auto getColorTable() const { return colortable; }
+        const QVector<QRgb> getColorTable() const { return colortable; }
 
 	void convertRgb()
 	{
