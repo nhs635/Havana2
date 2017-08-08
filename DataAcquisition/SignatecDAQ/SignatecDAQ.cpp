@@ -1,12 +1,11 @@
 
 #include "SignatecDAQ.h"
 
+#if PX14_ENABLE
+
 #include <px14.h>
 
-
 using namespace std;
-
-#if PX14_ENABLE
 
 SignatecDAQ::SignatecDAQ() :
     nChannels(2), 

@@ -1,9 +1,14 @@
 #ifndef _ZABER_STAGE_H_
 #define _ZABER_STAGE_H_
 
+#include <Havana2/Configuration.h>
+
+#ifdef PULLBACK_DEVICE
+
 #include "zb_serial.h"
 #include <iostream>
 #include <thread>
+
 
 class ZaberStage
 {
@@ -42,4 +47,5 @@ private:
 
 };
 
+#endif
 #endif

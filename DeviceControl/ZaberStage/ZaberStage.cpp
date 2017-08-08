@@ -1,8 +1,7 @@
 
 #include "ZaberStage.h"
-#include <Havana2/Configuration.h>
-//#include <QtWidgets/QMessageBox.h>
 
+#ifdef PULLBACK_DEVICE
 
 ZaberStage::ZaberStage() :
 	device_name(ZABER_PORT),
@@ -191,4 +190,4 @@ void ZaberStage::SetTargetSpeed(double speed)
 	printf("ZABER: Set target speed %d (%.1f mm/sec)\n", cmd_speed, speed);
 }
 
-
+#endif

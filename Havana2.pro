@@ -37,10 +37,11 @@ macx {
 
     LIBS += -L/opt/intel/ipp/lib $$IPPLIBS
     debug {
-        LIBS += -L/opt/intel/tbb/lib -ltbbdebug
+        LIBS += -L/opt/intel/tbb/lib -ltbb_debug
     }
     release {
-        LIBS += -L/opt/intel/tbb/lib -ltbb
+        LIBS += -L/opt/intel/tbb/lib -ltbb_debug \
+                -L/opt/intel/tbb/lib -ltbb
     }
     LIBS += -L/opt/intel/mkl/lib $$MKLLIBS
 }
