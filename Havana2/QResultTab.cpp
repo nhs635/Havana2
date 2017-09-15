@@ -37,7 +37,11 @@
 QResultTab::QResultTab(QWidget *parent) :
     QDialog(parent), 
 	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr), m_pCirc(nullptr),
-	m_pMedfiltRect(nullptr), m_pSaveResultDlg(nullptr)
+	m_pMedfiltRect(nullptr), 
+#ifdef CIRC_MEDFILT
+	m_pMedfiltCirc(nullptr), 
+#endif
+	m_pSaveResultDlg(nullptr)
 #ifdef OCT_FLIM
 	, m_pFLIMpost(nullptr), m_pPulseReviewDlg(nullptr)
 	, m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
@@ -146,6 +150,9 @@ QResultTab::~QResultTab()
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
 #endif
 	if (m_pMedfiltRect) delete m_pMedfiltRect;
+#ifdef CIRC_MEDFILT
+	if (m_pMedfiltCirc) delete m_pMedfiltCirc;
+#endif
 #ifdef OCT_FLIM
 	if (m_pMedfiltIntensityMap) delete m_pMedfiltIntensityMap;
 	if (m_pMedfiltLifetimeMap) delete m_pMedfiltLifetimeMap;
@@ -613,7 +620,9 @@ void QResultTab::visualizeImage(int frame)
 		ippiScale_32f8u_C1R(m_vectorOctImage.at(frame), roi_oct.width * sizeof(float),
 			scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), roi_oct, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 		ippiTranspose_8u_C1R(scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), m_pImgObjRectImage->arr.raw_ptr(), roi_oct.height * sizeof(uint8_t), roi_oct);
+#ifndef CIRC_MEDFILT
 		(*m_pMedfiltRect)(m_pImgObjRectImage->arr.raw_ptr());
+#endif
 
 #ifdef OCT_FLIM		
 		// FLIM Visualization		
@@ -631,11 +640,17 @@ void QResultTab::visualizeImage(int frame)
 				
 		if (!m_pCheckBox_CircularizeImage->isChecked())
 		{
+#ifdef CIRC_MEDFILT
+			(*m_pMedfiltRect)(m_pImgObjRectImage->arr.raw_ptr());
+#endif
 			if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(m_pImgObjRectImage->qindeximg.bits());
 		}
 		else
 		{
 			(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", m_pConfig->circCenter);
+#ifdef CIRC_MEDFILT
+			(*m_pMedfiltCirc)(m_pImgObjCircImage->arr.raw_ptr());
+#endif
 			if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(m_pImgObjCircImage->qindeximg.bits());
 		}
 #endif
@@ -1505,6 +1520,10 @@ void QResultTab::setObjects(Configuration* pConfig)
 
 	if (m_pMedfiltRect) delete m_pMedfiltRect;
 	m_pMedfiltRect = new medfilt(pConfig->nAlines4, pConfig->n2ScansFFT, 3, 3);
+#ifdef CIRC_MEDFILT
+	if (m_pMedfiltCirc) delete m_pMedfiltCirc;
+	m_pMedfiltCirc = new medfilt(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, 3, 3);
+#endif
 #ifdef OCT_FLIM
 	if (m_pMedfiltIntensityMap) delete m_pMedfiltIntensityMap;
 	m_pMedfiltIntensityMap = new medfilt(pConfig->n4Alines, pConfig->nFrames, 5, 3);

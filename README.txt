@@ -41,10 +41,13 @@ Havana2.VC*
 
 /*** Update History ***/
 - 170728 Havana2 v1.1.0 Final Version 
-  (Lifetime colortable combobox added. Saving current value for device control added.)
-  (.gitignore added.)
+  (Lifetime colortable combobox was added. Saving current value for device control was added.)
+  (.gitignore was added.)
 - 170804 Havana2 v1.1.1 
-  (ECG triggering writing mode + MATLAB access script added.)
-  (Faulhaber rotation direction & Zaber microstepsize added to configuration.)
-  (ECG triggering delay rate widget and delaying recording added.)
-- 170808 Havana2 v1.1.1 for Mac (code modified.)
+  (ECG triggering writing mode + MATLAB access script were added.)
+  (Faulhaber rotation direction & Zaber microstepsize were added to configuration.)
+  (ECG triggering delay rate widget and delaying recording were added.)
+- 170808 Havana2 v1.1.1 for Mac (code was modified.)
+- 170915 Havana2 v1.2.0
+  (Writing thread and its synchronization buffering were modified.)
+  (Median filtering for circ images was added.)

@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.1.1"
+#define VERSION						"1.2.0"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -18,8 +18,8 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-#define ECG_TRIGGERING
-//#define GALVANO_MIRROR
+//#define ECG_TRIGGERING
+#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 ///////////////////// Library enabling //////////////////////
@@ -50,24 +50,24 @@
 
 #define ELFORLIGHT_PORT				"COM1"
 
-#define ZABER_PORT					"COM5"
+#define ZABER_PORT					"COM9"
 #define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64;
 #define ZABER_MICRO_RESOLUTION		32
-#define ZABER_CONVERSION_FACTOR		1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
-#define ZABER_MICRO_STEPSIZE		0.49609375 // micro-meter ///0.09921875
+#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 
-#define FAULHABER_PORT				"COM4"
-#define FAULHABER_POSITIVE_ROTATION true
+#define FAULHABER_PORT				"COM2"
+#define FAULHABER_POSITIVE_ROTATION false
 
 //////////////////////// Processing /////////////////////////
-#define DATA_HALVING				false
+#define DATA_HALVING				false // to be updated...
 
-#define PROCECSSING_BUFFER_SIZE		50
+#define PROCECSSING_BUFFER_SIZE		20
 
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			50
 #else
-#define WRITING_BUFFER_SIZE	        1000
+#define WRITING_BUFFER_SIZE	        500
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -81,14 +81,20 @@
 #define INTENSITY_THRES				0.001f
 
 /////////////////////// Visualization ///////////////////////
+#define CIRC_MEDFILT // if define: enabling median filtering for circ image.
+					 // but enabling this can cause a slowdown when visualizing circ images.
+
+#ifdef OCT_FLIM
 #define N_VIS_SAMPS_FLIM			200
-#define CIRC_RADIUS					800
-#define RING_THICKNESS				50
+#define RING_THICKNESS				80
+#endif
+
+#define CIRC_RADIUS					1000
 #define PROJECTION_OFFSET			100
 
 #define INTENSITY_COLORTABLE		6 // fire
 
-#define RENEWAL_COUNT				40
+#define RENEWAL_COUNT				25
 
 
 

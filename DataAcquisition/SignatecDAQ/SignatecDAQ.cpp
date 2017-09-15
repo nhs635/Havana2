@@ -281,7 +281,7 @@ void SignatecDAQ::run()
 				prev_chunkp = dma_bufp + 4 * getDataBufferSize(); // last half of buffer;
 			else if (loop_counter % 8 == 4)
 				prev_chunkp = dma_bufp; // first half of buffer
-
+			
 			// Callback
 			np::Array<uint16_t, 2> frame(prev_chunkp, nChannels * nScans, nAlines);
 			DidAcquireData(frameIndex++, frame); // Callback function			

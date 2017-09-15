@@ -62,7 +62,7 @@ public:
 	int m_nRecordedFrames;
 
 public:
-	SyncObject<const uint16_t> m_syncBuffering;
+	SyncObject<uint16_t> m_syncBuffering;
 
 private:
     std::queue<uint16_t*> m_queueWritingBuffer; // writing buffer

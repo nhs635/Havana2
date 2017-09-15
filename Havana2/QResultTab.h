@@ -190,6 +190,9 @@ private:
 public:
 	circularize* m_pCirc;
 	medfilt* m_pMedfiltRect;
+#ifdef CIRC_MEDFILT
+	medfilt* m_pMedfiltCirc;
+#endif
 	medfilt* m_pMedfiltIntensityMap;
 	medfilt* m_pMedfiltLifetimeMap;
 

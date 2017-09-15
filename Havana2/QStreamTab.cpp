@@ -70,6 +70,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pThreadVisualization = new ThreadManager("Visualization process");
 
 	// Create buffers for threading operation
+	m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
 	m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
 	m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch1 Processing
 	m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch1 Visualization
@@ -554,9 +555,28 @@ void QStreamTab::setDataAcquisitionCallback()
 		{
 			if (m_pMemBuff->m_nRecordedFrames < WRITING_BUFFER_SIZE)
 			{
-				// Push to the copy queue for copying transfered data in copy thread
-				m_pMemBuff->m_syncBuffering.Queue_sync.push(frame.raw_ptr());
-				m_pMemBuff->m_nRecordedFrames++;
+				// Get buffer from writing queue
+				uint16_t* frame_ptr = nullptr;
+				{
+					std::unique_lock<std::mutex> lock(m_pMemBuff->m_syncBuffering.mtx);
+
+					if (!m_pMemBuff->m_syncBuffering.queue_buffer.empty())
+					{
+						frame_ptr = m_pMemBuff->m_syncBuffering.queue_buffer.front();
+						m_pMemBuff->m_syncBuffering.queue_buffer.pop();
+					}
+				}
+
+				if (frame_ptr != nullptr)
+				{
+					// Body (Copying the frame data)
+					memcpy(frame_ptr, frame.raw_ptr(), sizeof(uint16_t) * m_pConfig->nFrameSize);
+					//frame_ptr[0] = m_pMemBuff->m_nRecordedFrames; // for test
+
+					// Push to the copy queue for copying transfered data in copy thread
+					m_pMemBuff->m_syncBuffering.Queue_sync.push(frame_ptr);
+					m_pMemBuff->m_nRecordedFrames++;
+				}
 			}
 			else
 			{
@@ -572,8 +592,11 @@ void QStreamTab::setDataAcquisitionCallback()
 	});
 
 	m_pDataAcq->ConnectDaqSendStatusMessage([&](const char * msg) {
-		QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
-		MsgBox.exec();
+		std::thread t1([msg]()	{
+			QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
+			MsgBox.exec();
+		});
+		t1.detach();
 	});
 #endif
 }
@@ -925,12 +948,14 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #endif
 
 	// Create buffers for threading operation
+	m_pMemBuff->m_syncBuffering.deallocate_queue_buffer();
 	m_syncDeinterleaving.deallocate_queue_buffer();
 	m_syncCh1Processing.deallocate_queue_buffer();
 	m_syncCh1Visualization.deallocate_queue_buffer();
 	m_syncCh2Processing.deallocate_queue_buffer();
 	m_syncCh2Visualization.deallocate_queue_buffer();
 
+	m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
 	m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCECSSING_BUFFER_SIZE);
 	m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCECSSING_BUFFER_SIZE);
 	m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCECSSING_BUFFER_SIZE);	

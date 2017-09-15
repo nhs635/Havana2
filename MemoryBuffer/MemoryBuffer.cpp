@@ -153,14 +153,21 @@ bool MemoryBuffer::startRecording()
 		int nFrameSize = m_pConfig->nFrameSize;
 		while (1)
 		{
-			const uint16_t* frame = m_syncBuffering.Queue_sync.pop();
+			// Get the buffer from the buffering sync Queue
+			uint16_t* frame = m_syncBuffering.Queue_sync.pop();
 			if (frame)
 			{
+				// Body
 				uint16_t* buffer = m_queueWritingBuffer.front();
-
 				m_queueWritingBuffer.pop();
 				memcpy(buffer, frame, sizeof(uint16_t) * nFrameSize);
 				m_queueWritingBuffer.push(buffer);
+
+				// Return (push) the buffer to the buffering threading queue
+				{
+					std::unique_lock<std::mutex> lock(m_syncBuffering.mtx);
+					m_syncBuffering.queue_buffer.push(frame);
+				}
 			}
 			else
 				break;
