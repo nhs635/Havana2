@@ -34,7 +34,7 @@ public:
 	void clearDeque();
 
 public slots:
-    void drawData(float data);
+    void drawData(float data, bool is_peak = false);
 
 private:
     QGridLayout *m_pGridLayout;
@@ -57,6 +57,7 @@ protected:
 
 public:
     std::deque<float> m_dqData;
+	std::deque<bool> m_dqIsPeak;
 
     QRange m_xRange;
     QRange m_yRange;

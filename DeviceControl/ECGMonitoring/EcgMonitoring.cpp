@@ -110,6 +110,7 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 
 	static int n = 0;
 	double data;
+	bool is_peak = false;
 
 	DAQmxReadAnalogScalarF64(taskHandle, DAQmx_Val_WaitInfinitely, &data, NULL);
 	n++;
@@ -144,11 +145,13 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 					pEcgMonitor->heart_interval = heart_interval; // milliseconds
 					pEcgMonitor->renewHeartRate(60.0 / heart_interval * 1000.0);
 				}
+
+				is_peak = true;
 			}
 		}
 	}
 	
-	pEcgMonitor->acquiredData(data);	
+	pEcgMonitor->acquiredData(data, is_peak);	
 	
     (void)nSamples;
     (void)everyNsamplesEventType;

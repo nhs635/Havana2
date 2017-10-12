@@ -51,3 +51,6 @@ Havana2.VC*
 - 170915 Havana2 v1.2.0
   (Writing thread and its synchronization buffering were modified.)
   (Median filtering for circ images was added.)
+- 171012 Havana2 v1.2.1
+  (ECG view was modified. - peak position)
+  (Software stability)

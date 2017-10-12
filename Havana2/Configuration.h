@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.0"
+#define VERSION						"1.2.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -18,7 +18,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define ECG_TRIGGERING
+#define ECG_TRIGGERING
 #define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
@@ -33,12 +33,15 @@
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 
 /////////////////////// Device setup ////////////////////////
-#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr0"
+#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr1"
 #define NI_ECG_TRIG_SOURCE			"/Dev1/PFI15"
 #define NI_ECG_CHANNEL				"Dev1/ai4"
-#define N_VIS_SAMPS_ECG				5000 // cf. sampling rate for ecg signal : 1 kHz
+#define ECG_SAMPLING_RATE			1000 // Hz
+#define N_VIS_SAMPS_ECG				2000 // N_VIS_SAMPS_ECG / ECG_SAMPLING_RATE = time span
+#define ECG_VOLTAGE					1 // peak-to-peak voltage for analog input 
 #define ECG_THRES_VALUE				0.25 // volt
 #define ECG_THRES_TIME				500 // millisecond
+#define ECG_VIEW_RENEWAL_COUNT		20
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
 
 #define NI_GALVO_CHANNEL			"Dev1/ao1"
@@ -94,7 +97,7 @@
 
 #define INTENSITY_COLORTABLE		6 // fire
 
-#define RENEWAL_COUNT				25
+#define RENEWAL_COUNT				20
 
 
 

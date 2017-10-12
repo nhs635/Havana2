@@ -1,5 +1,8 @@
 
+#include <Havana2/Configuration.h>
+
 #include "QEcgScope.h"
+
 
 QEcgScope::QEcgScope(QWidget *parent) :
 	QDialog(parent)
@@ -103,8 +106,10 @@ void QEcgScope::setAxis(QRange x_range, QRange y_range,
 
 	// Allocate data buffer
 	for (int i = 0; i < (int)m_pRenderArea->m_sizeGraph.width(); i++)
+	{
 		m_pRenderArea->m_dqData.push_back(0);
-
+		m_pRenderArea->m_dqIsPeak.push_back(false);
+	}
     m_pRenderArea->update();
 }
 
@@ -114,17 +119,25 @@ void QEcgScope::clearDeque()
 	{
 		m_pRenderArea->m_dqData.pop_front();
 		m_pRenderArea->m_dqData.push_back(0);
+
+		m_pRenderArea->m_dqIsPeak.pop_front();
+		m_pRenderArea->m_dqIsPeak.push_back(false);
 	}
 }
 
-void QEcgScope::drawData(float data)
+void QEcgScope::drawData(float data, bool is_peak)
 {
+	static int n = 0;
+
 	if (m_pRenderArea->m_dqData.size() > (int)m_pRenderArea->m_sizeGraph.width())
 		m_pRenderArea->m_dqData.pop_front();
-
 	m_pRenderArea->m_dqData.push_back(data);
 
-	m_pRenderArea->update();
+	if (m_pRenderArea->m_dqIsPeak.size() > (int)m_pRenderArea->m_sizeGraph.width())
+		m_pRenderArea->m_dqIsPeak.pop_front();
+	m_pRenderArea->m_dqIsPeak.push_back(is_peak);
+
+	if (n++ % ECG_VIEW_RENEWAL_COUNT == 0) m_pRenderArea->update();
 }
 
 
@@ -169,4 +182,17 @@ void QRenderAreaEcg::paintEvent(QPaintEvent *)
 		painter.drawLine(x0, x1);
     }
     
+	// Draw peak position
+	painter.setPen(QColor(0xff0000));
+	for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+	{
+		if (m_dqIsPeak.at(i))
+		{
+			QPointF x0, x1;
+			x0.setX((float)(i) / (float)m_sizeGraph.width() * w); x0.setY(0.0f);
+			x1.setX((float)(i) / (float)m_sizeGraph.width() * w); x1.setY((float)h);
+
+			painter.drawLine(x0, x1);
+		}
+	}
 }

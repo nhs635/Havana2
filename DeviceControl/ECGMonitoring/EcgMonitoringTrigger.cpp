@@ -1,5 +1,6 @@
 
 #include "EcgMonitoringTrigger.h"
+
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
@@ -27,8 +28,8 @@ bool EcgMonitoringTrigger::initialize()
 {	
 	printf("Initializing NI Counter for triggering of ECG monitoring...\n");
 		
-	int lowTicks = 10000;
-	int highTicks = 10000; // ECG is digitized by 1 kHz.
+	int lowTicks = 10000000 / ECG_SAMPLING_RATE;
+	int highTicks = lowTicks;
 	uint64_t sampsPerChan = 100000;
 	int res;
 

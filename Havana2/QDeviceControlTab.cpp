@@ -142,7 +142,7 @@ void QDeviceControlTab::createEcgModuleControl()
 	m_pDoubleSpinBox_EcgDelayRate->setAlignment(Qt::AlignCenter);
 	m_pDoubleSpinBox_EcgDelayRate->setDisabled(true);
 	
-	m_pEcgScope = new QEcgScope({ 0, N_VIS_SAMPS_ECG }, { -1, 1 }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
+	m_pEcgScope = new QEcgScope({ 0, N_VIS_SAMPS_ECG }, { -ECG_VOLTAGE, ECG_VOLTAGE }, 2, 2, 0.001, 1, 0, 0, "sec", "V");
 	m_pEcgScope->setFixedHeight(120);
 	m_pEcgScope->setEnabled(false);
 
@@ -540,8 +540,8 @@ void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 			return;
 		}
 		
-		m_pEcgMonitoring->acquiredData += [&](double& data) {
-			m_pEcgScope->drawData(data);
+		m_pEcgMonitoring->acquiredData += [&](double& data, bool& is_peak) {
+			m_pEcgScope->drawData(data, is_peak);
 		};
 		m_pEcgMonitoring->startRecording += [&]() {
 			std::unique_lock<std::mutex> mlock(m_mtxRpeakDetected);

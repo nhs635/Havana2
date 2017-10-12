@@ -18,12 +18,13 @@ public:
 	void start();
 	void stop();
 
-	callback<double&> acquiredData;
+	callback2<double&, bool&> acquiredData;
 	callback<void> startRecording;
 	callback<double> renewHeartRate;
 			
 public:
 	std::deque<double> deque_ecg;
+	std::deque<bool> deque_is_peak;
 	std::deque<double> deque_record_ecg;
 	std::deque<int> deque_period;
 	int prev_peak_pos;
