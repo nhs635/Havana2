@@ -1111,11 +1111,13 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 1 * RING_THICKNESS - 1), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
 
 		// Scan adjust
+#ifdef GALVANO_MIRROR
 		for (int i = 0; i < m_pConfig->n2ScansFFT; i++)
 		{
 			uint8_t* pImg = rectObj->qrgbimg.bits() + 3 * i * m_pConfig->nAlines;
 			std::rotate(pImg, pImg + 3 * m_pMainWnd->m_pDeviceControlTab->getScrollBarValue(), pImg + 3 * m_pConfig->nAlines);
 		}
+#endif
 
 		// Draw image
 		m_pImageView_RectImage->drawImage(rectObj->qrgbimg.bits());

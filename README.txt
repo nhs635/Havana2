@@ -54,3 +54,5 @@ Havana2.VC*
 - 171012 Havana2 v1.2.1
   (ECG view was modified. - peak position)
   (Software stability)
+- 171024 Havana2 v1.2.1.1
+  (Minor error correction) 

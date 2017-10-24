@@ -1,14 +1,14 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.1"
+#define VERSION						"1.2.1.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
-#define STANDALONE_OCT
+#define OCT_FLIM
+//#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 //#define DUAL_CHANNEL // not supported dual channel
@@ -18,7 +18,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-#define ECG_TRIGGERING
+//#define ECG_TRIGGERING
 #define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
@@ -89,10 +89,10 @@
 
 #ifdef OCT_FLIM
 #define N_VIS_SAMPS_FLIM			200
-#define RING_THICKNESS				80
+#define RING_THICKNESS				60
 #endif
 
-#define CIRC_RADIUS					1000
+#define CIRC_RADIUS					1200
 #define PROJECTION_OFFSET			100
 
 #define INTENSITY_COLORTABLE		6 // fire
