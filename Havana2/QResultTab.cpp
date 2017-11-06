@@ -1425,10 +1425,11 @@ void QResultTab::externalDataProcessing()
 						m_nirfSignal = np::FloatArray(nLine);
 
 						QTextStream in(&nirfFile);
-						while (!in.atEnd()) {
+						for (int i = 0; i < nLine; i++)
+						{
 							QString line1 = in.readLine();
 							QString line2 = in.readLine();	
-							m_nirfSignal.at(i++) = (line1.toFloat() + line2.toFloat()) / 2.0f;
+							m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
 						}
 						nirfFile.close();
 						printf("NIRF data was successfully loaded...\n");
