@@ -261,8 +261,8 @@ void QRenderImage::paintEvent(QPaintEvent *)
     int h = this->height();
 
     // Draw image
-	if (m_pImage)
-		painter.drawImage(QRect(0, 0, w, h), *m_pImage);
+    if (m_pImage)
+        painter.drawImage(QRect(0, 0, w, h), *m_pImage);
 
 	// Draw assitive lines
 	for (int i = 0; i < m_hLineLen; i++)

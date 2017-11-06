@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.1.1"
+#define VERSION						"1.2.2"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -12,13 +12,16 @@
 
 #ifdef STANDALONE_OCT
 //#define DUAL_CHANNEL // not supported dual channel
+#define OCT_NIRF // NIRF data can be loaded in Result pannel.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
+#ifndef OCT_NIRF
 //#define ECG_TRIGGERING
+#endif
 #define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
@@ -65,7 +68,7 @@
 //////////////////////// Processing /////////////////////////
 #define DATA_HALVING				false // to be updated...
 
-#define PROCECSSING_BUFFER_SIZE		20
+#define PROCESSING_BUFFER_SIZE		20
 
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			50
@@ -84,11 +87,10 @@
 #define INTENSITY_THRES				0.001f
 
 /////////////////////// Visualization ///////////////////////
-#define CIRC_MEDFILT // if define: enabling median filtering for circ image.
-					 // but enabling this can cause a slowdown when visualizing circ images.
-
 #ifdef OCT_FLIM
 #define N_VIS_SAMPS_FLIM			200
+#endif
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 #define RING_THICKNESS				60
 #endif
 
@@ -128,7 +130,14 @@ enum voltage_range
 class Configuration
 {
 public:
-	explicit Configuration() : nChannels(0), systemType(""), erasmus(false) {}
+	explicit Configuration() : nChannels(0), systemType(""), erasmus(false)		
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	, nirf(false)
+#endif
+	, oldUhs(false)
+#endif
+	{}
 	~Configuration() {}
 
 public:
@@ -181,6 +190,10 @@ public:
 		flimLifetimeRange.max = settings.value("flimLifetimeRangeMax").toFloat();
 		flimLifetimeRange.min = settings.value("flimLifetimeRangeMin").toFloat();
 #endif
+#ifdef OCT_NIRF
+		nirfRange.max = settings.value("nirfRangeMax").toFloat();
+		nirfRange.min = settings.value("nirfRangeMin").toFloat();
+#endif
 		// Device control
 #ifdef ECG_TRIGGERING
 		ecgDelayRate = settings.value("ecgDelayRate").toFloat();
@@ -219,6 +232,12 @@ public:
 		// Erasmus support
 		if (settings.contains("processType"))
 			erasmus = true;
+
+		// Old UHS data support
+#ifdef STANDALONE_OCT
+		if (settings.contains("OldUHS"))
+			oldUhs = true;
+#endif
 
 		settings.endGroup();
 	}
@@ -266,6 +285,11 @@ public:
 		settings.setValue("flimLifetimeRangeMax", QString::number(flimLifetimeRange.max, 'f', 1)); 
 		settings.setValue("flimLifetimeRangeMin", QString::number(flimLifetimeRange.min, 'f', 1)); 
 #endif	
+#ifdef OCT_NIRF
+		settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 1));
+		settings.setValue("nirfRangeMin", QString::number(nirfRange.min, 'f', 1));
+#endif
+
 		// Device control
 #ifdef ECG_TRIGGERING
 		settings.setValue("ecgDelayRate", QString::number(ecgDelayRate, 'f', 2));
@@ -334,10 +358,19 @@ public:
 	Range<float> flimIntensityRange;
 	Range<float> flimLifetimeRange;
 #endif
+#ifdef OCT_NIRF
+	Range<float> nirfRange;
+#endif
 
 	// System type
 	QString systemType;
 	bool erasmus;
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	bool nirf;
+#endif
+	bool oldUhs;
+#endif
 
 	// Device control
 #ifdef ECG_TRIGGERING

@@ -70,16 +70,16 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pThreadVisualization = new ThreadManager("Visualization process");
 
 	// Create buffers for threading operation
-	m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch1 Processing
-	m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch1 Visualization
+    m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch1 Processing
+    m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch1 Visualization
 #ifdef OCT_FLIM
-	m_syncCh2Processing.allocate_queue_buffer(m_pConfig->fnScans, m_pConfig->n4Alines, PROCECSSING_BUFFER_SIZE); // Ch2 Processing
-	m_syncCh2Visualization.allocate_queue_buffer(11, m_pConfig->n4Alines, PROCECSSING_BUFFER_SIZE); // FLIM Visualization
+    m_syncCh2Processing.allocate_queue_buffer(m_pConfig->fnScans, m_pConfig->n4Alines, PROCESSING_BUFFER_SIZE); // Ch2 Processing
+    m_syncCh2Visualization.allocate_queue_buffer(11, m_pConfig->n4Alines, PROCESSING_BUFFER_SIZE); // FLIM Visualization
 #elif defined (STANDALONE_OCT)
-	m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch2 Processing
-	m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE); // Ch2 OCT Visualization
+    m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 Processing
+    m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 OCT Visualization
 #endif
 	
 	// Set signal object
@@ -955,16 +955,16 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_syncCh2Processing.deallocate_queue_buffer();
 	m_syncCh2Visualization.deallocate_queue_buffer();
 
-	m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCECSSING_BUFFER_SIZE);	
+    m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCESSING_BUFFER_SIZE);
 #ifdef OCT_FLIM
-	m_syncCh2Processing.allocate_queue_buffer(m_pConfig->fnScans, nAlines / 4, PROCECSSING_BUFFER_SIZE);
-	m_syncCh2Visualization.allocate_queue_buffer(11, nAlines / 4, PROCECSSING_BUFFER_SIZE);
+    m_syncCh2Processing.allocate_queue_buffer(m_pConfig->fnScans, nAlines / 4, PROCESSING_BUFFER_SIZE);
+    m_syncCh2Visualization.allocate_queue_buffer(11, nAlines / 4, PROCESSING_BUFFER_SIZE);
 #elif defined (STANDALONE_OCT)
-	m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCECSSING_BUFFER_SIZE);
-	m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCECSSING_BUFFER_SIZE);
+    m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
+    m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCESSING_BUFFER_SIZE);
 #endif
 
 	// Reset rect image size

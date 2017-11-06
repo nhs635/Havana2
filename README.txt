@@ -56,3 +56,8 @@ Havana2.VC*
   (Software stability)
 - 171024 Havana2 v1.2.1.1
   (Minor error correction) 
+- 171107 Havana2 v1.2.2
+  (Single frame processing version)
+  (NIRF viewer was added.)
+  (Median filtering for circ images was removed.)
+  (Minor error correction)

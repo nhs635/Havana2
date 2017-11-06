@@ -68,6 +68,11 @@ public:
 		qrgbimg = std::move(qindeximg.scaled(4 * width, height).convertToFormat(QImage::Format_RGB888));
 	}
 
+	void convertNonScaledRgb()
+	{
+		qrgbimg = std::move(qindeximg.convertToFormat(QImage::Format_RGB888));
+	}
+
 	void scaled4()
 	{
 		qindeximg = std::move(qindeximg.scaled(4 * width, height));

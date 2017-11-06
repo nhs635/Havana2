@@ -67,6 +67,7 @@ private:
     void createEnFaceMapTab();
 	
 private slots: // widget operation
+	void changeDataSelection(int id);
 	void createSaveResultDlg();
 	void deleteSaveResultDlg();
 #ifdef OCT_FLIM
@@ -77,6 +78,9 @@ private slots: // widget operation
 	void visualizeImage(int);
 #ifdef OCT_FLIM
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#endif
+#ifdef OCT_NIRF
+	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*);
 #endif
 	void visualizeEnFaceMap(bool scaling = true);
 	void measureDistance(bool);
@@ -89,6 +93,10 @@ private slots: // widget operation
 	void enableHsvEnhancingMode(bool);
 	void adjustFlimContrast();
 	void changeLifetimeColorTable(int);
+#endif
+#ifdef OCT_NIRF
+	void adjustNirfContrast();
+	void adjustNirfOffset(int);
 #endif
 
 private slots: // processing
@@ -105,6 +113,9 @@ signals:
 #ifdef OCT_FLIM
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
 #endif
+#ifdef OCT_NIRF
+	void makeRgb(ImageObject*, ImageObject*, ImageObject*);
+#endif
 	void paintRectImage(uint8_t*);
 	void paintCircImage(uint8_t*);
 
@@ -112,6 +123,9 @@ signals:
 #ifdef OCT_FLIM
 	void paintIntensityMap(uint8_t*);
 	void paintLifetimeMap(uint8_t*);
+#endif
+#ifdef OCT_NIRF
+	void paintNirfMap(uint8_t*);
 #endif
 	void processedSingleFrame(int);
 
@@ -169,6 +183,11 @@ public: // for visualization
 	std::vector<np::FloatArray2> m_vectorPulseCrop;
 	std::vector<np::FloatArray2> m_vectorPulseMask;
 #endif
+#ifdef OCT_NIRF
+	np::FloatArray m_nirfSignal;
+	np::FloatArray2 m_nirfMap;
+	int m_nirfOffset;
+#endif
 
 private:
 	ImageObject *m_pImgObjRectImage;
@@ -177,6 +196,9 @@ private:
 	ImageObject *m_pImgObjIntensity;
 	ImageObject *m_pImgObjLifetime;
 #endif
+#ifdef OCT_NIRF
+	ImageObject *m_pImgObjNirf;
+#endif
 
 	np::Uint8Array2 m_visOctProjection;
 #ifdef OCT_FLIM
@@ -184,19 +206,22 @@ private:
 	ImageObject *m_pImgObjLifetimeMap;
 	ImageObject *m_pImgObjHsvEnhancedMap;
 #endif
-
-
+#ifdef OCT_NIRF
+	ImageObject *m_pImgObjNirfMap;
+#endif	
 
 public:
 	circularize* m_pCirc;
 	medfilt* m_pMedfiltRect;
-#ifdef CIRC_MEDFILT
-	medfilt* m_pMedfiltCirc;
-#endif
+#ifdef OCT_FLIM
 	medfilt* m_pMedfiltIntensityMap;
 	medfilt* m_pMedfiltLifetimeMap;
+#endif
 
+
+public:
 	QString m_path;
+
 
 private:
     // Layout
@@ -223,6 +248,8 @@ private:
 	QCheckBox *m_pCheckBox_UserDefinedAlines;
 	QLineEdit *m_pLineEdit_UserDefinedAlines;
 
+	QCheckBox *m_pCheckBox_SingleFrame;
+
 	QLabel *m_pLabel_DiscomValue;
 	QLineEdit *m_pLineEdit_DiscomValue;
 
@@ -245,6 +272,12 @@ private:
     QLabel *m_pLabel_OctColorTable;
     QComboBox *m_pComboBox_OctColorTable;
 
+#ifdef OCT_NIRF
+	QLabel *m_pLabel_NirfOffset;
+	QLineEdit *m_pLineEdit_NirfOffset;
+	QScrollBar *m_pScrollBar_NirfOffset;
+#endif
+
 #ifdef OCT_FLIM
     QLabel *m_pLabel_EmissionChannel;
     QComboBox *m_pComboBox_EmissionChannel;
@@ -263,6 +296,9 @@ private:
     QLabel *m_pLabel_IntensityMap;
     QLabel *m_pLabel_LifetimeMap;
 #endif
+#ifdef OCT_NIRF
+	QLabel *m_pLabel_NirfMap;
+#endif
 
     QImageView *m_pImageView_OctProjection;
 #ifdef OCT_FLIM
@@ -270,11 +306,17 @@ private:
     QImageView *m_pImageView_LifetimeMap;
     QImageView *m_pImageView_HsvEnhancedMap;
 #endif
+#ifdef OCT_NIRF
+	QImageView *m_pImageView_NirfMap;
+#endif
 
     QImageView *m_pImageView_ColorbarOctProjection;
 #ifdef OCT_FLIM
     QImageView *m_pImageView_ColorbarIntensityMap;
     QImageView *m_pImageView_ColorbarLifetimeMap;
+#endif
+#ifdef OCT_NIRF
+	QImageView *m_pImageView_ColorbarNirfMap;
 #endif
 
     QLineEdit *m_pLineEdit_OctDbMax;
@@ -284,6 +326,10 @@ private:
     QLineEdit *m_pLineEdit_IntensityMin;
     QLineEdit *m_pLineEdit_LifetimeMax;
     QLineEdit *m_pLineEdit_LifetimeMin;
+#endif
+#ifdef OCT_NIRF
+	QLineEdit *m_pLineEdit_NirfMax;
+	QLineEdit *m_pLineEdit_NirfMin;
 #endif
 
 };

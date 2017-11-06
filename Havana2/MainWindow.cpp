@@ -39,7 +39,11 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef ECG_TRIGGERING
 	setWindowTitle(windowTitle.arg("ECG-Triggered UltraHigh-Speed OCT").arg(VERSION));
 #else
+#ifdef OCT_NIRF
+	setWindowTitle(windowTitle.arg("Standalone OCT + NIRF Viewer").arg(VERSION));
+#else
 	setWindowTitle(windowTitle.arg("Standalone OCT").arg(VERSION));
+#endif
 #endif
 #endif	
 	// Create configuration object
