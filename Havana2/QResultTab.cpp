@@ -1419,19 +1419,25 @@ void QResultTab::externalDataProcessing()
 						printf("[ERROR] There is no nirf data or you selected an invalid nirf data!\n");
 					else
 					{
-						int i = 0;
-						int nLine = nirfFile.size() / 20;
-						
-						m_nirfSignal = np::FloatArray(nLine);
-
 						QTextStream in(&nirfFile);
+						int nLine = 0;
+						while (!in.atEnd())
+						{
+							QString tempLine = in.readLine();
+							nLine++;
+						}
+						nLine /= 2;
+
+						in.seek(0);
+						m_nirfSignal = np::FloatArray(nLine);
 						for (int i = 0; i < nLine; i++)
 						{
 							QString line1 = in.readLine();
-							QString line2 = in.readLine();	
+							QString line2 = in.readLine();
 							m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
 						}
 						nirfFile.close();
+
 						printf("NIRF data was successfully loaded...\n");
 						config.nirf = true;
 					}
