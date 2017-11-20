@@ -56,9 +56,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Create tabs objects
     m_pOperationTab = new QOperationTab(this);
+	m_pDeviceControlTab = new QDeviceControlTab(this);
     m_pStreamTab = new QStreamTab(this);
 	m_pResultTab = new QResultTab(this);
-	m_pDeviceControlTab = new QDeviceControlTab(this);
 
     // Create group boxes and tab widgets
     m_pGroupBox_OperationTab = new QGroupBox("Operation Tab");
@@ -167,6 +167,21 @@ void MainWindow::changedTab(int index)
 #ifdef OCT_FLIM
 		if (m_pStreamTab->getFlimCalibDlg())
 			m_pStreamTab->getFlimCalibDlg()->close();
+
+		if (m_pDeviceControlTab->getEnablePmtGainControl()->isChecked())
+			m_pDeviceControlTab->getEnablePmtGainControl()->setChecked(false);
+		if (m_pDeviceControlTab->getEnableFlimLaserSyncControl()->isChecked())
+			if (!m_pDeviceControlTab->getFlimAsyncMode()->isChecked())
+				m_pDeviceControlTab->getEnableFlimLaserSyncControl()->setChecked(false);
+#endif
+
+#ifdef GALVANO_MIRROR
+		if (m_pDeviceControlTab->getEnableGalvanoMirrorControl()->isChecked())
+			m_pDeviceControlTab->getEnableGalvanoMirrorControl()->setChecked(false);
+
+		m_pDeviceControlTab->setScrollBarRange(m_pResultTab->m_pCirc ? m_pResultTab->m_pCirc->alines : m_pConfiguration->nAlines);
+		m_pDeviceControlTab->setScrollBarValue(m_pDeviceControlTab->getScrollBarValue());
+		m_pDeviceControlTab->setScrollBarEnabled(true);
 #endif
 	}
 	else
@@ -178,6 +193,13 @@ void MainWindow::changedTab(int index)
 #ifdef OCT_FLIM
 		if (m_pResultTab->getPulseReviewDlg())
 			m_pResultTab->getPulseReviewDlg()->close();
+#endif
+
+#ifdef GALVANO_MIRROR
+		if (!m_pDeviceControlTab->getEnableGalvanoMirrorControl()->isChecked())
+			m_pDeviceControlTab->setScrollBarEnabled(false);
+		m_pDeviceControlTab->setScrollBarRange(m_pConfiguration->nAlines);
+		m_pDeviceControlTab->setScrollBarValue(m_pDeviceControlTab->getScrollBarValue());
 #endif
 	}
 }

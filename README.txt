@@ -61,3 +61,9 @@ Havana2.VC*
   (NIRF viewer was added.)
   (Median filtering for circ images was removed.)
   (Minor error correction)
+- Havana2 v1.2.2.1
+  (Matlab script for FLIM processing was modified.)
+- Havana2 v1.2.2.2
+  (GalvoScan was updated. - 2 axis scan / fast scan adjustment)
+
+- To be updated: synchronized start for galvano mirror

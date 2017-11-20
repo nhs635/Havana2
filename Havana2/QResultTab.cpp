@@ -4,6 +4,9 @@
 #include <Havana2/MainWindow.h>
 #include <Havana2/QOperationTab.h>
 #include <Havana2/QStreamTab.h>
+#ifdef GALVANO_MIRROR
+#include <Havana2/QDeviceControlTab.h>
+#endif
 #include <Havana2/Viewer/QImageView.h>
 #include <Havana2/Dialog/SaveResultDlg.h>
 #ifdef OCT_FLIM
@@ -52,6 +55,9 @@ QResultTab::QResultTab(QWidget *parent) :
 	// Set main window objects
 	m_pMainWnd = (MainWindow*)parent;
 	m_pConfig = m_pMainWnd->m_pConfiguration;
+#ifdef GALVANO_MIRROR
+	m_pDeviceControlTab = m_pMainWnd->m_pDeviceControlTab;
+#endif
 	m_pMemBuff = m_pMainWnd->m_pOperationTab->m_pMemoryBuffer;
 
 
@@ -748,18 +754,28 @@ void QResultTab::visualizeImage(int frame)
 		ippiScale_32f8u_C1R(m_vectorOctImage.at(frame), roi_oct.width * sizeof(float),
 			scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), roi_oct, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 		ippiTranspose_8u_C1R(scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), m_pImgObjRectImage->arr.raw_ptr(), roi_oct.height * sizeof(uint8_t), roi_oct);
+#ifdef GALVANO_MIRROR
+		if (m_pConfig->galvoHorizontalShift)
+		{
+			for (int i = 0; i < roi_oct.width; i++)
+			{
+				uint8_t* pImg = m_pImgObjRectImage->arr.raw_ptr() + i * roi_oct.height;
+				std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_oct.height);
+			}
+		}
+#endif
 		(*m_pMedfiltRect)(m_pImgObjRectImage->arr.raw_ptr());
 
 #ifdef OCT_FLIM		
 		// FLIM Visualization		
 		uint8_t* rectIntensity = &m_pImgObjIntensityMap->arr(0, m_pImgObjIntensityMap->arr.size(1) - 1 - frame);
 		uint8_t* rectLifetime = &m_pImgObjLifetimeMap->arr(0, m_pImgObjLifetimeMap->arr.size(1) - 1 - frame);
+
 		for (int i = 0; i < RING_THICKNESS; i++)
 		{
 			memcpy(&m_pImgObjIntensity->arr(0, i), rectIntensity, sizeof(uint8_t) * m_pImgObjIntensityMap->arr.size(0));
 			memcpy(&m_pImgObjLifetime->arr(0, i), rectLifetime, sizeof(uint8_t) * m_pImgObjLifetimeMap->arr.size(0));
 		}
-
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjIntensity, m_pImgObjLifetime);
 		
 #elif defined (STANDALONE_OCT)
@@ -767,6 +783,10 @@ void QResultTab::visualizeImage(int frame)
 #ifdef OCT_NIRF
 		// NIRF Visualization
 		uint8_t* rectNirf = &m_pImgObjNirfMap->arr(0, m_pImgObjNirfMap->arr.size(1) - 1 - frame);
+#ifdef GALVANO_MIRROR
+		if (m_pConfig->galvoHorizontalShift)
+			std::rotate(rectNirf, rectNirf + m_pConfig->galvoHorizontalShift, rectNirf + roi_oct.height);
+#endif
 		for (int i = 0; i < RING_THICKNESS; i++)
 			memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * m_pImgObjNirfMap->arr.size(0));
 
@@ -906,6 +926,16 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 			ippiScale_32f8u_C1R(m_octProjection, sizeof(float) * roi_proj.width, m_visOctProjection, sizeof(uint8_t) * roi_proj.width,
 				roi_proj, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 			ippiMirror_8u_C1IR(m_visOctProjection, sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				for (int i = 0; i < roi_proj.height; i++)
+				{
+					uint8_t* pImg = m_visOctProjection.raw_ptr() + i * roi_proj.width;
+					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj.width);
+				}
+			}
+#endif
 
 #ifdef OCT_NIRF
 			// Adjusting NIRF offset
@@ -949,12 +979,32 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 				m_pImgObjIntensityMap->arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 				roi_flimproj, m_pConfig->flimIntensityRange.min, m_pConfig->flimIntensityRange.max);
 			ippiMirror_8u_C1IR(m_pImgObjIntensityMap->arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width, roi_flimproj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				for (int i = 0; i < roi_proj.height; i++)
+				{
+					uint8_t* pImg = m_pImgObjIntensityMap->arr.raw_ptr() + i * roi_proj.width / 4;
+					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_proj.width / 4);
+				}
+			}
+#endif
 			(*m_pMedfiltIntensityMap)(m_pImgObjIntensityMap->arr.raw_ptr());
 
 			ippiScale_32f8u_C1R(m_lifetimeMap.at(m_pComboBox_EmissionChannel->currentIndex()), sizeof(float) * roi_flimproj.width,
 				m_pImgObjLifetimeMap->arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 				roi_flimproj, m_pConfig->flimLifetimeRange.min, m_pConfig->flimLifetimeRange.max);
 			ippiMirror_8u_C1IR(m_pImgObjLifetimeMap->arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width, roi_flimproj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				for (int i = 0; i < roi_proj.height; i++)
+				{
+					uint8_t* pImg = m_pImgObjLifetimeMap->arr.raw_ptr() + i * roi_proj.width / 4;
+					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_proj.width / 4);
+				}
+			}
+#endif
 			(*m_pMedfiltLifetimeMap)(m_pImgObjLifetimeMap->arr.raw_ptr());
 			m_pImgObjLifetimeMap->convertRgb();
 
@@ -1574,6 +1624,12 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pLineEdit_NirfMax->setEnabled(true);
 		m_pLineEdit_NirfMin->setEnabled(true);
 #endif
+
+#ifdef GALVANO_MIRROR
+		m_pDeviceControlTab->setScrollBarRange(pConfig->nAlines);
+		m_pDeviceControlTab->setScrollBarEnabled(true);
+		m_pDeviceControlTab->setScrollBarValue(pConfig->galvoHorizontalShift);
+#endif
 	}
 	else
 	{
@@ -1659,6 +1715,11 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pLineEdit_NirfMax->setDisabled(true);
 		m_pLineEdit_NirfMin->setDisabled(true);
 #endif
+
+#ifdef GALVANO_MIRROR
+		m_pDeviceControlTab->setScrollBarEnabled(false);
+		m_pDeviceControlTab->setScrollBarValue(0);
+#endif
 	}
 }
 
@@ -1734,6 +1795,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLineEdit_NirfMax->setEnabled(true);
 		m_pLineEdit_NirfMin->setEnabled(true);
 #endif
+#ifdef GALVANO_MIRROR
+		m_pDeviceControlTab->setScrollBarEnabled(true);
+#endif
 	}
 	else
 	{
@@ -1799,6 +1863,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #ifdef OCT_NIRF
 		m_pLineEdit_NirfMax->setDisabled(true);
 		m_pLineEdit_NirfMin->setDisabled(true);
+#endif
+#ifdef GALVANO_MIRROR
+		m_pDeviceControlTab->setScrollBarEnabled(false);
 #endif
 	}
 }

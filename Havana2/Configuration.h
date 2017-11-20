@@ -47,12 +47,12 @@
 #define ECG_VIEW_RENEWAL_COUNT		20
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
 
-#define NI_GALVO_CHANNEL			"Dev1/ao1"
+#define NI_GALVO_CHANNEL			"Dev1/ao0:1"
 #define NI_GAVLO_SOURCE				"/Dev1/PFI13"
 
 #define NI_PMT_GAIN_CHANNEL		    "Dev1/ao2"
 #define NI_FLIM_SYNC_CHANNEL		"Dev1/ctr0"
-#define NI_FLIM_SYNC_SOURCE			"PFI13"
+#define NI_FLIM_SYNC_SOURCE			"/Dev1/PFI13"
 
 #define ELFORLIGHT_PORT				"COM1"
 
@@ -91,10 +91,10 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				60
+#define RING_THICKNESS				80 
 #endif
 
-#define CIRC_RADIUS					1200
+#define CIRC_RADIUS					1300
 #define PROJECTION_OFFSET			100
 
 #define INTENSITY_COLORTABLE		6 // fire
@@ -202,8 +202,12 @@ public:
 		pmtGainVoltage = settings.value("pmtGainVoltage").toFloat();
 #endif
 #ifdef GALVANO_MIRROR
-		galvoScanVoltage = settings.value("galvoScanVoltage").toFloat();
-		galvoScanVoltageOffset = settings.value("galvoScanVoltageOffset").toFloat();
+		galvoFastScanVoltage = settings.value("galvoFastScanVoltage").toFloat();
+		galvoFastScanVoltageOffset = settings.value("galvoFastScanVoltageOffset").toFloat();
+		galvoSlowScanVoltage = settings.value("galvoSlowScanVoltage").toFloat();
+		galvoSlowScanVoltageOffset = settings.value("galvoSlowScanVoltageOffset").toFloat();
+		galvoSlowScanIncrement = settings.value("galvoSlowScanIncrement").toFloat();
+		galvoHorizontalShift = 0;
 #endif
 #ifdef PULLBACK_DEVICE
 		zaberPullbackSpeed = settings.value("zaberPullbackSpeed").toInt();
@@ -298,8 +302,12 @@ public:
 		settings.setValue("pmtGainVoltage", QString::number(pmtGainVoltage, 'f', 2));
 #endif
 #ifdef GALVANO_MIRROR
-		settings.setValue("galvoScanVoltage", QString::number(galvoScanVoltage, 'f', 1));
-		settings.setValue("galvoScanVoltageOffset", QString::number(galvoScanVoltageOffset, 'f', 1));
+		settings.setValue("galvoFastScanVoltage", QString::number(galvoFastScanVoltage, 'f', 1));
+		settings.setValue("galvoFastScanVoltageOffset", QString::number(galvoFastScanVoltageOffset, 'f', 1));
+		settings.setValue("galvoSlowScanVoltage", QString::number(galvoSlowScanVoltage, 'f', 1));
+		settings.setValue("galvoSlowScanVoltageOffset", QString::number(galvoSlowScanVoltageOffset, 'f', 1));
+		settings.setValue("galvoSlowScanIncrement", QString::number(galvoSlowScanIncrement, 'f', 3));
+		settings.setValue("galvoHorizontalShift", galvoHorizontalShift);
 #endif
 #ifdef PULLBACK_DEVICE
 		settings.setValue("zaberPullbackSpeed", zaberPullbackSpeed);
@@ -380,8 +388,12 @@ public:
 	float pmtGainVoltage;
 #endif
 #ifdef GALVANO_MIRROR
-	float galvoScanVoltage;
-	float galvoScanVoltageOffset;
+	float galvoFastScanVoltage;
+	float galvoFastScanVoltageOffset;
+	float galvoSlowScanVoltage;
+	float galvoSlowScanVoltageOffset;
+	float galvoSlowScanIncrement;
+	int galvoHorizontalShift;
 #endif
 #ifdef PULLBACK_DEVICE
 	int zaberPullbackSpeed;

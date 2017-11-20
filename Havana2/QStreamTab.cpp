@@ -1056,7 +1056,17 @@ void QStreamTab::visualizeImage(float* res1, float* res2)
 	np::Uint8Array2 scale_temp(roi_oct.width, roi_oct.height);
 	ippiScale_32f8u_C1R(res1, roi_oct.width * sizeof(float), scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), roi_oct, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 	ippiTranspose_8u_C1R(scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), m_pImgObjRectImage->arr.raw_ptr(), roi_oct.height * sizeof(uint8_t), roi_oct);
-	(*m_pMedfilt)(m_pImgObjRectImage->arr.raw_ptr());
+#ifdef GALVANO_MIRROR
+	if (m_pConfig->galvoHorizontalShift)
+	{
+		for (int i = 0; i < m_pConfig->n2ScansFFT; i++)
+		{
+			uint8_t* pImg = m_pImgObjRectImage->arr.raw_ptr() + i * m_pConfig->nAlines;
+			std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + m_pConfig->nAlines);
+		}
+	}
+#endif
+	(*m_pMedfilt)(m_pImgObjRectImage->arr.raw_ptr());	
 
 #ifdef OCT_FLIM
 	// FLIM Visualization

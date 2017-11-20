@@ -66,13 +66,15 @@ for i = 1 : length(config{:})
         eq_pos = strfind(config{1}{i},'=');
         system = config{1}{i}(eq_pos+1:end);
     end
-    
+end
+   
+for i = 1 : length(config{:})
     if (strfind(config{1}{i},'galvoAdjShift'))
         eq_pos = strfind(config{1}{i},'=');
         galvoshift = str2double(config{1}{i}(eq_pos+1:end));
     end
     
-    if strcmp('system','OCT-FLIM')
+    if strcmp(system,'OCT-FLIM')
         if (strfind(config{1}{i},'flimWidthFactor'))
             eq_pos = strfind(config{1}{i},'=');
             mul = str2double(config{1}{i}(eq_pos+1:end));
@@ -83,7 +85,9 @@ for i = 1 : length(config{:})
         end
         if (strfind(config{1}{i},'flimCh'))
             eq_pos = strfind(config{1}{i},'=');
-            flim_ch = str2double(config{1}{i}(eq_pos+1:end)); 
+            if (eq_pos == 7)
+                flim_ch = str2double(config{1}{i}(eq_pos+1:end));
+            end
             % 0 -> 4n / 1 -> 4n+1 / 2 -> 4n+2 / 3 -> 4n+3
         end
         if (strfind(config{1}{i},'preTrigSamps'))
@@ -114,7 +118,7 @@ for i = 1 : length(config{:})
         contrast(1) = str2double(config{1}{i}(eq_pos+1:end));
     end
     
-    if strcmp('system','OCT-FLIM')
+    if strcmp(system,'OCT-FLIM')
         for j = 0 : 3
             ChannelStart = sprintf('flimChStartInd_%d',j);
             if (strfind(config{1}{i},ChannelStart))
@@ -141,7 +145,7 @@ n2_len = n_len/2; n4_len = n_len/4; n8_len = n_len/8;
 im_size = n_len*n_alines;
 im2_size = n2_len*n_alines;
 
-if strcmp('system','OCT-FLIM')
+if strcmp(system,'OCT-FLIM')
     samp_intv = 1000/340;
     ch_start_ind0 = ch_start_ind - ch_start_ind(1) + 1;
     ch_start_ind0 = [ch_start_ind0 ch_start_ind0(end) + 30];

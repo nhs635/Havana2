@@ -64,10 +64,12 @@ public:
 	inline float getOctMaxDb() { return m_pLineEdit_OctDbMax->text().toFloat(); }
 	inline float getOctMinDb() { return m_pLineEdit_OctDbMin->text().toFloat(); }
 	inline void updateFrigneBg() { changeFringeBg(m_pCheckBox_ShowBgRemovedSignal->isChecked()); }
+#ifdef GALVANO_MIRROR
 #ifdef OCT_FLIM
 	inline void invalidate() { visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr()); }
 #elif defined (STANDALONE_OCT)
 	inline void invalidate() { visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr()); }
+#endif
 #endif
 	void setWidgetsText();
 

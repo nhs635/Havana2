@@ -15,6 +15,9 @@
 #include <Common/basic_functions.h>
 
 class MainWindow;
+#ifdef GALVANO_MIRROR
+class QDeviceControlTab;
+#endif
 class MemoryBuffer;
 
 class QImageView;
@@ -59,6 +62,9 @@ public:
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
 #endif
 	inline void setUserDefinedAlines(int nAlines) { m_pLineEdit_UserDefinedAlines->setText(QString::number(nAlines)); }
+#ifdef GALVANO_MIRROR
+	inline void invalidate() { visualizeEnFaceMap(true); visualizeImage(getCurrentFrame()); }
+#endif
 	void setWidgetsText();
 
 private:
@@ -156,6 +162,9 @@ private:
 private: // main pointer
 	MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
+#ifdef GALVANO_MIRROR
+	QDeviceControlTab* m_pDeviceControlTab;
+#endif
 	MemoryBuffer* m_pMemBuff;
 
 #ifdef OCT_FLIM

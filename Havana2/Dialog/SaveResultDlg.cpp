@@ -226,11 +226,31 @@ void SaveResultDlg::saveCrossSections()
 			ippiScale_32f8u_C1R(m_pResultTab->m_intensityMap.at(i), sizeof(float) * roi_flimproj.width,
 				intensity.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 				roi_flimproj, m_pConfig->flimIntensityRange.min, m_pConfig->flimIntensityRange.max);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				for (int i = 0; i < roi_flimproj.height; i++)
+				{
+					uint8_t* pImg = intensity.raw_ptr() + i * roi_flimproj.width;
+					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_flimproj.width);
+				}
+			}
+#endif
 			(*m_pResultTab->m_pMedfiltIntensityMap)(intensity.raw_ptr());
 
 			ippiScale_32f8u_C1R(m_pResultTab->m_lifetimeMap.at(i), sizeof(float) * roi_flimproj.width,
 				lifetime.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 				roi_flimproj, m_pConfig->flimLifetimeRange.min, m_pConfig->flimLifetimeRange.max);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				for (int i = 0; i < roi_flimproj.height; i++)
+				{
+					uint8_t* pImg = lifetime.raw_ptr() + i * roi_flimproj.width;
+					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_flimproj.width);
+				}
+			}
+#endif
 			(*m_pResultTab->m_pMedfiltLifetimeMap)(lifetime.raw_ptr());
 
 			intensityMap.push_back(intensity);
@@ -363,6 +383,16 @@ void SaveResultDlg::saveEnFaceMaps()
 						imgObjIntensity.arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 						roi_flimproj, m_pConfig->flimIntensityRange.min, m_pConfig->flimIntensityRange.max);
 					ippiMirror_8u_C1IR(imgObjIntensity.arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width, roi_flimproj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+					{
+						for (int i = 0; i < roi_flimproj.height; i++)
+						{
+							uint8_t* pImg = imgObjIntensity.arr.raw_ptr() + i * roi_flimproj.width;
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_flimproj.width);
+						}
+					}
+#endif
 					(*m_pResultTab->m_pMedfiltIntensityMap)(imgObjIntensity.arr.raw_ptr());
 					imgObjIntensity.qindeximg.save(enFacePath + QString("intensity_ch%1_[%2 %3].bmp").arg(i + 1)
 						.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1), "bmp");
@@ -372,6 +402,16 @@ void SaveResultDlg::saveEnFaceMaps()
 						imgObjLifetime.arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
 						roi_flimproj, m_pConfig->flimLifetimeRange.min, m_pConfig->flimLifetimeRange.max);
 					ippiMirror_8u_C1IR(imgObjLifetime.arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width, roi_flimproj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+					{
+						for (int i = 0; i < roi_flimproj.height; i++)
+						{
+							uint8_t* pImg = imgObjLifetime.arr.raw_ptr() + i * roi_flimproj.width;
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_flimproj.width);
+						}
+					}
+#endif
 					(*m_pResultTab->m_pMedfiltLifetimeMap)(imgObjLifetime.arr.raw_ptr());
 					imgObjLifetime.qindeximg.save(enFacePath + QString("lifetime_ch%1_[%2 %3].bmp").arg(i + 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1), "bmp");
@@ -410,6 +450,16 @@ void SaveResultDlg::saveEnFaceMaps()
 
 				ippiScale_32f8u_C1R(m_pResultTab->m_octProjection, sizeof(float) * roi_proj.width, imgObjOctMaxProj.arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 				ippiMirror_8u_C1IR(imgObjOctMaxProj.arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+				if (m_pConfig->galvoHorizontalShift)
+				{
+					for (int i = 0; i < roi_proj.height; i++)
+					{
+						uint8_t* pImg = imgObjOctMaxProj.arr.raw_ptr() + i * roi_proj.width;
+						std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj.width);
+					}
+				}
+#endif
 				imgObjOctMaxProj.qindeximg.save(enFacePath + "oct_max_projection.bmp", "bmp");
 			}
 		}
@@ -520,6 +570,16 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage)
 		ippiScale_32f8u_C1R(vectorOctImage.at(frameCount), roi_oct.width * sizeof(float),
 			scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), roi_oct, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
 		ippiTranspose_8u_C1R(scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), pImgObjVec->at(0)->arr.raw_ptr(), roi_oct.height * sizeof(uint8_t), roi_oct);
+#ifdef GALVANO_MIRROR
+		if (m_pConfig->galvoHorizontalShift)
+		{
+			for (int i = 0; i < roi_oct.width; i++)
+			{
+				uint8_t* pImg = pImgObjVec->at(0)->arr.raw_ptr() + i * roi_oct.height;
+				std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_oct.height);
+			}
+		}
+#endif
 		(*m_pResultTab->m_pMedfiltRect)(pImgObjVec->at(0)->arr.raw_ptr());
 
 #ifdef OCT_FLIM

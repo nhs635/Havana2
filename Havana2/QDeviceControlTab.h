@@ -13,7 +13,9 @@
 #include <condition_variable>
 
 class MainWindow;
+class QOperationTab;
 class QStreamTab;
+class QResultTab;
 
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
@@ -57,6 +59,14 @@ protected:
 
 public: ////////////////////////////////////////////////////////////////////////////////////////////////
     inline QVBoxLayout* getLayout() const { return m_pVBoxLayout; }
+#ifdef OCT_FLIM
+	inline QCheckBox* getEnablePmtGainControl() const { return m_pCheckBox_PmtGainControl; }
+	inline QCheckBox* getEnableFlimLaserSyncControl() const { return m_pCheckBox_FlimLaserSyncControl; }
+	inline QCheckBox* getFlimAsyncMode() const { return m_pCheckBox_AsyncMode; }
+#endif
+#ifdef GALVANO_MIRROR
+	inline QCheckBox* getEnableGalvanoMirrorControl() const { return m_pCheckBox_GalvanoMirrorControl; }
+#endif
 
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ECG_TRIGGERING
@@ -88,7 +98,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif
 #ifdef GALVANO_MIRROR
 	int getScrollBarValue() { return m_pScrollBar_ScanAdjustment->value(); }
-	void setScrollBarRange(int alines) { m_pScrollBar_ScanAdjustment->setRange(0, alines - 1); }
+	void setScrollBarValue(int pos); 
+	void setScrollBarRange(int alines); 
+	void setScrollBarEnabled(bool enable); 
 #endif
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
@@ -123,9 +135,13 @@ private slots: /////////////////////////////////////////////////////////////////
 #ifdef GALVANO_MIRROR
 	// Galvano Mirror
 	void enableGalvanoMirror(bool);
+	void triggering(bool);
+	void changeGalvoFastScanVoltage(const QString &);
+	void changeGalvoFastScanVoltageOffset(const QString &);
+	void changeGalvoSlowScanVoltage(const QString &);
+	void changeGalvoSlowScanVoltageOffset(const QString &);
+	void changeGalvoSlowScanIncrement(const QString &);
 	void scanAdjusting(int);
-	void changeGalvoScanVoltage(const QString &);
-	void changeGalvoScanVoltageOffset(const QString &);
 #endif
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
@@ -188,7 +204,7 @@ public: ////////////////////////////////////////////////////////////////////////
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
 	MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
-	QStreamTab* m_pStreamTab;
+	QOperationTab* m_pOperationTab;
 
 
     // Layout
@@ -231,13 +247,22 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 #ifdef GALVANO_MIRROR
     // Widgets for galvano mirror control
-    QCheckBox *m_pCheckBox_GalvanoMirrorControl;    
-    QLineEdit *m_pLineEdit_PeakToPeakVoltage;
-    QLineEdit *m_pLineEdit_OffsetVoltage;
-    QLabel *m_pLabel_ScanVoltage;
-    QLabel *m_pLabel_ScanPlusMinus;
-    QLabel *m_pLabel_GalvanoVoltage;
-    QScrollBar *m_pScrollBar_ScanAdjustment;
+    QCheckBox *m_pCheckBox_GalvanoMirrorControl;
+	QPushButton *m_pToggleButton_ScanTriggering;
+    QLineEdit *m_pLineEdit_FastPeakToPeakVoltage;
+    QLineEdit *m_pLineEdit_FastOffsetVoltage;
+	QLineEdit *m_pLineEdit_SlowPeakToPeakVoltage;
+	QLineEdit *m_pLineEdit_SlowOffsetVoltage;
+	QLineEdit *m_pLineEdit_SlowScanIncrement;
+    QLabel *m_pLabel_FastScanVoltage;
+    QLabel *m_pLabel_FastScanPlusMinus;
+    QLabel *m_pLabel_FastGalvanoVoltage;
+	QLabel *m_pLabel_SlowScanVoltage;
+	QLabel *m_pLabel_SlowScanPlusMinus;
+	QLabel *m_pLabel_SlowGalvanoVoltage;
+	QLabel *m_pLabel_SlowScanIncrement;
+	QLabel *m_pLabel_SlowScanIncrementVoltage;
+	QScrollBar *m_pScrollBar_ScanAdjustment;
     QLabel *m_pLabel_ScanAdjustment;
 #endif
 #ifdef PULLBACK_DEVICE
