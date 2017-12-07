@@ -80,7 +80,7 @@ void QScope::setAxis(QRange x_range, QRange y_range,
         };
         m_pGridLayout->addItem(pHBoxLayout, 1, 1);
     }
-
+	
     // Set y ticks
     if (num_y_ticks > 1)
     {

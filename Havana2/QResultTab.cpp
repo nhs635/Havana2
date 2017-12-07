@@ -2229,7 +2229,7 @@ void QResultTab::octProcessing1(OCTProcess* pOCT, Configuration* pConfig)
 					if (pConfig->erasmus)
 					{
 						IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
-						if (~pConfig->oldUhs)
+						if (!pConfig->oldUhs)
 							ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
 					}
 					emit processedSingleFrame(frameCount);

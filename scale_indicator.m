@@ -1,43 +1,36 @@
 clear;
 
-fid = fopen('fire.colormap','r');
-fire = fread(fid,'uint8'); 
-fire = reshape(fire,[256 3])/255;
-fclose(fid);
-
-hsv1 = hsv(256);
-hsv1(1,:) = 0;
-
-%%
-
 filelist = dir('*.bmp');
 mkdir('scale_indicated');
 
-for i = 1 : length(filelist)
+for i = length(filelist) : -1 : 1
     filename = filelist(i).name;
-    im = uint8(imread(filename));
+    [im,map] = imread(filename);
     
     figure(2); set(gcf,'Position',[455   379   650   445]);
     imagesc(im); caxis([0 255]);
     xlabel('angle'); ylabel('frame');
     
     if (filename(1) == 'i')
-        colormap(fire);
+        intensity_map = map;
+        colormap(intensity_map);
         s = find(filename == '[');
         e = find(filename == ']');
         contrast = [ str2double(filename(s+1:s+3)) str2double(filename(e-3:e-1)) ];
     elseif (filename(1) == 'l')
-        colormap(hsv1);  
+        lifetime_map = map;
+        colormap(lifetime_map);  
         s = find(filename == '[');
         e = find(filename == ']');
         contrast = [ str2double(filename(s+1:s+3)) str2double(filename(e-3:e-1)) ];
     elseif (filename(1) == 'f')
-        colormap(hsv1);
+        colormap(lifetime_map);
         s = find(filename == '[');
         e = find(filename == ']');
         contrast = [ str2double(filename(s(2)+1:s(2)+3)) str2double(filename(e(2)-3:e(2)-1)) ];
     elseif (filename(1) == 'o')
-        colormap(gray);
+        oct_map = map;
+        colormap(oct_map);
         contrast = [ 0 0 ];
     end
         
