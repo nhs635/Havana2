@@ -1,18 +1,22 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.2.3"
+#define VERSION						"1.2.2.4"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
+///////////////////// Library enabling //////////////////////
+#define PX14_ENABLE                 true
+#define NI_ENABLE					true
+
 /////////////////////// System setup ////////////////////////
-#define OCT_FLIM
-//#define STANDALONE_OCT
+//#define OCT_FLIM
+#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
-//#define DUAL_CHANNEL // not supported dual channel
-#define OCT_NIRF // NIRF data can be loaded in Result pannel.
+//#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
+//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -20,22 +24,23 @@
 #endif
 
 #ifndef OCT_NIRF
+#if NI_ENABLE
 //#define ECG_TRIGGERING
 #endif
-#define GALVANO_MIRROR
+#endif
+//#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
-///////////////////// Library enabling //////////////////////
-#define PX14_ENABLE                 true
-#define NI_ENABLE					true
-
 ////////////////////// Digitizer setup //////////////////////
+#if PX14_ENABLE
 #define ADC_RATE					340 // MHz
 
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
+#endif
 
 /////////////////////// Device setup ////////////////////////
+#ifdef ECG_TRIGGERING
 #define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr1"
 #define NI_ECG_TRIG_SOURCE			"/Dev1/PFI15"
 #define NI_ECG_CHANNEL				"Dev1/ai4"
@@ -46,16 +51,22 @@
 #define ECG_THRES_TIME				500 // millisecond
 #define ECG_VIEW_RENEWAL_COUNT		20
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
+#endif
 
+#ifdef GALVANO_MIRROR
 #define NI_GALVO_CHANNEL			"Dev1/ao0:1"
 #define NI_GAVLO_SOURCE				"/Dev1/PFI13"
+#endif
 
+#ifdef OCT_FLIM
 #define NI_PMT_GAIN_CHANNEL		    "Dev1/ao2"
 #define NI_FLIM_SYNC_CHANNEL		"Dev1/ctr0"
 #define NI_FLIM_SYNC_SOURCE			"/Dev1/PFI13"
 
 #define ELFORLIGHT_PORT				"COM1"
+#endif
 
+#ifdef PULLBACK_DEVICE
 #define ZABER_PORT					"COM9"
 #define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64;
 #define ZABER_MICRO_RESOLUTION		32
@@ -64,6 +75,7 @@
 
 #define FAULHABER_PORT				"COM2"
 #define FAULHABER_POSITIVE_ROTATION false
+#endif
 
 //////////////////////// Processing /////////////////////////
 #define DATA_HALVING				false // to be updated...
@@ -80,24 +92,28 @@
 #define DISCOM_VAL					0
 
 /////////////////////// FLIM system /////////////////////////
+#ifdef OCT_FLIM
 #define FLIM_CH_START_5				30
 #define GAUSSIAN_FILTER_WIDTH		200
 #define GAUSSIAN_FILTER_STD			48
 #define FLIM_SPLINE_FACTOR			20
 #define INTENSITY_THRES				0.001f
+#endif
 
 /////////////////////// Visualization ///////////////////////
 #ifdef OCT_FLIM
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				60 
+#define RING_THICKNESS				100 
 #endif
 
-#define CIRC_RADIUS					1300
-#define PROJECTION_OFFSET			100
+#define CIRC_RADIUS					800 // It should be a multiple of 4.
+#define PROJECTION_OFFSET			150
 
+#ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire
+#endif
 
 #define RENEWAL_COUNT				20
 
@@ -226,7 +242,11 @@ public:
 		for (int i = 0; i < 4; i++)
 		{
 			if (settings.contains(QString("ChannelStart_%1").arg(i)))
+#if PX14_ENABLE
 				flimChStartInd[i] = (int)(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / (float)ADC_RATE));
+#else
+				flimChStartInd[i] = (int)(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / 340.0f));
+#endif
 			
 			if (i != 0)
 				if (settings.contains(QString("DelayTimeOffset_%1").arg(i)))

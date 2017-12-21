@@ -132,12 +132,21 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	pHBoxLayout->setSpacing(0);
 
     // Create graph view
+#if PX14_ENABLE
 	double voltageCh1 = DIGITIZER_VOLTAGE;
 	double voltageCh2 = DIGITIZER_VOLTAGE;
 	for (int i = 0; i < m_pConfig->ch1VoltageRange; i++)
 		voltageCh1 *= DIGITIZER_VOLTAGE_RATIO;
 	for (int i = 0; i < m_pConfig->ch2VoltageRange; i++)
 		voltageCh2 *= DIGITIZER_VOLTAGE_RATIO;
+#else
+	double voltageCh1 = 0.0;
+	double voltageCh2 = 0.0;
+	for (int i = 0; i < m_pConfig->ch1VoltageRange; i++)
+		voltageCh1 *= 0.0;
+	for (int i = 0; i < m_pConfig->ch2VoltageRange; i++)
+		voltageCh2 *= 0.0;
+#endif
 
 #ifdef OCT_FLIM
     m_pScope_FlimPulse = new QScope({ 0, N_VIS_SAMPS_FLIM }, { 0, POWER_2(16) }, 2, 3, 1, voltageCh2 / (double)POWER_2(16), 0, -voltageCh2 / 2, "", "V");
@@ -898,9 +907,13 @@ void QStreamTab::setVisualizationCallback()
 
 void QStreamTab::setCh1ScopeVoltRange(int idx)
 {
+#if PX14_ENABLE
 	double voltage = DIGITIZER_VOLTAGE;
 	for (int i = 0; i < idx; i++)
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
+#else
+	double voltage = 0.0 * idx;
+#endif
 		
 	m_pScope_OctFringe->resetAxis({ 0, (double)m_pConfig->nScans }, { -POWER_2(15), POWER_2(15) }, 1, voltage / (double)POWER_2(16), 0, 0, "", "V");
 }
@@ -908,9 +921,13 @@ void QStreamTab::setCh1ScopeVoltRange(int idx)
 #ifdef OCT_FLIM
 void QStreamTab::setCh2ScopeVoltRange(int idx)
 {
+#if PX14_ENABLE
 	double voltage = DIGITIZER_VOLTAGE;
 	for (int i = 0; i < idx; i++)
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
+#else
+	double voltage = 0.0 * idx;
+#endif
 
 	m_pScope_FlimPulse->resetAxis({ 0, N_VIS_SAMPS_FLIM }, { 0, POWER_2(16) }, 1, voltage / (double)POWER_2(16), 0, -voltage / 2, "", "V");
 }

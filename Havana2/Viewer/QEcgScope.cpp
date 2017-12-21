@@ -3,7 +3,6 @@
 
 #include "QEcgScope.h"
 
-
 QEcgScope::QEcgScope(QWidget *parent) :
 	QDialog(parent)
 {
@@ -136,8 +135,10 @@ void QEcgScope::drawData(float data, bool is_peak)
 	if (m_pRenderArea->m_dqIsPeak.size() > (int)m_pRenderArea->m_sizeGraph.width())
 		m_pRenderArea->m_dqIsPeak.pop_front();
 	m_pRenderArea->m_dqIsPeak.push_back(is_peak);
-
+	
+#ifdef ECG_TRIGGERING
 	if (n++ % ECG_VIEW_RENEWAL_COUNT == 0) m_pRenderArea->update();
+#endif
 }
 
 

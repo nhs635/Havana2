@@ -793,7 +793,9 @@ void QResultTab::visualizeImage(int frame)
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
 #else
 		if (!m_pCheckBox_CircularizeImage->isChecked())
+		{
 			if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(m_pImgObjRectImage->qindeximg.bits());
+		}
 		else
 		{
 			(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", m_pConfig->circCenter);

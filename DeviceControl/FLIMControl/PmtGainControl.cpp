@@ -3,6 +3,8 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
+#ifdef OCT_FLIM
+
 #if NI_ENABLE
 #include <NIDAQmx.h>
 using namespace std;
@@ -101,4 +103,6 @@ void PmtGainControl::dumpError(int res, const char* pPreamble)
 		_taskHandle = nullptr;
 	}
 }
+#endif
+
 #endif

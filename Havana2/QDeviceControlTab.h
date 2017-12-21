@@ -89,6 +89,7 @@ public: ////////////////////////////////////////////////////////////////////////
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 	// ECG Module Control
+	bool isEcgModuleEnabled() { return m_pCheckBox_EcgModuleControl->isChecked(); }
 	bool isEcgTriggered() { return m_pToggledButton_EcgTriggering->isChecked(); }
 	double getEcgDelayRate() { return m_pDoubleSpinBox_EcgDelayRate->value(); }
 	void setEcgRecording(bool set);

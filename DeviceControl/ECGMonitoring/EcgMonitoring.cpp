@@ -3,6 +3,8 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
+#ifdef ECG_TRIGGERING
+
 #if NI_ENABLE
 #include <NIDAQmx.h>
 using namespace std;
@@ -57,7 +59,7 @@ bool EcgMonitoring::initialize()
 		dumpError(res, "ERROR: Failed to set ECG Monitoring: ");
 		return false;
 	}
-	
+
 	printf("NI Analog Input for ECG monitoring is successfully initialized.\n");	
 
 	return true;
@@ -158,4 +160,6 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 
 	return 0;
 }
+#endif
+
 #endif

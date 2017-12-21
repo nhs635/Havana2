@@ -3,6 +3,8 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
+#ifdef ECG_TRIGGERING
+
 #if NI_ENABLE
 #include <NIDAQmx.h>
 using namespace std;
@@ -93,4 +95,6 @@ void Voltage800RPS::dumpError(int res, const char* pPreamble)
 		_taskHandle = nullptr;
 	}
 }
+#endif
+
 #endif

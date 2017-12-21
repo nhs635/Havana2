@@ -3,6 +3,8 @@
 
 #include <Havana2/Configuration.h>
 
+#ifdef OCT_FLIM
+
 #ifndef FLIM_CH_START_5
 #error("FLIM_CH_START_5 is not defined for FLIM processing.");
 #endif
@@ -462,5 +464,7 @@ public:
 	INTENSITY _intensity; // intensity objects
 	LIFETIME _lifetime; // lifetime objects
 };
+
+#endif
 
 #endif

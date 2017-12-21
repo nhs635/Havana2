@@ -67,5 +67,7 @@ Havana2.VC*
   (GalvoScan was updated. - 2 axis scan / fast scan adjustment)
 - Havana2 v1.2.2.3
   (Matlab script for FLIM processing was modified.)
+- Havana2 v1.2.2.4
+  (Configuration is categorized.)
 
 - To be updated: synchronized start for galvano mirror

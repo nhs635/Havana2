@@ -2,6 +2,8 @@
 #include "ElforlightLaser.h"
 #include <Havana2/Configuration.h>
 
+#ifdef OCT_FLIM
+
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -77,3 +79,5 @@ void ElforlightLaser::DecreasePower()
 	std::this_thread::sleep_for(std::chrono::milliseconds(250));
 	m_pSerialComm->writeSerialPort(buff);
 }
+
+#endif

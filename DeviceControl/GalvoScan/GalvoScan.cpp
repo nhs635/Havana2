@@ -3,6 +3,8 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
+#ifdef GALVANO_MIRROR
+
 #if NI_ENABLE
 #include <NIDAQmx.h>
 using namespace std;
@@ -166,4 +168,6 @@ int32 CVICALLBACK DoneCallback(TaskHandle taskHandle, int32 status, void *callba
 
 	return 0;
 }
+#endif
+
 #endif

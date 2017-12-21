@@ -30,7 +30,11 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
     // Create widgets for digitizer setup
 	m_pLineEdit_SamplingRate = new QLineEdit(this);
 	m_pLineEdit_SamplingRate->setFixedWidth(35);
+#if PX14_ENABLE
 	m_pLineEdit_SamplingRate->setText(QString::number(ADC_RATE));
+#else
+	m_pLineEdit_SamplingRate->setText(QString::number(0));
+#endif
 	m_pLineEdit_SamplingRate->setDisabled(true);
 	m_pLineEdit_SamplingRate->setAlignment(Qt::AlignCenter);
 
@@ -39,14 +43,20 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 	m_pComboBox_VoltageRangeCh2 = new QComboBox(this);
 #endif
 
+#if PX14_ENABLE
 	double voltage = DIGITIZER_VOLTAGE;
+#else
+	double voltage = 0.0;
+#endif
 	for (int i = 0; i < 25; i++)
 	{
 		m_pComboBox_VoltageRangeCh1->addItem(QString("%1 Vpp").arg(voltage, 0, 'f', 3, '0'));
 #ifdef OCT_FLIM
 		m_pComboBox_VoltageRangeCh2->addItem(QString("%1 Vpp").arg(voltage, 0, 'f', 3, '0'));
 #endif
+#if PX14_ENABLE
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
+#endif
 	}
 	m_pComboBox_VoltageRangeCh1->setCurrentIndex(m_pConfig->ch1VoltageRange);
 #ifdef OCT_FLIM

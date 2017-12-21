@@ -314,21 +314,24 @@ void MemoryBuffer::write()
 	if (false == QFile::copy("flim_mask.dat", fileTitle + ".flim_mask"))
 		printf("Error occurred while copying flim_mask data.\n");
 #endif
-#ifdef ECG_TRIGGERING
-	auto pDequeEcg = m_pDeviceControlTab->getRecordedEcg();
-	if (pDequeEcg->size() != 0)
+#ifdef ECG_TRIGGERING	
+	if (m_pDeviceControlTab->isEcgModuleEnabled())
 	{
-		QFile ecgFile(fileTitle + ".ecg");
-		if (ecgFile.open(QIODevice::WriteOnly))
+		auto pDequeEcg = m_pDeviceControlTab->getRecordedEcg();
+		if (pDequeEcg->size() != 0)
 		{
-			for (int i = 0; i < pDequeEcg->size(); i++)
-				ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
-		}
-		double delay = m_pDeviceControlTab->getEcgDelayRate() * m_pDeviceControlTab->getEcgHeartInterval(); // milliseconds
-		ecgFile.write(reinterpret_cast<char*>(&delay), sizeof(double));
+			QFile ecgFile(fileTitle + ".ecg");
+			if (ecgFile.open(QIODevice::WriteOnly))
+			{
+				for (int i = 0; i < pDequeEcg->size(); i++)
+					ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
+			}
+			double delay = m_pDeviceControlTab->getEcgDelayRate() * m_pDeviceControlTab->getEcgHeartInterval(); // milliseconds
+			ecgFile.write(reinterpret_cast<char*>(&delay), sizeof(double));
 
-		ecgFile.close();
-		std::deque<double>().swap(*pDequeEcg);
+			ecgFile.close();
+			std::deque<double>().swap(*pDequeEcg);
+		}
 	}
 #endif
 	if (false == QFile::copy("Lumen_IP_havana2.m", filePath + "/Lumen_IP_havana2.m"))

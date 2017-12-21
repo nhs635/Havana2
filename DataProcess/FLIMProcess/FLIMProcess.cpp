@@ -1,6 +1,7 @@
 
 #include "FLIMProcess.h"
 
+#ifdef OCT_FLIM
 
 FLIMProcess::FLIMProcess()
 {
@@ -37,7 +38,11 @@ void FLIMProcess::setParameters(Configuration*)
 	_params.act_ch = pConfig->flimCh;
 	_params.pre_trig = pConfig->preTrigSamps;
 
+#if PX14_ENABLE
 	_params.samp_intv = 1000.0f / (float)ADC_RATE;
+#else
+	_params.samp_intv = 1000.0f / 340.0f;
+#endif
 	_params.width_factor = 2.0f;
 
 	for (int i = 0; i < 4; i++)
@@ -153,3 +158,5 @@ void FLIMProcess::loadMaskData(QString maskpath)
 			printf("Improper mask: please modify the mask!\n");
 	}
 }
+
+#endif
