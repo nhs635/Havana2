@@ -72,9 +72,10 @@ QResultTab::QResultTab(QWidget *parent) :
 #ifdef OCT_FLIM
     bool rgb_used = true;
 #elif defined (STANDALONE_OCT)
-    bool rgb_used = false;
-#ifdef OCT_NIRF
-	rgb_used = true;
+#ifndef OCT_NIRF
+	bool rgb_used = false;
+#else
+	bool rgb_used = true;
 #endif
 #endif
     m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, rgb_used);
@@ -571,7 +572,7 @@ void QResultTab::createEnFaceMapTab()
 
 #ifdef OCT_NIRF
 	// Create widgets for NIRF map
-	m_pImageView_NirfMap = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines, 1);
+	m_pImageView_NirfMap = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines4, 1);
 	m_pImageView_NirfMap->setMinimumHeight(150);
 	m_pImageView_NirfMap->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
 	m_pImageView_NirfMap->getRender()->m_colorLine = 0x00ff00;
@@ -940,12 +941,9 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 #endif
 
 #ifdef OCT_NIRF
-			// Adjusting NIRF offset
-			float* pNirfMap = m_nirfMap.raw_ptr();		
+			// Adjusting NIRF offset	
 			if (m_nirfSignal.length() != 0)
 			{
-				float* pNirfSignal = m_nirfSignal.raw_ptr();
-
 				int sig_len = m_nirfSignal.length();
 				int map_len = m_nirfMap.length();
 				int diff;
@@ -968,8 +966,10 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 				}
 			}
 
+			IppiSize roi_proj0 = { m_nirfMap.size(0), m_nirfMap.size(1) };
+
 			// Scaling NIRF map
-			ippiScale_32f8u_C1R(m_nirfMap, sizeof(float) * roi_proj.width, m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
+			ippiScale_32f8u_C1R(m_nirfMap.raw_ptr(), sizeof(float) * roi_proj0.width, m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
 				roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 			ippiMirror_8u_C1IR(m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
 #endif
@@ -1215,6 +1215,8 @@ void QResultTab::adjustNirfOffset(int offset)
 
 void QResultTab::startProcessing()
 {	
+	m_pSlider_SelectFrame->setValue(0);
+
 	int id = m_pButtonGroup_DataSelection->checkedId();
 	switch (id)
 	{
@@ -1478,15 +1480,29 @@ void QResultTab::externalDataProcessing()
 							QString tempLine = in.readLine();
 							nLine++;
 						}
-						nLine /= 2;
+						
+						int interlace_aline = (int)(round((double)nLine / (double)m_octProjection.length()));
+
+						if (interlace_aline == 2) nLine /= 2;
 
 						in.seek(0);
 						m_nirfSignal = np::FloatArray(nLine);
-						for (int i = 0; i < nLine; i++)
+						if (interlace_aline == 2)
 						{
-							QString line1 = in.readLine();
-							QString line2 = in.readLine();
-							m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
+							for (int i = 0; i < nLine; i++)
+							{
+								QString line1 = in.readLine();
+								QString line2 = in.readLine();
+								m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
+							}
+						}
+						else if (interlace_aline == 1)
+						{
+							for (int i = 0; i < nLine; i++)
+							{
+								QString line = in.readLine();
+								m_nirfSignal.at(i) = line.toFloat();
+							}
 						}
 						nirfFile.close();
 
@@ -1906,7 +1922,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 	m_nirfSignal = np::FloatArray();
-	m_nirfMap = np::FloatArray2(pConfig->nAlines4, pConfig->nFrames);
+	m_nirfMap = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
 	m_nirfOffset = 0;
 #endif
 
@@ -1925,7 +1941,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 	if (m_pImgObjNirf) delete m_pImgObjNirf;
-	m_pImgObjNirf = new ImageObject(pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+	m_pImgObjNirf = new ImageObject(pConfig->nAlines4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot));
 #endif
 
 	// En face map visualization buffers
@@ -1940,7 +1956,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 	if (m_pImgObjNirfMap) delete m_pImgObjNirfMap;
-	m_pImgObjNirfMap = new ImageObject(pConfig->nAlines, pConfig->nFrames, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+	m_pImgObjNirfMap = new ImageObject(pConfig->nAlines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(ColorTable::hot));
 #endif
 
 	// Circ & Medfilt objects

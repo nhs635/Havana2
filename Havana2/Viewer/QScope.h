@@ -28,6 +28,9 @@ public:
                     QString x_unit = "", QString y_unit = "", bool mask_use = false, QWidget *parent = 0);
 	virtual ~QScope();
 
+private:
+	void keyPressEvent(QKeyEvent *e);
+
 public:
 	inline QRenderArea* getRender() { return m_pRenderArea; }
 

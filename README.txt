@@ -69,5 +69,9 @@ Havana2.VC*
   (Matlab script for FLIM processing was modified.)
 - Havana2 v1.2.2.4
   (Configuration is categorized.)
+- Havana2 v1.2.3
+  (NIRF result view is modified.)
 
+
+- NIRF emission aquisition using NIDAQ analog input is under developing..
 - To be updated: synchronized start for galvano mirror

@@ -19,9 +19,8 @@ class QOperationTab;
 class DataAcquisition;
 class MemoryBuffer;
 
-#ifdef OCT_FLIM
 class QScope;
-#elif defined (STANDALONE_OCT)
+#ifdef STANDALONE_OCT
 class QScope2;
 #endif
 class QImageView;
@@ -59,6 +58,10 @@ public:
 	inline QScope* getPulseScope() const { return m_pScope_FlimPulse; }
 	inline QSpinBox* getFlimCh() const { return m_pSpinBox_DataChannel; }
 	inline int getCurrentEmCh() const { return m_pComboBox_EmissionChannel->currentIndex(); }
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	inline QScope* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
+#endif
 #endif
 	inline int getCurrentAline() const { return m_pSlider_SelectAline->value(); }
 	inline float getOctMaxDb() { return m_pLineEdit_OctDbMax->text().toFloat(); }
@@ -76,6 +79,10 @@ public:
 private:
 #ifdef OCT_FLIM
     void createFlimVisualizationOptionTab();
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	void createNirfVisualizationOptionTab();
+#endif
 #endif
     void createOctVisualizationOptionTab();
 		
@@ -94,14 +101,22 @@ public:
 #endif
 	void resetObjectsForAline(int nAlines);
 #ifdef OCT_FLIM
-	void visualizeImage(float* res1, float* res2, float* res3, float* res4);
+	void visualizeImage(float* res1, float* res2, float* res3, float* res4); // OCT-FLIM
 #elif defined (STANDALONE_OCT)
-    void visualizeImage(float* res1, float* res2);
+#ifndef OCT_NIRF
+	void visualizeImage(float* res1, float* res2); // Standalone OCT
+#else
+	void visualizeImage(float* res1, float* res2, float* res3); // OCT-NIRF
+#endif
 #endif
 
 private slots:
 #ifdef OCT_FLIM
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 	void updateAlinePos(int);
 #ifdef OCT_FLIM
@@ -110,6 +125,12 @@ private slots:
 	void adjustFlimContrast();
 	void createFlimCalibDlg();
 	void deleteFlimCalibDlg();
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	void adjustNirfContrast();
+	void createNirfEmissionProfileDlg();
+	void deleteNirfEmissionProfileDlg();
+#endif
 #endif
 	void changeVisImage(bool);
 	void changeFringeBg(bool);
@@ -128,8 +149,12 @@ signals:
 #elif defined (STANDALONE_OCT)
 	void plotFringe(float*, float*);
 	void plotAline(float*, float*);
+#ifndef OCT_NIRF
 	void paintRectImage(uint8_t*);
 	void paintCircImage(uint8_t*);
+#else
+	void makeRgb(ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 
 // Variables ////////////////////////////////////////////
@@ -188,6 +213,10 @@ public:
 	np::FloatArray2 m_visFringeBg2;
 	np::FloatArray2 m_visFringe2Rm;
 	np::FloatArray2 m_visImage2;
+
+#ifdef OCT_NIRF
+	np::FloatArray m_visNirf;
+#endif
 #endif
 
 	ImageObject *m_pImgObjRectImage;
@@ -195,6 +224,10 @@ public:
 #ifdef OCT_FLIM
 	ImageObject *m_pImgObjIntensity;
 	ImageObject *m_pImgObjLifetime;
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	ImageObject *m_pImgObjNirf;
+#endif
 #endif
 	circularize* m_pCirc;
 	medfilt* m_pMedfilt;
@@ -244,6 +277,19 @@ private:
     QLineEdit *m_pLineEdit_LifetimeMin;
     QImageView *m_pImageView_IntensityColorbar;
     QImageView *m_pImageView_LifetimeColorbar;
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	// NIRF visualization option widgets
+	QGroupBox *m_pGroupBox_NirfVisualization;
+
+	QPushButton *m_pPushButton_NirfEmissionProfile;
+	QScope *m_pNirfEmissionProfileDlg;
+
+	QLabel *m_pLabel_NirfEmission;
+	QLineEdit *m_pLineEdit_NirfEmissionMax;
+	QLineEdit *m_pLineEdit_NirfEmissionMin;
+	QImageView *m_pImageView_NirfEmissionColorbar;
+#endif
 #endif
 
     // OCT visualization option widgets

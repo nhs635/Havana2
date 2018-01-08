@@ -8,9 +8,8 @@
 #include <DataAcquisition/DataAcquisition.h>
 #include <MemoryBuffer/MemoryBuffer.h>
 
-#ifdef OCT_FLIM
 #include <Havana2/Viewer/QScope.h>
-#elif defined (STANDALONE_OCT)
+#ifdef STANDALONE_OCT
 #include <Havana2/Viewer/QScope2.h>
 #endif
 #include <Havana2/Viewer/QImageView.h>
@@ -32,6 +31,10 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pCirc(nullptr), m_pMedfilt(nullptr)
 #ifdef OCT_FLIM
 	, m_pFlimCalibDlg(nullptr), m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	, m_pNirfEmissionProfileDlg(nullptr)
+#endif
 #endif
 {
 	// Set main window objects
@@ -111,6 +114,10 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_visFringeBg2 = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
 	m_visFringe2Rm = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, m_pConfig->nAlines);
+
+#ifdef OCT_NIRF
+	m_visNirf = np::FloatArray(m_pConfig->nAlines);
+#endif
 #endif 
 
 	// Create image visualization buffers
@@ -121,6 +128,10 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #ifdef OCT_FLIM
 	m_pImgObjIntensity = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pConfig->flimLifetimeColorTable));
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
+#endif
 #endif
 	
 	m_pCirc = new circularize(CIRC_RADIUS, m_pConfig->nAlines, false);
@@ -196,6 +207,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #ifdef OCT_FLIM
     // Create FLIM visualization option tab
     createFlimVisualizationOptionTab();
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	// Create NIRF visualization option tab
+	createNirfVisualizationOptionTab();
+#endif
 #endif
     // Create OCT visualization option tab
     createOctVisualizationOptionTab();
@@ -205,8 +221,13 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, true);
 	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS, true);
 #elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
 	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT);
 	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS);
+#else
+	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, true);
+	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS, true);
+#endif
 #endif
 
     m_pImageView_RectImage->setMinimumSize(350, 350);
@@ -224,6 +245,10 @@ QStreamTab::QStreamTab(QWidget *parent) :
 
 #ifdef OCT_FLIM
 	pVBoxLayout_RightPanel->addWidget(m_pGroupBox_FlimVisualization);
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	pVBoxLayout_RightPanel->addWidget(m_pGroupBox_NirfVisualization);
+#endif
 #endif
 	pVBoxLayout_RightPanel->addWidget(m_pGroupBox_OctVisualization);
 	pVBoxLayout_RightPanel->addWidget(m_pImageView_RectImage);
@@ -246,8 +271,13 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	connect(this, SIGNAL(plotFringe(float*, float*)), m_pScope_OctFringe, SLOT(drawData(float*, float*)));
 	connect(this, SIGNAL(plotAline(float*, float*)), m_pScope_OctDepthProfile, SLOT(drawData(float*, float*)));
 
+#ifndef OCT_NIRF
 	connect(this, SIGNAL(paintRectImage(uint8_t*)), m_pImageView_RectImage, SLOT(drawImage(uint8_t*)));
 	connect(this, SIGNAL(paintCircImage(uint8_t*)), m_pImageView_CircImage, SLOT(drawImage(uint8_t*)));
+#else
+	connect(this, SIGNAL(makeRgb(ImageObject*, ImageObject*, ImageObject*)),
+		this, SLOT(constructRgbImage(ImageObject*, ImageObject*, ImageObject*)));
+#endif
 #endif	
 
 	connect(m_pSlider_SelectAline, SIGNAL(valueChanged(int)), this, SLOT(updateAlinePos(int)));
@@ -260,6 +290,10 @@ QStreamTab::~QStreamTab()
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
+#elif defined (STANDALONE_OCT)	
+#ifdef OCT_NIRF
+	if (m_pImgObjNirf) delete m_pImgObjNirf;
+#endif
 #endif
 	if (m_pMedfilt) delete m_pMedfilt;
 	if (m_pCirc) delete m_pCirc;
@@ -298,6 +332,11 @@ void QStreamTab::setWidgetsText()
 	m_pLineEdit_IntensityMin->setText(QString::number(m_pConfig->flimIntensityRange.min, 'f', 1));
 	m_pLineEdit_LifetimeMax->setText(QString::number(m_pConfig->flimLifetimeRange.max, 'f', 1));
 	m_pLineEdit_LifetimeMin->setText(QString::number(m_pConfig->flimLifetimeRange.min, 'f', 1));
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	m_pLineEdit_NirfEmissionMax->setText(QString::number(m_pConfig->nirfRange.max, 'f', 1));
+	m_pLineEdit_NirfEmissionMin->setText(QString::number(m_pConfig->nirfRange.min, 'f', 1));
+#endif
 #endif
 }
 
@@ -424,6 +463,64 @@ void QStreamTab::createFlimVisualizationOptionTab()
 
 	connect(m_pPushButton_FlimCalibration, SIGNAL(clicked(bool)), this, SLOT(createFlimCalibDlg()));
 }
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+void QStreamTab::createNirfVisualizationOptionTab()
+{
+	// Create widgets for NIRF visualization option tab
+	m_pGroupBox_NirfVisualization = new QGroupBox;
+	m_pGroupBox_NirfVisualization->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+	QGridLayout *pGridLayout_NirfVisualization = new QGridLayout;
+	pGridLayout_NirfVisualization->setSpacing(3);
+
+	// Create widgets for NIRF emission
+	m_pPushButton_NirfEmissionProfile = new QPushButton(this);
+	m_pPushButton_NirfEmissionProfile->setText("NIRF Emission Profile...");
+	m_pPushButton_NirfEmissionProfile->setFixedWidth(150);
+
+	// Create line edit widgets for Nirf contrast adjustment
+	m_pLineEdit_NirfEmissionMax = new QLineEdit(this);
+	m_pLineEdit_NirfEmissionMax->setFixedWidth(30);
+	m_pLineEdit_NirfEmissionMax->setText(QString::number(m_pConfig->nirfRange.max, 'f', 1));
+	m_pLineEdit_NirfEmissionMax->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_NirfEmissionMin = new QLineEdit(this);
+	m_pLineEdit_NirfEmissionMin->setFixedWidth(30);
+	m_pLineEdit_NirfEmissionMin->setText(QString::number(m_pConfig->nirfRange.min, 'f', 1));
+	m_pLineEdit_NirfEmissionMin->setAlignment(Qt::AlignCenter);
+
+	// Create color bar for FLIM visualization
+	uint8_t color[256];
+	for (int i = 0; i < 256; i++)
+		color[i] = i;
+
+	m_pImageView_NirfEmissionColorbar = new QImageView(ColorTable::colortable::hot, 256, 1);
+	m_pImageView_NirfEmissionColorbar->setFixedHeight(15);
+	m_pImageView_NirfEmissionColorbar->drawImage(color);
+	m_pLabel_NirfEmission = new QLabel("NIRF Em", this);
+	m_pLabel_NirfEmission->setFixedWidth(60);
+
+	// Set layout
+	pGridLayout_NirfVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0);
+	pGridLayout_NirfVisualization->addWidget(m_pPushButton_NirfEmissionProfile, 0, 1);
+
+	QHBoxLayout *pHBoxLayout_NirfEmissionColorbar = new QHBoxLayout;
+	pHBoxLayout_NirfEmissionColorbar->setSpacing(3);
+	pHBoxLayout_NirfEmissionColorbar->addWidget(m_pLabel_NirfEmission);
+	pHBoxLayout_NirfEmissionColorbar->addWidget(m_pLineEdit_NirfEmissionMin);
+	pHBoxLayout_NirfEmissionColorbar->addWidget(m_pImageView_NirfEmissionColorbar);
+	pHBoxLayout_NirfEmissionColorbar->addWidget(m_pLineEdit_NirfEmissionMax);
+
+	pGridLayout_NirfVisualization->addItem(pHBoxLayout_NirfEmissionColorbar, 1, 0, 1, 2);
+
+	m_pGroupBox_NirfVisualization->setLayout(pGridLayout_NirfVisualization);
+
+	// Connect signal and slot
+	connect(m_pLineEdit_NirfEmissionMax, SIGNAL(textEdited(const QString &)), this, SLOT(adjustNirfContrast()));
+	connect(m_pLineEdit_NirfEmissionMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustNirfContrast()));
+
+	connect(m_pPushButton_NirfEmissionProfile, SIGNAL(clicked(bool)), this, SLOT(createNirfEmissionProfileDlg()));
+}
+#endif
 #endif
 
 void QStreamTab::createOctVisualizationOptionTab()
@@ -851,8 +948,13 @@ void QStreamTab::setVisualizationCallback()
 				m_visImage2 = np::FloatArray2(res2_data, m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 				emit plotAline(&m_visImage1(0, m_pSlider_SelectAline->value()), &m_visImage2(0, m_pSlider_SelectAline->value()));
 
+#ifndef OCT_NIRF
                 // Draw Images
                 visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+				// Draw Images
+				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), nullptr); // ?
+#endif
 #endif
 			}
 
@@ -1024,6 +1126,10 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_visFringeBg2 = np::FloatArray2(m_pConfig->nScans, nAlines);
 	m_visFringe2Rm = np::FloatArray2(m_pConfig->nScans, nAlines);
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, nAlines);
+
+#ifdef OCT_NIRF
+	m_visNirf = np::FloatArray(m_pConfig->nAlines);
+#endif
 #endif 
 
 	// Create image visualization buffers
@@ -1036,7 +1142,13 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_pImgObjIntensity = new ImageObject(nAlines / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
 	m_pImgObjLifetime = new ImageObject(nAlines / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	if (m_pImgObjNirf) delete m_pImgObjNirf;
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
 #endif
+#endif
+
 
 	// Create circularize object
 	if (m_pCirc)
@@ -1059,12 +1171,27 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	// Reset slider label
 	QString str; str.sprintf("Current A-line : %4d / %4d   ", 1, nAlines);
 	m_pLabel_SelectAline->setText(str);
+
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	// Reset NIRF emission profile dialog	
+	if (m_pNirfEmissionProfileDlg)
+	{
+		m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)nAlines },
+		{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
+	}
+#endif 
+#endif
 }
 
 #ifdef OCT_FLIM
-void QStreamTab::visualizeImage(float* res1, float* res2, float* res3, float* res4)
+void QStreamTab::visualizeImage(float* res1, float* res2, float* res3, float* res4) // OCT-FLIM
 #elif defined (STANDALONE_OCT)
-void QStreamTab::visualizeImage(float* res1, float* res2)
+#ifndef OCT_NIRF
+void QStreamTab::visualizeImage(float* res1, float* res2) // Standalone OCT
+#else
+void QStreamTab::visualizeImage(float* res1, float* res2, float* res3) // OCT-NIRF
+#endif
 #endif
 {
 	IppiSize roi_oct = { m_pConfig->n2ScansFFT, m_pConfig->nAlines };
@@ -1107,7 +1234,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2)
 
     (void)res3;
 #elif defined (STANDALONE_OCT)
-	
+#ifndef OCT_NIRF
 	if (!m_pCheckBox_CircularizeImage->isChecked()) // rect image 
 	{        
 		emit paintRectImage(m_pImgObjRectImage->arr.raw_ptr());
@@ -1119,6 +1246,21 @@ void QStreamTab::visualizeImage(float* res1, float* res2)
 	}
 
     (void)res2;
+#else
+	// NIRF Visualization
+	IppiSize roi_nirf = { m_pConfig->nAlines, 1 };
+
+	float* scanNirf = res3;
+	uint8_t* rectNirf = m_pImgObjNirf->arr.raw_ptr();
+	ippiScale_32f8u_C1R(scanNirf, roi_nirf.width * sizeof(float), rectNirf, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+	
+	for (int i = 1; i < RING_THICKNESS; i++)
+		memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * roi_nirf.width);
+
+	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
+
+	(void)res2;
+#endif
 #endif
 }
 
@@ -1163,7 +1305,47 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 		m_pImageView_CircImage->drawImage(circObj->qrgbimg.bits());
 	}
 }
-#endif	
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, ImageObject *nirfObj)
+{
+	// Convert RGB
+	rectObj->convertRgb();
+	nirfObj->convertRgb();
+
+	// Rect View
+	if (!m_pCheckBox_CircularizeImage->isChecked())
+	{
+		// Paste FLIM color ring to RGB rect image
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - RING_THICKNESS - 1), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+
+		// Scan adjust
+#ifdef GALVANO_MIRROR
+		for (int i = 0; i < m_pConfig->n2ScansFFT; i++)
+		{
+			uint8_t* pImg = rectObj->qrgbimg.bits() + 3 * i * m_pConfig->nAlines;
+			std::rotate(pImg, pImg + 3 * m_pMainWnd->m_pDeviceControlTab->getScrollBarValue(), pImg + 3 * m_pConfig->nAlines);
+		}
+#endif
+
+		// Draw image
+		m_pImageView_RectImage->drawImage(rectObj->qrgbimg.bits());
+	}
+	// Circ View
+	else
+	{
+		// Paste FLIM color ring to RGB rect image
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - RING_THICKNESS), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+
+		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
+		(*m_pCirc)(rect_temp, circObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+
+		// Draw image  
+		m_pImageView_CircImage->drawImage(circObj->qrgbimg.bits());
+	}
+}
+#endif
+#endif		
 
 void QStreamTab::updateAlinePos(int aline)
 {
@@ -1244,6 +1426,44 @@ void QStreamTab::deleteFlimCalibDlg()
 	m_pFlimCalibDlg->deleteLater();
 	m_pFlimCalibDlg = nullptr;
 }
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+void QStreamTab::adjustNirfContrast()
+{
+	m_pConfig->nirfRange.min = m_pLineEdit_NirfEmissionMin->text().toFloat();
+	m_pConfig->nirfRange.max = m_pLineEdit_NirfEmissionMax->text().toFloat();
+		
+	if (!m_pOperationTab->isAcquisitionButtonToggled())
+	{
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+		if (m_pNirfEmissionProfileDlg)
+		{
+			m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)m_pConfig->nAlines },
+			{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
+		}
+	}
+}
+
+void QStreamTab::createNirfEmissionProfileDlg()
+{
+	if (m_pNirfEmissionProfileDlg == nullptr)
+	{
+		m_pNirfEmissionProfileDlg = new QScope({ 0, (double)m_pConfig->nAlines }, 
+			{ m_pLineEdit_NirfEmissionMin->text().toFloat(), m_pLineEdit_NirfEmissionMax->text().toFloat() }, 2, 2, 1, 1, 0, 0, "", "");
+		connect(m_pNirfEmissionProfileDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfEmissionProfileDlg()));
+		m_pNirfEmissionProfileDlg->setFixedSize(600, 250);
+		m_pNirfEmissionProfileDlg->show();
+	}
+	m_pNirfEmissionProfileDlg->raise();
+	m_pNirfEmissionProfileDlg->activateWindow();
+}
+
+void QStreamTab::deleteNirfEmissionProfileDlg()
+{
+	m_pNirfEmissionProfileDlg->deleteLater();
+	m_pNirfEmissionProfileDlg = nullptr;
+}
+#endif
 #endif
 
 
@@ -1265,7 +1485,11 @@ void QStreamTab::changeVisImage(bool toggled)
 #ifdef OCT_FLIM
 		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
 #elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
 #endif
 	}
 }
@@ -1312,7 +1536,11 @@ void QStreamTab::checkCircCenter(const QString &str)
 #ifdef OCT_FLIM
 		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
 #elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
 #endif
 	}
 }
@@ -1336,7 +1564,11 @@ void QStreamTab::changeOctColorTable(int ctable_ind)
 #ifdef OCT_FLIM
 		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
 #elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
 #endif
 	}
 }
@@ -1360,7 +1592,11 @@ void QStreamTab::adjustOctContrast()
 		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
 #elif defined (STANDALONE_OCT)
 		emit plotAline(&m_visImage1(0, m_pSlider_SelectAline->value()), &m_visImage2(0, m_pSlider_SelectAline->value()));
+#ifndef OCT_NIRF
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
 #endif
 	}
 }

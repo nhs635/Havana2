@@ -44,6 +44,12 @@ QScope::~QScope()
 }
 
 
+void QScope::keyPressEvent(QKeyEvent * e)
+{
+	if (e->key() != Qt::Key_Escape)
+		QDialog::keyPressEvent(e);
+}
+
 void QScope::setAxis(QRange x_range, QRange y_range,
                      int num_x_ticks, int num_y_ticks,
                      double x_interval, double y_interval, double x_offset, double y_offset,

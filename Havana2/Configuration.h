@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.2.4"
+#define VERSION						"1.2.3"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -28,7 +28,7 @@
 //#define ECG_TRIGGERING
 #endif
 #endif
-//#define GALVANO_MIRROR
+#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 ////////////////////// Digitizer setup //////////////////////
@@ -42,7 +42,7 @@
 /////////////////////// Device setup ////////////////////////
 #ifdef ECG_TRIGGERING
 #define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr1"
-#define NI_ECG_TRIG_SOURCE			"/Dev1/PFI15"
+#define NI_ECG_TRIGGER_SOURCE		"/Dev1/PFI15"
 #define NI_ECG_CHANNEL				"Dev1/ai4"
 #define ECG_SAMPLING_RATE			1000 // Hz
 #define N_VIS_SAMPS_ECG				2000 // N_VIS_SAMPS_ECG / ECG_SAMPLING_RATE = time span
@@ -53,17 +53,23 @@
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
 #endif
 
-#ifdef GALVANO_MIRROR
-#define NI_GALVO_CHANNEL			"Dev1/ao0:1"
-#define NI_GAVLO_SOURCE				"/Dev1/PFI13"
-#endif
-
 #ifdef OCT_FLIM
 #define NI_PMT_GAIN_CHANNEL		    "Dev1/ao2"
 #define NI_FLIM_SYNC_CHANNEL		"Dev1/ctr0"
 #define NI_FLIM_SYNC_SOURCE			"/Dev1/PFI13"
 
 #define ELFORLIGHT_PORT				"COM1"
+#endif
+
+#ifdef OCT_NIRF
+#define NI_NIRF_TRIGGER_CHANNEL		"Dev1/ct2"
+#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI13"
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai2"
+#endif
+
+#ifdef GALVANO_MIRROR
+#define NI_GALVO_CHANNEL			"Dev1/ao0:1"
+#define NI_GAVLO_SOURCE				"/Dev1/PFI13"
 #endif
 
 #ifdef PULLBACK_DEVICE
@@ -105,10 +111,10 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				100 
+#define RING_THICKNESS				80 
 #endif
 
-#define CIRC_RADIUS					800 // It should be a multiple of 4.
+#define CIRC_RADIUS					1300 // It should be a multiple of 4.
 #define PROJECTION_OFFSET			150
 
 #ifdef OCT_FLIM

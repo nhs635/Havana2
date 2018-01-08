@@ -33,6 +33,10 @@ class SyncFLIM;
 #endif
 class ElforlightLaser;
 #endif
+#ifdef OCT_NIRF
+class NirfEmissionTrigger;
+class NirfEmission;
+#endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
 class GalvoScan;
@@ -133,6 +137,10 @@ private slots: /////////////////////////////////////////////////////////////////
 	void increaseLaserPower();
 	void decreaseLaserPower();
 #endif
+#ifdef OCT_NIRF
+	// NIRF Emission Acquisition
+	void enableNirfEmissionAcquisition(bool);
+#endif
 #ifdef GALVANO_MIRROR
 	// Galvano Mirror
 	void enableGalvanoMirror(bool);
@@ -179,6 +187,11 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 	// Elforlight Laser Control
 	ElforlightLaser* m_pElforlightLaser;
+#endif
+#ifdef OCT_NIRF
+	// NIRF Emission
+	NirfEmissionTrigger* m_pNirfEmissionTrigger;
+	NirfEmission* m_pNirfEmission;
 #endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE

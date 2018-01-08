@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	setWindowTitle(windowTitle.arg("ECG-Triggered UltraHigh-Speed OCT").arg(VERSION));
 #else
 #ifdef OCT_NIRF
-	setWindowTitle(windowTitle.arg("Standalone OCT + NIRF Viewer").arg(VERSION));
+	setWindowTitle(windowTitle.arg("OCT-NIRF").arg(VERSION));
 #else
 	setWindowTitle(windowTitle.arg("Standalone OCT").arg(VERSION));
 #endif
@@ -131,6 +131,11 @@ void MainWindow::closeEvent(QCloseEvent *e)
 			m_pStreamTab->getFlimCalibDlg()->close();
 		if (m_pResultTab->getPulseReviewDlg())
 			m_pResultTab->getPulseReviewDlg()->close();
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+		if (m_pStreamTab->getNirfEmissionProfileDlg())
+			m_pStreamTab->getNirfEmissionProfileDlg()->close();
+#endif
 #endif
 		if (m_pResultTab->getSaveResultDlg())
 			m_pResultTab->getSaveResultDlg()->close();
@@ -173,6 +178,11 @@ void MainWindow::changedTab(int index)
 		if (m_pDeviceControlTab->getEnableFlimLaserSyncControl()->isChecked())
 			if (!m_pDeviceControlTab->getFlimAsyncMode()->isChecked())
 				m_pDeviceControlTab->getEnableFlimLaserSyncControl()->setChecked(false);
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+		if (m_pStreamTab->getNirfEmissionProfileDlg())
+			m_pStreamTab->getNirfEmissionProfileDlg()->close();
+#endif
 #endif
 
 #ifdef GALVANO_MIRROR

@@ -21,6 +21,12 @@
 #endif
 #include <DeviceControl/FLIMControl/ElforlightLaser.h>
 #endif
+#ifdef OCT_NIRF
+#if NI_ENABLE
+#include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
+#include <DeviceControl/NirfEmission/NirfEmission.h>
+#endif
+#endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
 #include <DeviceControl/GalvoScan/GalvoScan.h>
@@ -94,6 +100,11 @@ void QDeviceControlTab::closeEvent(QCloseEvent* e)
 	if (m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(false);
 #endif
 	if (m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(false);
+#endif
+#ifdef OCT_NIRF
+#if NI_ENABLE
+	// ,,,
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
@@ -596,6 +607,7 @@ void QDeviceControlTab::setScrollBarEnabled(bool enable)
 }
 #endif
 
+
 #ifdef ECG_TRIGGERING
 void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 {
@@ -981,6 +993,42 @@ void QDeviceControlTab::increaseLaserPower()
 void QDeviceControlTab::decreaseLaserPower()
 {
 	m_pElforlightLaser->DecreasePower();
+}
+#endif
+
+#ifdef OCT_NIRF
+void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
+{
+	if (toggled)
+	{
+#if NI_ENABLE
+		// Create NIRF emission acquisition objects
+		m_pNirfEmissionTrigger = new NirfEmissionTrigger;
+		m_pNirfEmission = new NirfEmission;
+
+		// Initializing
+		if (!m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
+			return;
+		
+		// Generate trigger pulse & Start ECG monitoring
+		m_pNirfEmissionTrigger->start();
+		m_pNirfEmission->start();
+	}
+	else
+	{
+		// Delete ECG monitoring objects		
+		if (m_pNirfEmissionTrigger)
+		{
+			m_pNirfEmissionTrigger->stop();
+			delete m_pNirfEmissionTrigger;
+		}
+		if (m_pNirfEmission)
+		{
+			m_pNirfEmission->stop();
+			delete m_pNirfEmission;
+		}
+#endif
+	}
 }
 #endif
 

@@ -18,7 +18,7 @@ EcgMonitoring::EcgMonitoring() :
 	prev_peak_pos(0),
 	isRecording(false),
 	physicalChannel(NI_ECG_CHANNEL),
-    sourceTerminal(NI_ECG_TRIG_SOURCE)
+    sourceTerminal(NI_ECG_TRIGGER_SOURCE)
 {
 	for (int i = 0; i < N_VIS_SAMPS_ECG; i++)
 		deque_ecg.push_back(0.0);
