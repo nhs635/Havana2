@@ -771,7 +771,7 @@ void QResultTab::visualizeImage(int frame)
 		// FLIM Visualization		
 		uint8_t* rectIntensity = &m_pImgObjIntensityMap->arr(0, m_pImgObjIntensityMap->arr.size(1) - 1 - frame);
 		uint8_t* rectLifetime = &m_pImgObjLifetimeMap->arr(0, m_pImgObjLifetimeMap->arr.size(1) - 1 - frame);
-
+		
 		for (int i = 0; i < RING_THICKNESS; i++)
 		{
 			memcpy(&m_pImgObjIntensity->arr(0, i), rectIntensity, sizeof(uint8_t) * m_pImgObjIntensityMap->arr.size(0));

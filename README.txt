@@ -71,7 +71,11 @@ Havana2.VC*
   (Configuration is categorized.)
 - Havana2 v1.2.3
   (NIRF result view is modified.)
+- Havana2 v1.2.3.1
+  (Minor error modification & commit for microOCT version development)
 
 
-- NIRF emission aquisition using NIDAQ analog input is under developing..
-- To be updated: synchronized start for galvano mirror
+
+To be updated:
+- Synchronized NIRF emission aquisition using NIDAQ analog input
+- Synchronized start for galvano mirror

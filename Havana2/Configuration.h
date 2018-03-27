@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.3"
+#define VERSION						"1.2.3.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -11,12 +11,12 @@
 #define NI_ENABLE					true
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
-#define STANDALONE_OCT
+#define OCT_FLIM
+//#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 //#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -30,6 +30,7 @@
 #endif
 #define GALVANO_MIRROR
 #define PULLBACK_DEVICE
+
 
 ////////////////////// Digitizer setup //////////////////////
 #if PX14_ENABLE
@@ -95,7 +96,7 @@
 #endif
 
 //////////////////////// OCT system /////////////////////////
-#define DISCOM_VAL					0
+#define DISCOM_VAL					0 
 
 /////////////////////// FLIM system /////////////////////////
 #ifdef OCT_FLIM
@@ -121,7 +122,7 @@
 #define INTENSITY_COLORTABLE		6 // fire
 #endif
 
-#define RENEWAL_COUNT				20
+#define RENEWAL_COUNT				10
 
 
 

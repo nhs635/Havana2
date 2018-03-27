@@ -71,7 +71,11 @@ public:
 #ifdef OCT_FLIM
 	inline void invalidate() { visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr()); }
 #elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	inline void invalidate() { visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), nullptr); }
+#else
 	inline void invalidate() { visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr()); }
+#endif
 #endif
 #endif
 	void setWidgetsText();

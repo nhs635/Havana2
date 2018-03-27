@@ -20,7 +20,7 @@
 class MainWindow;
 class QResultTab;
 
-using ImgObjVector = std::vector<ImageObject*>;
+using ImgObjVector = std::vector<ImageObject*>; 
 
 struct CrossSectionCheckList
 {
