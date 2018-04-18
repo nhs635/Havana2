@@ -23,6 +23,7 @@ class MemoryBuffer;
 class QImageView;
 
 class SaveResultDlg;
+class OctIntensityHistDlg;
 #ifdef OCT_FLIM
 class PulseReviewDlg;
 #endif
@@ -49,6 +50,7 @@ protected:
 public:
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
 	inline SaveResultDlg* getSaveResultDlg() const { return m_pSaveResultDlg; }
+	inline OctIntensityHistDlg* getOctIntensityHistDlg() const { return m_pOctIntensityHistDlg; }
 #ifdef OCT_FLIM
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
 #endif
@@ -76,6 +78,8 @@ private slots: // widget operation
 	void changeDataSelection(int id);
 	void createSaveResultDlg();
 	void deleteSaveResultDlg();
+	void createOctIntensityHistDlg();
+	void deleteOctIntensityHistDlg();
 #ifdef OCT_FLIM
 	void createPulseReviewDlg();
 	void deletePulseReviewDlg();
@@ -269,8 +273,11 @@ private:
 
     QSlider *m_pSlider_SelectFrame;
     QLabel *m_pLabel_SelectFrame;
-
+	
     QPushButton* m_pToggleButton_MeasureDistance;
+
+	QPushButton *m_pPushButton_OctIntensityHistogram;
+	OctIntensityHistDlg *m_pOctIntensityHistDlg;
 
     QCheckBox *m_pCheckBox_ShowGuideLine;
     QCheckBox *m_pCheckBox_CircularizeImage;

@@ -9,6 +9,7 @@
 #endif
 #include <Havana2/Viewer/QImageView.h>
 #include <Havana2/Dialog/SaveResultDlg.h>
+#include <Havana2/Dialog/OctIntensityHistDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/PulseReviewDlg.h>
 #endif
@@ -41,7 +42,7 @@ QResultTab::QResultTab(QWidget *parent) :
     QDialog(parent), 
 	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr), m_pCirc(nullptr),
 	m_pMedfiltRect(nullptr), 
-	m_pSaveResultDlg(nullptr)
+	m_pSaveResultDlg(nullptr), m_pOctIntensityHistDlg(nullptr)
 #ifdef OCT_FLIM
 	, m_pFLIMpost(nullptr), m_pPulseReviewDlg(nullptr)
 	, m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
@@ -327,6 +328,11 @@ void QResultTab::createVisualizationOptionTab()
 	m_pToggleButton_MeasureDistance->setCheckable(true);
     m_pToggleButton_MeasureDistance->setText("Measure Distance");
 	m_pToggleButton_MeasureDistance->setDisabled(true);
+
+	// Create push button for OCT Intensity Histogram
+	m_pPushButton_OctIntensityHistogram = new QPushButton(this);
+	m_pPushButton_OctIntensityHistogram->setText("OCT Intensity Histogram...");
+	m_pPushButton_OctIntensityHistogram->setDisabled(true);
 	
     // Create checkboxs for OCT operation
     m_pCheckBox_ShowGuideLine = new QCheckBox(this);
@@ -421,44 +427,48 @@ void QResultTab::createVisualizationOptionTab()
     pGridLayout_Visualization->addWidget(m_pSlider_SelectFrame, 1, 1, 1, 4);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 5);
 
-    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
-    pGridLayout_Visualization->addWidget(m_pCheckBox_CircularizeImage, 2, 1);
-    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 2);
-    pGridLayout_Visualization->addWidget(m_pLabel_CircCenter, 2, 3);
-    pGridLayout_Visualization->addWidget(m_pLineEdit_CircCenter, 2, 4);
-    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 5);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0, 1, 3);
+	pGridLayout_Visualization->addWidget(m_pPushButton_OctIntensityHistogram, 2, 3, 1, 2);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 5);	
 
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);
-    pGridLayout_Visualization->addWidget(m_pCheckBox_ShowGuideLine, 3, 1);
+    pGridLayout_Visualization->addWidget(m_pCheckBox_CircularizeImage, 3, 1);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 2);
-    pGridLayout_Visualization->addWidget(m_pLabel_OctColorTable, 3, 3);
-    pGridLayout_Visualization->addWidget(m_pComboBox_OctColorTable, 3, 4);
+    pGridLayout_Visualization->addWidget(m_pLabel_CircCenter, 3, 3);
+    pGridLayout_Visualization->addWidget(m_pLineEdit_CircCenter, 3, 4);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 5);
 
-#ifdef OCT_FLIM
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 0);
-    pGridLayout_Visualization->addWidget(m_pCheckBox_HsvEnhancedMap, 4, 1);
+    pGridLayout_Visualization->addWidget(m_pCheckBox_ShowGuideLine, 4, 1);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 2);
-    pGridLayout_Visualization->addWidget(m_pLabel_EmissionChannel, 4, 3);
-    pGridLayout_Visualization->addWidget(m_pComboBox_EmissionChannel, 4, 4);
+    pGridLayout_Visualization->addWidget(m_pLabel_OctColorTable, 4, 3);
+    pGridLayout_Visualization->addWidget(m_pComboBox_OctColorTable, 4, 4);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 5);
 
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 0, 1, 3);
-	pGridLayout_Visualization->addWidget(m_pLabel_LifetimeColorTable, 5, 3);
-	pGridLayout_Visualization->addWidget(m_pComboBox_LifetimeColorTable, 5, 4);
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 5);
+#ifdef OCT_FLIM
+    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 0);
+    pGridLayout_Visualization->addWidget(m_pCheckBox_HsvEnhancedMap, 5, 1);
+    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 2);
+    pGridLayout_Visualization->addWidget(m_pLabel_EmissionChannel, 5, 3);
+    pGridLayout_Visualization->addWidget(m_pComboBox_EmissionChannel, 5, 4);
+    pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 5);
+
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 6, 0, 1, 3);
+	pGridLayout_Visualization->addWidget(m_pLabel_LifetimeColorTable, 6, 3);
+	pGridLayout_Visualization->addWidget(m_pComboBox_LifetimeColorTable, 6, 4);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 6, 5);
 #endif
 
 #ifdef OCT_NIRF
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 0);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 0);
 	QHBoxLayout *pHBoxLayout_Nirf = new QHBoxLayout;
 	pHBoxLayout_Nirf->setSpacing(3);
 	pHBoxLayout_Nirf->addWidget(m_pLabel_NirfOffset);
 	pHBoxLayout_Nirf->addWidget(m_pLineEdit_NirfOffset);
 	pHBoxLayout_Nirf->addWidget(new QLabel("  ", this));
 	pHBoxLayout_Nirf->addWidget(m_pScrollBar_NirfOffset);
-	pGridLayout_Visualization->addItem(pHBoxLayout_Nirf, 4, 1, 1, 4);
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 5);
+	pGridLayout_Visualization->addItem(pHBoxLayout_Nirf, 5, 1, 1, 4);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 5, 5);
 #endif
 
     m_pGroupBox_Visualization->setLayout(pGridLayout_Visualization);
@@ -466,6 +476,7 @@ void QResultTab::createVisualizationOptionTab()
 	// Connect signal and slot
 	connect(m_pSlider_SelectFrame, SIGNAL(valueChanged(int)), this, SLOT(visualizeImage(int)));
 	connect(m_pToggleButton_MeasureDistance, SIGNAL(toggled(bool)), this, SLOT(measureDistance(bool)));
+	connect(m_pPushButton_OctIntensityHistogram, SIGNAL(clicked(bool)), this, SLOT(createOctIntensityHistDlg()));
 	connect(m_pCheckBox_ShowGuideLine, SIGNAL(toggled(bool)), this, SLOT(showGuideLine(bool)));
 	connect(m_pCheckBox_CircularizeImage, SIGNAL(toggled(bool)), this, SLOT(changeVisImage(bool)));
 	connect(m_pLineEdit_CircCenter, SIGNAL(textEdited(const QString &)), this, SLOT(checkCircCenter(const QString &)));
@@ -702,6 +713,26 @@ void QResultTab::deleteSaveResultDlg()
 	m_pSaveResultDlg = nullptr;
 }
 
+void QResultTab::createOctIntensityHistDlg()
+{
+	if (m_pOctIntensityHistDlg == nullptr)
+	{
+		m_pOctIntensityHistDlg = new OctIntensityHistDlg(this);
+		connect(m_pOctIntensityHistDlg, SIGNAL(finished(int)), this, SLOT(deleteOctIntensityHistDlg()));
+		m_pOctIntensityHistDlg->show();
+	}
+	m_pOctIntensityHistDlg->raise();
+	m_pOctIntensityHistDlg->activateWindow();
+
+	emit m_pOctIntensityHistDlg->plotHistogram(m_vectorOctImage.at(m_pSlider_SelectFrame->value()).raw_ptr());
+}
+
+void QResultTab::deleteOctIntensityHistDlg()
+{
+	m_pOctIntensityHistDlg->deleteLater();
+	m_pOctIntensityHistDlg = nullptr;
+}
+
 #ifdef OCT_FLIM
 void QResultTab::createPulseReviewDlg()
 {
@@ -766,6 +797,10 @@ void QResultTab::visualizeImage(int frame)
 		}
 #endif
 		(*m_pMedfiltRect)(m_pImgObjRectImage->arr.raw_ptr());
+
+		// OCT Intensity Histogram
+		if (m_pOctIntensityHistDlg)
+			emit m_pOctIntensityHistDlg->plotHistogram(m_vectorOctImage.at(frame).raw_ptr());
 
 #ifdef OCT_FLIM		
 		// FLIM Visualization		
@@ -1605,6 +1640,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pSlider_SelectFrame->setRange(0, pConfig->nFrames - 1);
 		m_pSlider_SelectFrame->setValue(0);
 		
+		m_pPushButton_OctIntensityHistogram->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
 		m_pLabel_CircCenter->setEnabled(true);
@@ -1700,6 +1736,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 
 		m_pSlider_SelectFrame->setDisabled(true);
 
+		m_pPushButton_OctIntensityHistogram->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
 		m_pLabel_CircCenter->setDisabled(true);
@@ -1779,6 +1816,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLabel_SelectFrame->setEnabled(true);
 		m_pSlider_SelectFrame->setEnabled(true);
 
+		m_pPushButton_OctIntensityHistogram->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
 		m_pLabel_CircCenter->setEnabled(true);
@@ -1851,6 +1889,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLabel_SelectFrame->setDisabled(true);
 		m_pSlider_SelectFrame->setDisabled(true);
 
+		m_pPushButton_OctIntensityHistogram->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
 		m_pLabel_CircCenter->setDisabled(true);

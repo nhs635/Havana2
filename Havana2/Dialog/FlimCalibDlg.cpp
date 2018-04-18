@@ -233,14 +233,15 @@ void FlimCalibDlg::createHistogram()
 
 	m_pLabel_FluIntensity = new QLabel("Fluorescence Intensity (AU)", this);
 
+	int n_bins = 50;
 	m_pRenderArea_FluIntensity = new QRenderArea(this);
-	m_pRenderArea_FluIntensity->setSize({ 0, (double)N_BINS }, { 0, (double)m_pConfig->n4Alines });
+	m_pRenderArea_FluIntensity->setSize({ 0, (double)n_bins }, { 0, (double)m_pConfig->n4Alines });
 	m_pRenderArea_FluIntensity->setFixedSize(250, 150); 
 	m_pRenderArea_FluIntensity->setGrid(4, 16, 1);
 
-	m_pHistogramIntensity = new Histogram(N_BINS, m_pConfig->n4Alines);
+	m_pHistogramIntensity = new Histogram(n_bins, m_pConfig->n4Alines);
 	
-	m_pColorbar_FluIntensity = new QImageView(ColorTable::colortable::fire, 256, 1, false);
+	m_pColorbar_FluIntensity = new QImageView(ColorTable::colortable(INTENSITY_COLORTABLE), 256, 1, false);
 	m_pColorbar_FluIntensity->drawImage(color);
 	m_pColorbar_FluIntensity->getRender()->setFixedSize(250, 10);
 
@@ -267,13 +268,13 @@ void FlimCalibDlg::createHistogram()
 	m_pLabel_FluLifetime = new QLabel("Fluorescence Lifetime (nsec)", this);
 
 	m_pRenderArea_FluLifetime = new QRenderArea(this);
-	m_pRenderArea_FluLifetime->setSize({ 0, (double)N_BINS }, { 0, (double)m_pConfig->n4Alines });
+	m_pRenderArea_FluLifetime->setSize({ 0, (double)n_bins }, { 0, (double)m_pConfig->n4Alines });
 	m_pRenderArea_FluLifetime->setFixedSize(250, 150);
 	m_pRenderArea_FluLifetime->setGrid(4, 16, 1);
 
-	m_pHistogramLifetime = new Histogram(N_BINS, m_pConfig->n4Alines);
+	m_pHistogramLifetime = new Histogram(n_bins, m_pConfig->n4Alines);
 
-	m_pColorbar_FluLifetime = new QImageView(ColorTable::colortable::hsv, 256, 1, false);
+	m_pColorbar_FluLifetime = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), 256, 1, false);
 	m_pColorbar_FluLifetime->drawImage(color);
 	m_pColorbar_FluLifetime->getRender()->setFixedSize(250, 10);
 
@@ -362,6 +363,8 @@ void FlimCalibDlg::drawRoiPulse(FLIMProcess* pFLIM, int aline)
 	m_pLabel_FluIntensityMax->setText(QString::number(m_pConfig->flimIntensityRange.max, 'f', 1));
 	m_pLabel_FluLifetimeMin->setText(QString::number(m_pConfig->flimLifetimeRange.min, 'f', 1));
 	m_pLabel_FluLifetimeMax->setText(QString::number(m_pConfig->flimLifetimeRange.max, 'f', 1));
+
+	m_pColorbar_FluLifetime->resetColormap(ColorTable::colortable(m_pConfig->flimLifetimeColorTable));
 	
 	Ipp32f mean, stdev;
 	ippsMeanStdDev_32f(scanIntensity, m_pConfig->n4Alines, &mean, &stdev, ippAlgHintFast);
