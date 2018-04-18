@@ -80,6 +80,7 @@ SOURCES += Havana2/Havana2.cpp \
     Havana2/Viewer/QEcgScope.cpp \
     Havana2/Viewer/QImageView.cpp \
     Havana2/Dialog/OctCalibDlg.cpp \
+    Havana2/Dialog/OctIntensityHistDlg.cpp \
     Havana2/Dialog/FlimCalibDlg.cpp \
     Havana2/Dialog/DigitizerSetupDlg.cpp \
     Havana2/Dialog/SaveResultDlg.cpp \
@@ -100,6 +101,8 @@ SOURCES += DeviceControl/FLIMControl/PmtGainControl.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoring.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.cpp \
     DeviceControl/ECGMonitoring/Voltage800RPS.cpp \
+    DeviceControl/NirfEmission/NirfEmission.cpp \
+    DeviceControl/NirfEmission/NirfEmissionTrigger.cpp \
     DeviceControl/GalvoScan/GalvoScan.cpp \
     DeviceControl/ZaberStage/ZaberStage.cpp \
     DeviceControl/ZaberStage/zb_serial.cpp \
@@ -118,6 +121,7 @@ HEADERS += Havana2/Configuration.h \
     Havana2/Viewer/QEcgScope.h \
     Havana2/Viewer/QImageView.h \
     Havana2/Dialog/OctCalibDlg.h \
+    Havana2/Dialog/OctIntensityHistDlg.h \
     Havana2/Dialog/FlimCalibDlg.h \
     Havana2/Dialog/DigitizerSetupDlg.h \
     Havana2/Dialog/SaveResultDlg.h \
@@ -138,6 +142,8 @@ HEADERS += DeviceControl/FLIMControl/PmtGainControl.h \
     DeviceControl/ECGMonitoring/EcgMonitoring.h \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.h \
     DeviceControl/ECGMonitoring/Voltage800RPS.h \
+    DeviceControl/NirfEmission/NirfEmission.h \
+    DeviceControl/NirfEmission/NirfEmissionTrigger.h \
     DeviceControl/GalvoScan/GalvoScan.h \
     DeviceControl/ZaberStage/ZaberStage.h \
     DeviceControl/ZaberStage/zb_serial.h \

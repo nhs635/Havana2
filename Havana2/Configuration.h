@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.3.1"
+#define VERSION						"1.2.3.2" // Histogram Updated
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -16,7 +16,7 @@
 
 #ifdef STANDALONE_OCT
 //#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -28,7 +28,7 @@
 //#define ECG_TRIGGERING
 #endif
 #endif
-#define GALVANO_MIRROR
+//#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 

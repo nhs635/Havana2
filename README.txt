@@ -1,4 +1,4 @@
-/*** Required Software ***/
+﻿/*** Required Software ***/
 
 - Windows 7 64 bit OS
 
@@ -73,6 +73,8 @@ Havana2.VC*
   (NIRF result view is modified.)
 - Havana2 v1.2.3.1
   (Minor error modification & commit for microOCT version development)
+- Havana2 v1.2.3.2
+  (OCT intensity histogram)
 
 
 

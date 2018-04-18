@@ -21,13 +21,15 @@
 #include <DataProcess/ThreadManager.h>
 
 #include <Havana2/Dialog/OctCalibDlg.h>
+#include <Havana2/Dialog/OctIntensityHistDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/FlimCalibDlg.h>
 #endif
 
 
 QStreamTab::QStreamTab(QWidget *parent) :
-    QDialog(parent), m_pOctCalibDlg(nullptr), m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr),
+    QDialog(parent), m_pOctCalibDlg(nullptr), m_pOctIntensityHistDlg(nullptr),
+	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr),
 	m_pCirc(nullptr), m_pMedfilt(nullptr)
 #ifdef OCT_FLIM
 	, m_pFlimCalibDlg(nullptr), m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
@@ -100,9 +102,9 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_visImage = np::FloatArray2(m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 
 	m_visPulse = np::FloatArray2(m_pConfig->fnScans, m_pConfig->n4Alines);
-	m_visIntensity = np::FloatArray2(m_pConfig->n4Alines, 4);
-	m_visMeanDelay = np::FloatArray2(m_pConfig->n4Alines, 4);
-	m_visLifetime = np::FloatArray2(m_pConfig->n4Alines, 3);
+	m_visIntensity = np::FloatArray2(m_pConfig->n4Alines, 4); memset(m_visIntensity.raw_ptr(), 0, sizeof(float) * m_visIntensity.length());
+	m_visMeanDelay = np::FloatArray2(m_pConfig->n4Alines, 4); memset(m_visMeanDelay.raw_ptr(), 0, sizeof(float) * m_visMeanDelay.length());
+	m_visLifetime = np::FloatArray2(m_pConfig->n4Alines, 3); memset(m_visLifetime.raw_ptr(), 0, sizeof(float) * m_visLifetime.length());
 	
 #elif defined (STANDALONE_OCT)
 	m_visFringe1 = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
@@ -535,6 +537,10 @@ void QStreamTab::createOctVisualizationOptionTab()
 	m_pPushButton_OctCalibration = new QPushButton(this);
 	m_pPushButton_OctCalibration->setText("OCT Calibration...");
 
+	// Create widgets for OCT Intensity Histogram
+	m_pPushButton_OctIntensityHistogram = new QPushButton(this);
+	m_pPushButton_OctIntensityHistogram->setText("OCT Intensity Histogram...");
+
     // Create widgets for OCT visualization
     m_pCheckBox_CircularizeImage = new QCheckBox(this);
     m_pCheckBox_CircularizeImage->setText("Circularize Image");
@@ -584,17 +590,20 @@ void QStreamTab::createOctVisualizationOptionTab()
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0);
 	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctCalibration, 0, 3, 1, 2);
 
-	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
-	pGridLayout_OctVisualization->addWidget(m_pCheckBox_CircularizeImage, 1, 1);
-	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 1, 2);
-	pGridLayout_OctVisualization->addWidget(m_pLabel_CircCenter, 1, 3);
-	pGridLayout_OctVisualization->addWidget(m_pLineEdit_CircCenter, 1, 4);
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);	
+	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctIntensityHistogram, 1, 3, 1, 2);
 
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
-	pGridLayout_OctVisualization->addWidget(m_pCheckBox_ShowBgRemovedSignal, 2, 1);
+	pGridLayout_OctVisualization->addWidget(m_pCheckBox_CircularizeImage, 2, 1);
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 2);
-	pGridLayout_OctVisualization->addWidget(m_pLabel_OctColorTable, 2, 3);
-	pGridLayout_OctVisualization->addWidget(m_pComboBox_OctColorTable, 2, 4);
+	pGridLayout_OctVisualization->addWidget(m_pLabel_CircCenter, 2, 3);
+	pGridLayout_OctVisualization->addWidget(m_pLineEdit_CircCenter, 2, 4);
+
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);
+	pGridLayout_OctVisualization->addWidget(m_pCheckBox_ShowBgRemovedSignal, 3, 1);
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 3, 2);
+	pGridLayout_OctVisualization->addWidget(m_pLabel_OctColorTable, 3, 3);
+	pGridLayout_OctVisualization->addWidget(m_pComboBox_OctColorTable, 3, 4);
 
     QHBoxLayout *pHBoxLayout_OctDbColorbar = new QHBoxLayout;
     pHBoxLayout_OctDbColorbar->setSpacing(3);
@@ -603,7 +612,7 @@ void QStreamTab::createOctVisualizationOptionTab()
     pHBoxLayout_OctDbColorbar->addWidget(m_pImageView_OctDbColorbar);
     pHBoxLayout_OctDbColorbar->addWidget(m_pLineEdit_OctDbMax);
 
-	pGridLayout_OctVisualization->addItem(pHBoxLayout_OctDbColorbar, 3, 0, 1, 5);
+	pGridLayout_OctVisualization->addItem(pHBoxLayout_OctDbColorbar, 4, 0, 1, 5);
 
     m_pGroupBox_OctVisualization->setLayout(pGridLayout_OctVisualization);
     
@@ -616,6 +625,7 @@ void QStreamTab::createOctVisualizationOptionTab()
 	connect(m_pLineEdit_OctDbMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
 
 	connect(m_pPushButton_OctCalibration, SIGNAL(clicked(bool)), this, SLOT(createOctCalibDlg()));
+	connect(m_pPushButton_OctIntensityHistogram, SIGNAL(clicked(bool)), this, SLOT(createOctIntensityHistDlg()));
 }
 
 
@@ -1102,9 +1112,9 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_visImage = np::FloatArray2(m_pConfig->n2ScansFFT, nAlines);
 
 	m_visPulse = np::FloatArray2(m_pConfig->fnScans, nAlines / 4);
-	m_visIntensity = np::FloatArray2(nAlines / 4, 4);
-	m_visMeanDelay = np::FloatArray2(nAlines / 4, 4);
-	m_visLifetime = np::FloatArray2(nAlines / 4, 3);
+	m_visIntensity = np::FloatArray2(nAlines / 4, 4); memset(m_visIntensity.raw_ptr(), 0, sizeof(float) * m_visIntensity.length());
+	m_visMeanDelay = np::FloatArray2(nAlines / 4, 4); memset(m_visMeanDelay.raw_ptr(), 0, sizeof(float) * m_visMeanDelay.length());
+	m_visLifetime = np::FloatArray2(nAlines / 4, 3); memset(m_visLifetime.raw_ptr(), 0, sizeof(float) * m_visLifetime.length());
 
 	// FLIM initialization
 	ippiSet_32f_C1R(m_pFLIM->_params.bg, m_visPulse.raw_ptr(),
@@ -1211,6 +1221,10 @@ void QStreamTab::visualizeImage(float* res1, float* res2, float* res3) // OCT-NI
 	}
 #endif
 	(*m_pMedfilt)(m_pImgObjRectImage->arr.raw_ptr());	
+
+	// OCT Intensity Histogram
+	if (m_pOctIntensityHistDlg)
+		emit m_pOctIntensityHistDlg->plotHistogram(res1);
 
 #ifdef OCT_FLIM
 	// FLIM Visualization
@@ -1387,6 +1401,13 @@ void QStreamTab::changeLifetimeColorTable(int ctable_ind)
 	ColorTable temp_ctable;
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
 	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ctable_ind));
+
+	if (!m_pOperationTab->isAcquisitionButtonToggled())
+	{
+		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
+		if (m_pFlimCalibDlg)
+			emit m_pFlimCalibDlg->plotRoiPulse(m_pFLIM, m_pSlider_SelectAline->value() / 4);
+	}
 }
 
 void QStreamTab::adjustFlimContrast()
@@ -1570,6 +1591,8 @@ void QStreamTab::changeOctColorTable(int ctable_ind)
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
+		if (m_pOctIntensityHistDlg)
+			emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
 	}
 }
 
@@ -1598,6 +1621,8 @@ void QStreamTab::adjustOctContrast()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
+		if (m_pOctIntensityHistDlg)
+			emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
 	}
 }
 
@@ -1617,4 +1642,24 @@ void QStreamTab::deleteOctCalibDlg()
 {
 	m_pOctCalibDlg->deleteLater();
 	m_pOctCalibDlg = nullptr;
+}
+
+void QStreamTab::createOctIntensityHistDlg()
+{
+	if (m_pOctIntensityHistDlg == nullptr)
+	{
+		m_pOctIntensityHistDlg = new OctIntensityHistDlg(this);
+		connect(m_pOctIntensityHistDlg, SIGNAL(finished(int)), this, SLOT(deleteOctIntensityHistDlg()));
+		m_pOctIntensityHistDlg->show();
+	}
+	m_pOctIntensityHistDlg->raise();
+	m_pOctIntensityHistDlg->activateWindow();
+
+	emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
+}
+
+void QStreamTab::deleteOctIntensityHistDlg()
+{
+	m_pOctIntensityHistDlg->deleteLater();
+	m_pOctIntensityHistDlg = nullptr;
 }
