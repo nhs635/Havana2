@@ -1657,7 +1657,7 @@ void QStreamTab::createOctIntensityHistDlg()
 {
 	if (m_pOctIntensityHistDlg == nullptr)
 	{
-		m_pOctIntensityHistDlg = new OctIntensityHistDlg(this);
+		m_pOctIntensityHistDlg = new OctIntensityHistDlg(true, this);
 		connect(m_pOctIntensityHistDlg, SIGNAL(finished(int)), this, SLOT(deleteOctIntensityHistDlg()));
 		m_pOctIntensityHistDlg->show();
 	}

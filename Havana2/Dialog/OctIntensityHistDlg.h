@@ -105,7 +105,7 @@ class OctIntensityHistDlg : public QDialog
 
 // Constructer & Destructer /////////////////////////////
 public:
-    explicit OctIntensityHistDlg(QWidget *parent = 0);
+    explicit OctIntensityHistDlg(bool isStreamTab = true, QWidget *parent = 0);
     virtual ~OctIntensityHistDlg();
 
 // Methods //////////////////////////////////////////////
@@ -113,7 +113,7 @@ private:
 	void keyPressEvent(QKeyEvent *e);
 	
 private:
-	void createHistogram();
+	void createHistogram(int _nAlines);
 
 private: // callback
 	
@@ -129,6 +129,7 @@ private:
     MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
     QStreamTab* m_pStreamTab;
+	QResultTab* m_pResultTab;
 	
 private:
 	Histogram* m_pHistogram;

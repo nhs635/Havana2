@@ -9,7 +9,7 @@
 #include <thread>
 
 
-OctIntensityHistDlg::OctIntensityHistDlg(QWidget *parent) :
+OctIntensityHistDlg::OctIntensityHistDlg(bool isStreamTab, QWidget *parent) :
     QDialog(parent)
 {
     // Set default size & frame
@@ -18,16 +18,30 @@ OctIntensityHistDlg::OctIntensityHistDlg(QWidget *parent) :
 	setWindowTitle("OCT Intensity Histogram");
 
     // Set main window objects
-    m_pStreamTab = (QStreamTab*)parent;
-    m_pMainWnd = m_pStreamTab->getMainWnd();
-	m_pConfig = m_pMainWnd->m_pConfiguration;		
+	if (isStreamTab)
+	{
+		m_pStreamTab = (QStreamTab*)parent;
+		m_pMainWnd = m_pStreamTab->getMainWnd();
+	}
+	else
+	{
+		m_pResultTab = (QResultTab*)parent;
+		m_pMainWnd = m_pResultTab->getMainWnd();
+	}
+	m_pConfig = m_pMainWnd->m_pConfiguration;
 
 	// Create layout
 	m_pVBoxLayout = new QVBoxLayout;
 	m_pVBoxLayout->setSpacing(20);
 
 	// Create widgets for histogram
-	createHistogram();
+	if (isStreamTab)
+		createHistogram(m_pConfig->nAlines);
+	else
+		if (m_pResultTab->m_vectorOctImage.size() == 0 )
+			createHistogram(m_pConfig->nAlines);
+		else
+			createHistogram(m_pResultTab->m_vectorOctImage.at(0).size(1));
 
 	// Set layout
 	this->setLayout(m_pVBoxLayout);
@@ -45,7 +59,7 @@ void OctIntensityHistDlg::keyPressEvent(QKeyEvent *e)
 }
 
 
-void OctIntensityHistDlg::createHistogram()
+void OctIntensityHistDlg::createHistogram(int _nAlines)
 {
 	// Create widgets for histogram layout
 	QHBoxLayout *pHBoxLayout_Histogram = new QHBoxLayout;
@@ -63,11 +77,11 @@ void OctIntensityHistDlg::createHistogram()
 		
 	int n_bins = 500;
 	m_pRenderArea = new QRenderArea(this);
-	m_pRenderArea->setSize({ 0, (double)n_bins }, { 0, (double)(m_pConfig->nAlines * m_pConfig->n2ScansFFT) / (double)n_bins });
+	m_pRenderArea->setSize({ 0, (double)n_bins }, { 0, (double)(_nAlines * m_pConfig->n2ScansFFT) / (double)n_bins });
 	m_pRenderArea->setFixedSize(350, 200);
 	m_pRenderArea->setGrid(4, 16, 1);
 
-	m_pHistogram = new Histogram(n_bins, m_pConfig->nAlines * m_pConfig->n2ScansFFT);
+	m_pHistogram = new Histogram(n_bins, _nAlines * m_pConfig->n2ScansFFT);
 	
 	m_pColorbar = new QImageView(ColorTable::colortable::gray, 256, 1, false);
 	m_pColorbar->drawImage(color);

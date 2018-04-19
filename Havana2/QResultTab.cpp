@@ -717,7 +717,7 @@ void QResultTab::createOctIntensityHistDlg()
 {
 	if (m_pOctIntensityHistDlg == nullptr)
 	{
-		m_pOctIntensityHistDlg = new OctIntensityHistDlg(this);
+		m_pOctIntensityHistDlg = new OctIntensityHistDlg(false, this);
 		connect(m_pOctIntensityHistDlg, SIGNAL(finished(int)), this, SLOT(deleteOctIntensityHistDlg()));
 		m_pOctIntensityHistDlg->show();
 	}
@@ -1251,6 +1251,9 @@ void QResultTab::adjustNirfOffset(int offset)
 void QResultTab::startProcessing()
 {	
 	m_pSlider_SelectFrame->setValue(0);
+
+	if (m_pOctIntensityHistDlg)
+		m_pOctIntensityHistDlg->close();
 
 	int id = m_pButtonGroup_DataSelection->checkedId();
 	switch (id)
