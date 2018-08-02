@@ -7,6 +7,9 @@
 
 #include <DataAcquisition/DataAcquisition.h>
 #include <MemoryBuffer/MemoryBuffer.h>
+#ifdef OCT_NIRF
+#include <DeviceControl/NirfEmission/NirfEmission.h>
+#endif
 
 #include <Havana2/Viewer/QScope.h>
 #ifdef STANDALONE_OCT
@@ -76,6 +79,9 @@ QStreamTab::QStreamTab(QWidget *parent) :
 
 	// Create buffers for threading operation
     m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#ifdef OCT_NIRF
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#endif
     m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch1 Processing
     m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch1 Visualization
@@ -85,6 +91,9 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #elif defined (STANDALONE_OCT)
     m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 Processing
     m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 OCT Visualization
+#ifdef OCT_NIRF
+	m_syncNirfVisualization.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#endif
 #endif
 	
 	// Set signal object
@@ -118,7 +127,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 
 #ifdef OCT_NIRF
-	m_visNirf = np::FloatArray(m_pConfig->nAlines);
+	m_visNirf = np::DoubleArray(m_pConfig->nAlines);
 #endif
 #endif 
 
@@ -635,8 +644,9 @@ void QStreamTab::setDataAcquisitionCallback()
 	m_pDataAcq->ConnectDaqAcquiredData([&](int frame_count, const np::Array<uint16_t, 2>& frame) {
 
 		// Data halving
+#ifdef STANDALONE_OCT
 		/* To be updated*/
-
+#endif
 		// Data transfer		
 		if (!(frame_count % RENEWAL_COUNT))
 		{
@@ -691,7 +701,6 @@ void QStreamTab::setDataAcquisitionCallback()
 
 					// Push to the copy queue for copying transfered data in copy thread
 					m_pMemBuff->m_syncBuffering.Queue_sync.push(frame_ptr);
-					m_pMemBuff->m_nRecordedFrames++;
 				}
 			}
 			else
@@ -716,6 +725,82 @@ void QStreamTab::setDataAcquisitionCallback()
 	});
 #endif
 }
+
+#ifdef OCT_NIRF
+void QStreamTab::setNirfAcquisitionCallback()
+{
+	NirfEmission* pNirfEmission = m_pMainWnd->m_pDeviceControlTab->getNirfEmission();
+
+	pNirfEmission->DidAcquireData += [&](int total, const double* data) {
+		
+		// Data transfer		
+		if (!(total % RENEWAL_COUNT))
+		{
+			// Get buffer from threading queue
+			double* nirf_ptr = nullptr;
+			{
+				std::unique_lock<std::mutex> lock(m_syncNirfVisualization.mtx);
+
+				if (!m_syncNirfVisualization.queue_buffer.empty())
+				{
+					nirf_ptr = m_syncNirfVisualization.queue_buffer.front();
+					m_syncNirfVisualization.queue_buffer.pop();
+				}
+			}
+
+			if (nirf_ptr != nullptr)
+			{
+				// Body
+				memcpy(nirf_ptr, data, sizeof(double) * m_pConfig->nAlines);
+
+				// Visualization
+				if (m_pNirfEmissionProfileDlg)
+					m_pNirfEmissionProfileDlg->drawData(data);
+
+				// Push the buffer to sync Queue
+				m_syncNirfVisualization.Queue_sync.push(nirf_ptr);
+			}
+		}
+		
+		// Buffering (When recording)
+		if (m_pMemBuff->m_bIsRecording)
+		{
+			if (m_pMemBuff->m_nRecordedFrames < WRITING_BUFFER_SIZE)
+			{
+				// Get buffer from writing queue
+				double* nirf_data = nullptr;
+				{
+					std::unique_lock<std::mutex> lock(m_pMemBuff->m_syncBufferingNirf.mtx);
+
+					if (!m_pMemBuff->m_syncBufferingNirf.queue_buffer.empty())
+					{
+						nirf_data = m_pMemBuff->m_syncBufferingNirf.queue_buffer.front();
+						m_pMemBuff->m_syncBufferingNirf.queue_buffer.pop();
+					}
+				}
+
+				if (nirf_data != nullptr)
+				{
+					// Body (Copying the frame data)
+					memcpy(nirf_data, data, sizeof(double) * m_pConfig->nAlines);
+
+					// Push to the copy queue for copying transfered data in copy thread
+					m_pMemBuff->m_syncBufferingNirf.Queue_sync.push(nirf_data);
+				}
+			}
+		}
+	};
+
+	pNirfEmission->DidStopData += [&]() {
+		// None
+	};
+
+	pNirfEmission->SendStatusMessage += [&](const char * msg) {
+		QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
+		MsgBox.exec();
+	};
+}
+#endif
 
 void QStreamTab::setDeinterleavingCallback()
 {
@@ -900,7 +985,7 @@ void QStreamTab::setCh2ProcessingCallback()
 					emit m_pFlimCalibDlg->plotRoiPulse(m_pFLIM, m_pSlider_SelectAline->value() / 4);
 
 #elif defined (STANDALONE_OCT)
-				(*m_pOCT2)(res_ptr, ch2_data);
+				//(*m_pOCT2)(res_ptr, ch2_data);
 #endif		
 				// Push the buffers to sync Queues
 				m_syncCh2Visualization.Queue_sync.push(res_ptr);
@@ -936,7 +1021,15 @@ void QStreamTab::setVisualizationCallback()
 		// Get the buffers from the previous sync Queues
 		float* res1_data = m_syncCh1Visualization.Queue_sync.pop();
 		float* res2_data = m_syncCh2Visualization.Queue_sync.pop();
-		if ((res1_data != nullptr) && (res2_data != nullptr))
+#ifdef OCT_NIRF
+		double* res3_data = m_syncNirfVisualization.Queue_sync.pop();
+#endif
+
+		if ((res1_data != nullptr) && (res2_data != nullptr) 
+#ifdef OCT_NIRF
+			&& (res3_data != nullptr)
+#endif
+			)
 		{
 			// Body	
 			if (m_pOperationTab->isAcquisitionButtonToggled()) // Only valid if acquisition is running
@@ -963,7 +1056,8 @@ void QStreamTab::setVisualizationCallback()
                 visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
 #else
 				// Draw Images
-				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), nullptr); // ?
+				m_visNirf = np::DoubleArray(res3_data, m_pConfig->nAlines);
+				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
 			}
@@ -977,6 +1071,12 @@ void QStreamTab::setVisualizationCallback()
 				std::unique_lock<std::mutex> lock(m_syncCh2Visualization.mtx);
 				m_syncCh2Visualization.queue_buffer.push(res2_data);
 			}
+#ifdef OCT_NIRF
+			{
+				std::unique_lock<std::mutex> lock(m_syncNirfVisualization.mtx);
+				m_syncNirfVisualization.queue_buffer.push(res3_data);
+			}
+#endif
 		}
 		else
 		{
@@ -989,16 +1089,26 @@ void QStreamTab::setVisualizationCallback()
 					res1_temp = m_syncCh1Visualization.Queue_sync.pop();
 				} while (res1_temp != nullptr);
 			}
-			else if (res2_data != nullptr)
+			if (res2_data != nullptr)
 			{
 				float* res2_temp = res2_data;
 				do
 				{
-					m_syncCh1Visualization.queue_buffer.push(res2_temp);
-					res2_temp = m_syncCh1Visualization.Queue_sync.pop();
+					m_syncCh2Visualization.queue_buffer.push(res2_temp);
+					res2_temp = m_syncCh2Visualization.Queue_sync.pop();
 				} while (res2_temp != nullptr);
 			}
-
+#ifdef OCT_NIRF
+			if (res3_data != nullptr)
+			{
+				double* res3_temp = res3_data;
+				do
+				{
+					m_syncNirfVisualization.queue_buffer.push(res3_temp);
+					res3_temp = m_syncNirfVisualization.Queue_sync.pop();
+				} while (res3_temp != nullptr);
+			}
+#endif
 			m_pThreadVisualization->_running = false;
 
             (void)frame_count;
@@ -1008,6 +1118,9 @@ void QStreamTab::setVisualizationCallback()
 	m_pThreadVisualization->DidStopData += [&]() {
 		m_syncCh1Visualization.Queue_sync.push(nullptr);
 		m_syncCh2Visualization.Queue_sync.push(nullptr);
+#ifdef OCT_NIRF
+		m_syncNirfVisualization.Queue_sync.push(nullptr);
+#endif
 	};
 
 	m_pThreadVisualization->SendStatusMessage += [&](const char* msg) {
@@ -1078,13 +1191,22 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 
 	// Create buffers for threading operation
 	m_pMemBuff->m_syncBuffering.deallocate_queue_buffer();
+#ifdef OCT_NIRF
+	m_pMemBuff->m_syncBufferingNirf.deallocate_queue_buffer();
+#endif
 	m_syncDeinterleaving.deallocate_queue_buffer();
 	m_syncCh1Processing.deallocate_queue_buffer();
 	m_syncCh1Visualization.deallocate_queue_buffer();
 	m_syncCh2Processing.deallocate_queue_buffer();
 	m_syncCh2Visualization.deallocate_queue_buffer();
+#ifdef OCT_NIRF
+	m_syncNirfVisualization.deallocate_queue_buffer();
+#endif
 
     m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#ifdef OCT_NIRF
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#endif
     m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh1Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCESSING_BUFFER_SIZE);
@@ -1094,6 +1216,9 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #elif defined (STANDALONE_OCT)
     m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCESSING_BUFFER_SIZE);
+#ifdef OCT_NIRF
+	m_syncNirfVisualization.allocate_queue_buffer(1, nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#endif
 #endif
 
 	// Reset rect image size
@@ -1138,7 +1263,7 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, nAlines);
 
 #ifdef OCT_NIRF
-	m_visNirf = np::FloatArray(m_pConfig->nAlines);
+	m_visNirf = np::DoubleArray(m_pConfig->nAlines);
 #endif
 #endif 
 
@@ -1182,7 +1307,6 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	QString str; str.sprintf("Current A-line : %4d / %4d   ", 1, nAlines);
 	m_pLabel_SelectAline->setText(str);
 
-#ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	// Reset NIRF emission profile dialog	
 	if (m_pNirfEmissionProfileDlg)
@@ -1190,7 +1314,6 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 		m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)nAlines },
 		{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
 	}
-#endif 
 #endif
 }
 
@@ -1200,7 +1323,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2, float* res3, float* re
 #ifndef OCT_NIRF
 void QStreamTab::visualizeImage(float* res1, float* res2) // Standalone OCT
 #else
-void QStreamTab::visualizeImage(float* res1, float* res2, float* res3) // OCT-NIRF
+void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-NIRF
 #endif
 #endif
 {
@@ -1264,9 +1387,10 @@ void QStreamTab::visualizeImage(float* res1, float* res2, float* res3) // OCT-NI
 	// NIRF Visualization
 	IppiSize roi_nirf = { m_pConfig->nAlines, 1 };
 
-	float* scanNirf = res3;
-	uint8_t* rectNirf = m_pImgObjNirf->arr.raw_ptr();
-	ippiScale_32f8u_C1R(scanNirf, roi_nirf.width * sizeof(float), rectNirf, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+	np::FloatArray scanNirf(roi_nirf.width);
+	ippsConvert_64f32f(res3, scanNirf, roi_nirf.width);
+	uint8_t* rectNirf = m_pImgObjNirf->arr.raw_ptr();	
+	ippiScale_32f8u_C1R(scanNirf, roi_nirf.width * sizeof(double), rectNirf, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 	
 	for (int i = 1; i < RING_THICKNESS; i++)
 		memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * roi_nirf.width);
@@ -1454,14 +1578,13 @@ void QStreamTab::adjustNirfContrast()
 	m_pConfig->nirfRange.min = m_pLineEdit_NirfEmissionMin->text().toFloat();
 	m_pConfig->nirfRange.max = m_pLineEdit_NirfEmissionMax->text().toFloat();
 		
-	if (!m_pOperationTab->isAcquisitionButtonToggled())
-	{
+	if (!m_pOperationTab->isAcquisitionButtonToggled())	
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
-		if (m_pNirfEmissionProfileDlg)
-		{
-			m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)m_pConfig->nAlines },
-			{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
-		}
+	
+	if (m_pNirfEmissionProfileDlg)
+	{
+		m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)m_pConfig->nAlines },
+		{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
 	}
 }
 
@@ -1470,7 +1593,7 @@ void QStreamTab::createNirfEmissionProfileDlg()
 	if (m_pNirfEmissionProfileDlg == nullptr)
 	{
 		m_pNirfEmissionProfileDlg = new QScope({ 0, (double)m_pConfig->nAlines }, 
-			{ m_pLineEdit_NirfEmissionMin->text().toFloat(), m_pLineEdit_NirfEmissionMax->text().toFloat() }, 2, 2, 1, 1, 0, 0, "", "");
+			{ m_pLineEdit_NirfEmissionMin->text().toFloat(), m_pLineEdit_NirfEmissionMax->text().toFloat() }, 2, 2, 1, 1, 0, 0, "", "", false, true);
 		connect(m_pNirfEmissionProfileDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfEmissionProfileDlg()));
 		m_pNirfEmissionProfileDlg->setFixedSize(600, 250);
 		m_pNirfEmissionProfileDlg->show();

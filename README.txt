@@ -1,4 +1,4 @@
-﻿/*** Required Software ***/
+/*** Required Software ***/
 
 - Windows 7 64 bit OS
 
@@ -75,9 +75,9 @@ Havana2.VC*
   (Minor error modification & commit for microOCT version development)
 - Havana2 v1.2.3.2
   (OCT intensity histogram)
-
+- Havana2 v1.2.4
+  (Synchronized OCT-NIRF Streaming & Recording)
 
 
 To be updated:
-- Synchronized NIRF emission aquisition using NIDAQ analog input
 - Synchronized start for galvano mirror

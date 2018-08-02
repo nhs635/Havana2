@@ -25,6 +25,7 @@
 #if NI_ENABLE
 #include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
 #include <DeviceControl/NirfEmission/NirfEmission.h>
+#include <Havana2/Viewer/QScope.h>
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -70,6 +71,9 @@ QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
 	createFlimLaserSyncControl();
 	createFlimLaserPowerControl();
 #endif
+#ifdef OCT_NIRF
+	createNirfAcquisitionControl();
+#endif
 #ifdef GALVANO_MIRROR
     createGalvanoMirrorControl();
 #endif
@@ -103,7 +107,7 @@ void QDeviceControlTab::closeEvent(QCloseEvent* e)
 #endif
 #ifdef OCT_NIRF
 #if NI_ENABLE
-	// ,,,
+	if (m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(false);
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -329,6 +333,28 @@ void QDeviceControlTab::createFlimLaserPowerControl()
 	connect(m_pCheckBox_FlimLaserPowerControl, SIGNAL(toggled(bool)), this, SLOT(enableFlimLaserPowerControl(bool)));
 	connect(m_pPushButton_IncreasePower, SIGNAL(clicked(bool)), this, SLOT(increaseLaserPower()));
 	connect(m_pPushButton_DecreasePower, SIGNAL(clicked(bool)), this, SLOT(decreaseLaserPower()));
+}
+#endif
+
+#ifdef OCT_NIRF
+void QDeviceControlTab::createNirfAcquisitionControl()
+{
+	// Create widgets for nirf emission acquisition control
+	QGroupBox *pGroupBox_NirfAcquisitionControl = new QGroupBox;
+	QGridLayout *pGridLayout_NirfAcquisitionControl = new QGridLayout;
+	pGridLayout_NirfAcquisitionControl->setSpacing(3);
+
+	m_pCheckBox_NirfAcquisitionControl = new QCheckBox(pGroupBox_NirfAcquisitionControl);
+	m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
+	m_pCheckBox_NirfAcquisitionControl->setDisabled(true);
+
+	pGridLayout_NirfAcquisitionControl->addWidget(m_pCheckBox_NirfAcquisitionControl, 0, 0);
+
+	pGroupBox_NirfAcquisitionControl->setLayout(pGridLayout_NirfAcquisitionControl);
+	m_pVBoxLayout->addWidget(pGroupBox_NirfAcquisitionControl);
+
+	// Connect signal and slot
+	//connect(m_pCheckBox_NirfAcquisitionControl, SIGNAL(toggled(bool)), this, SLOT(enableNirfEmissionAcquisition(bool)));
 }
 #endif
 
@@ -1002,13 +1028,24 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 	if (toggled)
 	{
 #if NI_ENABLE
+		// Set text
+		m_pCheckBox_NirfAcquisitionControl->setText("Disable NIRF Acquisition Control");
+		m_pCheckBox_NirfAcquisitionControl->setChecked(true);
+		
 		// Create NIRF emission acquisition objects
 		m_pNirfEmissionTrigger = new NirfEmissionTrigger;
+		m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
+
 		m_pNirfEmission = new NirfEmission;
+		m_pNirfEmission->nAlines = m_pConfig->nAlines;
 
 		// Initializing
 		if (!m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
 			return;
+		m_pMainWnd->m_pStreamTab->setNirfAcquisitionCallback();
+
+		// Open NIRF emission profile dialog
+		m_pMainWnd->m_pStreamTab->makeNirfEmissionProfileDlg();
 		
 		// Generate trigger pulse & Start ECG monitoring
 		m_pNirfEmissionTrigger->start();
@@ -1016,17 +1053,26 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 	}
 	else
 	{
+		// Close NIRF emission profile dialog
+		if (m_pMainWnd->m_pStreamTab->getNirfEmissionProfileDlg())
+			m_pMainWnd->m_pStreamTab->getNirfEmissionProfileDlg()->close();
+		memset(m_pMainWnd->m_pStreamTab->m_visNirf.raw_ptr(), 0, sizeof(double) * m_pMainWnd->m_pStreamTab->m_visNirf.length());
+
 		// Delete ECG monitoring objects		
-		if (m_pNirfEmissionTrigger)
-		{
-			m_pNirfEmissionTrigger->stop();
-			delete m_pNirfEmissionTrigger;
-		}
 		if (m_pNirfEmission)
 		{
 			m_pNirfEmission->stop();
 			delete m_pNirfEmission;
 		}
+		if (m_pNirfEmissionTrigger)
+		{
+			m_pNirfEmissionTrigger->stop();
+			delete m_pNirfEmissionTrigger;
+		}
+
+		// Set text
+		m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
+		m_pCheckBox_NirfAcquisitionControl->setChecked(false);
 #endif
 	}
 }

@@ -1,7 +1,7 @@
 #ifndef MEMORYBUFFER_H
 #define MEMORYBUFFER_H
 
-#include <QObject>
+#include <Havana2/Configuration.h>
 
 #include <iostream>
 #include <thread>
@@ -22,7 +22,6 @@ public:
     explicit MemoryBuffer(QObject *parent = 0);
     virtual ~MemoryBuffer();
 
-
 public:
 	// Memory allocation function (buffer for writing)
     void allocateWritingBuffer();
@@ -36,10 +35,17 @@ public:
 
 	// Circulation
 	void circulation(int nFramesToCirc);
+#ifdef OCT_NIRF
+	void circulation_nirf(int nLinesToCirc);
+#endif
 
 	// Buffer operation
 	uint16_t* pop_front();
 	void push_back(uint16_t* buffer);
+#ifdef OCT_NIRF
+	double* pop_front_nirf();
+	void push_back_nirf(double* buffer_nirf);
+#endif
 
 private: // writing threading operation
 	void write();
@@ -63,9 +69,15 @@ public:
 
 public:
 	SyncObject<uint16_t> m_syncBuffering;
+#ifdef OCT_NIRF
+	SyncObject<double> m_syncBufferingNirf;
+#endif
 
 private:
     std::queue<uint16_t*> m_queueWritingBuffer; // writing buffer
+#ifdef OCT_NIRF
+	std::queue<double*> m_queueWritingBufferNirf;
+#endif
 	QString m_fileName;
 };
 

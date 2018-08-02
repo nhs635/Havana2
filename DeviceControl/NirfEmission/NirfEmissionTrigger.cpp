@@ -14,7 +14,7 @@ using namespace std;
 NirfEmissionTrigger::NirfEmissionTrigger() :
 	_taskHandle(nullptr),
 	nAlines(1024),
-	counterChannel(NI_NIRF_TRIGGER_CHANNEL),
+	counterChannel(NI_NIRF_ALINES_COUNTER),
     sourceTerminal(NI_NIRF_TRIGGER_SOURCE)
 {
 }

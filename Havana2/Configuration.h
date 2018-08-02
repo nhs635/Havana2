@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.3.2" // Histogram Updated
+#define VERSION						"1.2.4" // NIRF Version Released~~~!!
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -11,12 +11,12 @@
 #define NI_ENABLE					true
 
 /////////////////////// System setup ////////////////////////
-#define OCT_FLIM
-//#define STANDALONE_OCT
+//#define OCT_FLIM
+#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
-//#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
+#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -63,9 +63,10 @@
 #endif
 
 #ifdef OCT_NIRF
-#define NI_NIRF_TRIGGER_CHANNEL		"Dev1/ct2"
-#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI13"
+#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI11"
 #define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai2"
+#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr3" // ctr0,1,2,3 => PFI12,13,14,15
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8"
 #endif
 
 #ifdef GALVANO_MIRROR
@@ -122,7 +123,7 @@
 #define INTENSITY_COLORTABLE		6 // fire
 #endif
 
-#define RENEWAL_COUNT				10
+#define RENEWAL_COUNT				20
 
 
 

@@ -33,9 +33,11 @@ class SyncFLIM;
 #endif
 class ElforlightLaser;
 #endif
+#ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 class NirfEmissionTrigger;
 class NirfEmission;
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
@@ -68,6 +70,13 @@ public: ////////////////////////////////////////////////////////////////////////
 	inline QCheckBox* getEnableFlimLaserSyncControl() const { return m_pCheckBox_FlimLaserSyncControl; }
 	inline QCheckBox* getFlimAsyncMode() const { return m_pCheckBox_AsyncMode; }
 #endif
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	inline NirfEmission* getNirfEmission() const { return m_pNirfEmission; }
+	inline void startNirfAcquisition() { enableNirfEmissionAcquisition(true); }
+	inline void stopNirfAcquisition() { enableNirfEmissionAcquisition(false); }
+#endif
+#endif
 #ifdef GALVANO_MIRROR
 	inline QCheckBox* getEnableGalvanoMirrorControl() const { return m_pCheckBox_GalvanoMirrorControl; }
 #endif
@@ -80,6 +89,11 @@ private: ///////////////////////////////////////////////////////////////////////
 	void createPmtGainControl();
 	void createFlimLaserSyncControl();
 	void createFlimLaserPowerControl();
+#endif
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	void createNirfAcquisitionControl();
+#endif
 #endif
 #ifdef GALVANO_MIRROR
     void createGalvanoMirrorControl();
@@ -137,9 +151,11 @@ private slots: /////////////////////////////////////////////////////////////////
 	void increaseLaserPower();
 	void decreaseLaserPower();
 #endif
+#ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	// NIRF Emission Acquisition
 	void enableNirfEmissionAcquisition(bool);
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 	// Galvano Mirror
@@ -188,10 +204,12 @@ private: ///////////////////////////////////////////////////////////////////////
 	// Elforlight Laser Control
 	ElforlightLaser* m_pElforlightLaser;
 #endif
+#ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	// NIRF Emission
 	NirfEmissionTrigger* m_pNirfEmissionTrigger;
 	NirfEmission* m_pNirfEmission;
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
@@ -258,6 +276,12 @@ private: ///////////////////////////////////////////////////////////////////////
 	QCheckBox *m_pCheckBox_FlimLaserPowerControl;
 	QPushButton *m_pPushButton_IncreasePower;
 	QPushButton *m_pPushButton_DecreasePower;
+#endif
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	// Widgets for NIRF acquisition control
+	QCheckBox *m_pCheckBox_NirfAcquisitionControl;
+#endif
 #endif
 #ifdef GALVANO_MIRROR
     // Widgets for galvano mirror control

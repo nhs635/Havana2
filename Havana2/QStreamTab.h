@@ -62,6 +62,7 @@ public:
 	inline int getCurrentEmCh() const { return m_pComboBox_EmissionChannel->currentIndex(); }
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
+	inline void makeNirfEmissionProfileDlg() { createNirfEmissionProfileDlg(); }
 	inline QScope* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
 #endif
 #endif
@@ -100,6 +101,14 @@ private:
 	void setCh2ProcessingCallback();
 	void setVisualizationCallback();
 
+public:
+	// Set NIRF thread callback objects
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	void setNirfAcquisitionCallback();
+#endif
+#endif
+
 public: 
 	void setCh1ScopeVoltRange(int idx);
 #ifdef OCT_FLIM
@@ -112,7 +121,7 @@ public:
 #ifndef OCT_NIRF
 	void visualizeImage(float* res1, float* res2); // Standalone OCT
 #else
-	void visualizeImage(float* res1, float* res2, float* res3); // OCT-NIRF
+	void visualizeImage(float* res1, float* res2, double* res3); // OCT-NIRF
 #endif
 #endif
 
@@ -198,6 +207,11 @@ private:
 	SyncObject<uint16_t> m_syncCh2Processing;
 	SyncObject<float> m_syncCh1Visualization;
 	SyncObject<float> m_syncCh2Visualization;
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	SyncObject<double> m_syncNirfVisualization;
+#endif
+#endif
 
 public:
 	// Visualization buffers
@@ -223,7 +237,7 @@ public:
 	np::FloatArray2 m_visImage2;
 
 #ifdef OCT_NIRF
-	np::FloatArray m_visNirf;
+	np::DoubleArray m_visNirf;
 #endif
 #endif
 

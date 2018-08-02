@@ -1345,6 +1345,23 @@ void QResultTab::inBufferDataProcessing()
 		// Generate en face maps ////////////////////////////////////////////////////////////////////
 		getOctProjection(m_vectorOctImage, m_octProjection, m_pConfig->circCenter);
 
+#ifdef OCT_NIRF
+		// Load NIRF data ///////////////////////////////////////////////////////////////////////////
+		if (!m_pCheckBox_SingleFrame->isChecked())
+		{
+			m_pMemBuff->circulation_nirf(WRITING_BUFFER_SIZE - m_pMemBuff->m_nRecordedFrames);
+			m_nirfSignal = np::FloatArray(pConfig->nAlines * pConfig->nFrames);
+
+			double* buffer_nirf = nullptr;
+			for (int i = 0; i < m_pMemBuff->m_nRecordedFrames; i++)
+			{
+				buffer_nirf = m_pMemBuff->pop_front_nirf();
+				ippsConvert_64f32f(buffer_nirf, &m_nirfSignal(pConfig->nAlines * i), pConfig->nAlines);
+				m_pMemBuff->push_back_nirf(buffer_nirf);
+			}
+		}
+#endif
+
 		// Delete threading sync buffers ////////////////////////////////////////////////////////////
 		m_syncCh1Processing.deallocate_queue_buffer();
 		m_syncCh2Processing.deallocate_queue_buffer();
@@ -1397,7 +1414,7 @@ void QResultTab::externalDataProcessing()
 				QString maskName = fileTitle + ".flim_mask";
 #endif							
 #ifdef OCT_NIRF
-				QString nirfName = m_path + "/NIRF.txt";
+				QString nirfName = fileTitle + ".nirf";
 #endif
 				qDebug() << iniName;
 
@@ -1412,7 +1429,10 @@ void QResultTab::externalDataProcessing()
 				config.octDiscomVal = m_pLineEdit_DiscomValue->text().toInt();
 				config.nFrames = (int)(file.size() / (qint64)config.nChannels / (qint64)config.nScans / (qint64)config.nAlines / sizeof(uint16_t));
 				if (m_pCheckBox_SingleFrame->isChecked()) config.nFrames = 1;
-
+#ifdef OCT_NIRF
+				if (config.erasmus)
+					nirfName = m_path + "/NIRF.txt";
+#endif
 				printf("Start external image processing... (Total nFrame: %d)\n", config.nFrames);
 
 				// Set Widgets //////////////////////////////////////////////////////////////////////////////
@@ -1507,45 +1527,66 @@ void QResultTab::externalDataProcessing()
 				if (!m_pCheckBox_SingleFrame->isChecked())
 				{
 					QFile nirfFile(nirfName);
-					if (false == nirfFile.open(QFile::ReadOnly | QFile::Text))
-						printf("[ERROR] There is no nirf data or you selected an invalid nirf data!\n");
+					if (config.erasmus)
+					{
+						if (false == nirfFile.open(QFile::ReadOnly | QFile::Text))
+							printf("[ERROR] There is no nirf data or you selected an invalid nirf data!\n");
+						else
+						{
+							QTextStream in(&nirfFile);
+							int nLine = 0;
+							while (!in.atEnd())
+							{
+								QString tempLine = in.readLine();
+								nLine++;
+							}
+
+							int interlace_aline = (int)(round((double)nLine / (double)m_octProjection.length()));
+
+							if (interlace_aline == 2) nLine /= 2;
+
+							in.seek(0);
+							m_nirfSignal = np::FloatArray(nLine);
+							if (interlace_aline == 2)
+							{
+								for (int i = 0; i < nLine; i++)
+								{
+									QString line1 = in.readLine();
+									QString line2 = in.readLine();
+									m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
+								}
+							}
+							else if (interlace_aline == 1)
+							{
+								for (int i = 0; i < nLine; i++)
+								{
+									QString line = in.readLine();
+									m_nirfSignal.at(i) = line.toFloat();
+								}
+							}
+							nirfFile.close();
+
+							printf("NIRF data was successfully loaded...\n");
+							config.nirf = true;
+						}
+					}
 					else
 					{
-						QTextStream in(&nirfFile);
-						int nLine = 0;
-						while (!in.atEnd())
+						if (false == nirfFile.open(QFile::ReadOnly))
+							printf("[ERROR] Invalid NIRF data!\n");
+						else
 						{
-							QString tempLine = in.readLine();
-							nLine++;
-						}
-						
-						int interlace_aline = (int)(round((double)nLine / (double)m_octProjection.length()));
+							m_nirfSignal = np::FloatArray(config.nAlines * config.nFrames);
 
-						if (interlace_aline == 2) nLine /= 2;
+							np::DoubleArray nirf_data(config.nAlines * config.nFrames);
+							nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * nirf_data.length());
+							nirfFile.close();
 
-						in.seek(0);
-						m_nirfSignal = np::FloatArray(nLine);
-						if (interlace_aline == 2)
-						{
-							for (int i = 0; i < nLine; i++)
-							{
-								QString line1 = in.readLine();
-								QString line2 = in.readLine();
-								m_nirfSignal.at(i) = (line1.toFloat() + line2.toFloat()) / 2.0f;
-							}
-						}
-						else if (interlace_aline == 1)
-						{
-							for (int i = 0; i < nLine; i++)
-							{
-								QString line = in.readLine();
-								m_nirfSignal.at(i) = line.toFloat();
-							}
-						}
-						nirfFile.close();
+							ippsConvert_64f32f(nirf_data.raw_ptr(), m_nirfSignal.raw_ptr(), nirf_data.length());
 
-						printf("NIRF data was successfully loaded...\n");
-						config.nirf = true;
+							printf("NIRF data was successfully loaded...\n");
+							config.nirf = true;
+						}
 					}
 				}
 #endif

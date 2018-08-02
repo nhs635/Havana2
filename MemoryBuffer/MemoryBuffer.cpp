@@ -34,6 +34,17 @@ MemoryBuffer::~MemoryBuffer()
 {
 	for (int i = 0; i < WRITING_BUFFER_SIZE; i++)
 	{
+#ifdef OCT_NIRF
+		if (!m_queueWritingBufferNirf.empty())
+		{
+			double* buffer = m_queueWritingBufferNirf.front();
+			if (buffer)
+			{
+				m_queueWritingBufferNirf.pop();
+				delete[] buffer;
+			}
+		}
+#endif
 		if (!m_queueWritingBuffer.empty())
 		{
 			uint16_t* buffer = m_queueWritingBuffer.front();
@@ -53,6 +64,14 @@ void MemoryBuffer::allocateWritingBuffer()
 	if (!m_bIsAllocatedWritingBuffer)
 	{
 		int nFrameSize = m_pConfig->nFrameSize;
+#ifdef OCT_NIRF
+		for (int i = 0; i < WRITING_BUFFER_SIZE; i++)
+		{
+			double* buffer = new double[m_pConfig->nAlines];
+			memset(buffer, 0, m_pConfig->nAlines * sizeof(double));
+			m_queueWritingBufferNirf.push(buffer);
+		}
+#endif
 		for (int i = 0; i < WRITING_BUFFER_SIZE; i++)
 		{
 			uint16_t* buffer = new uint16_t[nFrameSize];
@@ -155,22 +174,68 @@ bool MemoryBuffer::startRecording()
 		{
 			// Get the buffer from the buffering sync Queue
 			uint16_t* frame = m_syncBuffering.Queue_sync.pop();
-			if (frame)
+#ifdef OCT_NIRF
+			double* nirf = m_syncBufferingNirf.Queue_sync.pop();
+#endif
+			if ((frame != nullptr) 
+#ifdef OCT_NIRF
+				&& (nirf != nullptr)
+#endif				
+				)
 			{
 				// Body
-				uint16_t* buffer = m_queueWritingBuffer.front();
-				m_queueWritingBuffer.pop();
-				memcpy(buffer, frame, sizeof(uint16_t) * nFrameSize);
-				m_queueWritingBuffer.push(buffer);
+				if (m_nRecordedFrames < WRITING_BUFFER_SIZE)
+				{
+					uint16_t* buffer = m_queueWritingBuffer.front();
+					m_queueWritingBuffer.pop();
+					memcpy(buffer, frame, sizeof(uint16_t) * nFrameSize);
+					m_queueWritingBuffer.push(buffer);
+#ifdef OCT_NIRF
+					double* buffer_nirf = m_queueWritingBufferNirf.front();
+					m_queueWritingBufferNirf.pop();
+					memcpy(buffer_nirf, nirf, sizeof(double) * m_pConfig->nAlines);
+					m_queueWritingBufferNirf.push(buffer_nirf);				
+#endif
+					m_nRecordedFrames++;
+				}
 
 				// Return (push) the buffer to the buffering threading queue
 				{
 					std::unique_lock<std::mutex> lock(m_syncBuffering.mtx);
 					m_syncBuffering.queue_buffer.push(frame);
 				}
+#ifdef OCT_NIRF
+				{
+					std::unique_lock<std::mutex> lock(m_syncBufferingNirf.mtx);
+					m_syncBufferingNirf.queue_buffer.push(nirf);
+				}
+#endif
 			}
 			else
+			{
+#ifdef OCT_NIRF
+				if (frame != nullptr)
+				{
+					uint16_t* frame_temp = frame;
+					do
+					{
+						m_syncBuffering.queue_buffer.push(frame_temp);
+						frame_temp = m_syncBuffering.Queue_sync.pop();
+					} while (frame_temp != nullptr);
+				}
+				if (nirf != nullptr)
+				{
+					double* nirf_temp = nirf;
+					do
+					{
+						m_syncBufferingNirf.queue_buffer.push(nirf_temp);
+						nirf_temp = m_syncBufferingNirf.Queue_sync.pop();
+					} while (nirf_temp != nullptr);
+				}
+#else
 				break;
+#endif
+			}
 		}
 		printf("Data copying thread is finished.\n");
 	});
@@ -192,11 +257,13 @@ void MemoryBuffer::stopRecording()
 	{
 		// Push nullptr to Buffering Queue
 		m_syncBuffering.Queue_sync.push(nullptr);
-
+#ifdef OCT_NIRF
+		m_syncBufferingNirf.Queue_sync.push(nullptr);
+#endif
 		// Status update
 		m_pConfig->nFrames = m_nRecordedFrames;
 		uint64_t total_size = (uint64_t)m_nRecordedFrames * (uint64_t)(m_pConfig->nFrameSize * sizeof(uint16_t)) / (uint64_t)1024;
-		printf("Data recording is finished normally. \n(Recorded frames: %d frames (%1.3f GB)\n", m_nRecordedFrames, (double)total_size / 1024.0 / 1024.0);
+		printf("Data recording is finished normally. \n(Recorded frames: %d frames (%1.3f GB))\n", m_nRecordedFrames, (double)total_size / 1024.0 / 1024.0);
 	}
 }
 
@@ -223,6 +290,18 @@ void MemoryBuffer::circulation(int nFramesToCirc)
 	}
 }
 
+#ifdef OCT_NIRF
+void MemoryBuffer::circulation_nirf(int nLinesToCirc)
+{
+	for (int i = 0; i < nLinesToCirc; i++)
+	{
+		double* buffer_nirf = m_queueWritingBufferNirf.front();
+		m_queueWritingBufferNirf.pop();
+		m_queueWritingBufferNirf.push(buffer_nirf);
+	}
+}
+#endif
+
 uint16_t* MemoryBuffer::pop_front()
 {
 	uint16_t* buffer = m_queueWritingBuffer.front();
@@ -235,6 +314,21 @@ void MemoryBuffer::push_back(uint16_t* buffer)
 {
 	m_queueWritingBuffer.push(buffer);
 }
+
+#ifdef OCT_NIRF
+double* MemoryBuffer::pop_front_nirf()
+{
+	double* buffer_nirf = m_queueWritingBufferNirf.front();
+	m_queueWritingBufferNirf.pop();
+
+	return buffer_nirf;
+}
+
+void MemoryBuffer::push_back_nirf(double* buffer_nirf)
+{
+	m_queueWritingBufferNirf.push(buffer_nirf);
+}
+#endif
 
 
 void MemoryBuffer::write()
@@ -256,6 +350,15 @@ void MemoryBuffer::write()
 		m_queueWritingBuffer.pop();
 		m_queueWritingBuffer.push(buffer);
 	}	
+#ifdef OCT_NIRF
+	double* buffer_nirf = nullptr;
+	for (int i = 0; i < WRITING_BUFFER_SIZE - m_nRecordedFrames; i++)
+	{
+		buffer_nirf = m_queueWritingBufferNirf.front();
+		m_queueWritingBufferNirf.pop();
+		m_queueWritingBufferNirf.push(buffer_nirf);
+	}
+#endif
 
 	// Writing 
 	QFile file(m_fileName);
@@ -313,6 +416,20 @@ void MemoryBuffer::write()
 #ifdef OCT_FLIM
 	if (false == QFile::copy("flim_mask.dat", fileTitle + ".flim_mask"))
 		printf("Error occurred while copying flim_mask data.\n");
+#endif
+#ifdef OCT_NIRF
+	QFile nirfFile(fileTitle + ".nirf");
+	if (nirfFile.open(QIODevice::WriteOnly))
+	{
+		for (int i = 0; i < m_nRecordedFrames; i++)
+		{
+			buffer_nirf = m_queueWritingBufferNirf.front();
+			m_queueWritingBufferNirf.pop();
+			nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * m_pConfig->nAlines);
+			m_queueWritingBufferNirf.push(buffer_nirf);
+		}
+	}
+	nirfFile.close();
 #endif
 #ifdef ECG_TRIGGERING	
 	if (m_pDeviceControlTab->isEcgModuleEnabled())

@@ -10,7 +10,7 @@ QScope::QScope(QWidget *parent) :
 QScope::QScope(QRange x_range, QRange y_range,
                int num_x_ticks, int num_y_ticks,
                double x_interval, double y_interval, double x_offset, double y_offset,
-               QString x_unit, QString y_unit, bool mask_use, QWidget *parent) :
+               QString x_unit, QString y_unit, bool mask_use, bool _64_use, QWidget *parent) :
 	QDialog(parent)
 {
     // Set default size
@@ -23,6 +23,7 @@ QScope::QScope(QRange x_range, QRange y_range,
     // Create render area
     m_pRenderArea = new QRenderArea(this);
 	m_pRenderArea->m_bMaskUse = mask_use;
+	m_pRenderArea->m_b64Use = _64_use;
     m_pRenderArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     // Set Axis
@@ -41,6 +42,10 @@ QScope::~QScope()
 {
 	if (m_pRenderArea->m_pData)
 		delete[] m_pRenderArea->m_pData;
+	if (m_pRenderArea->m_pMask)
+		delete[] m_pRenderArea->m_pMask;
+	if (m_pRenderArea->m_pData64)
+		delete[] m_pRenderArea->m_pData64;
 }
 
 
@@ -175,7 +180,7 @@ void QScope::setMeanDelayLine(int len, ...)
 	va_end(ap);
 }
 
-void QScope::drawData(float* pData)
+void QScope::drawData(const float* pData)
 {
 	if (m_pRenderArea->m_pData != nullptr)
 		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
@@ -184,7 +189,7 @@ void QScope::drawData(float* pData)
 }
 
 /* FLIM Calib Purpose */
-void QScope::drawData(float* pData, float* pMask)
+void QScope::drawData(const float* pData, const float* pMask)
 {
 	if (m_pRenderArea->m_pData != nullptr)
 		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
@@ -195,11 +200,19 @@ void QScope::drawData(float* pData, float* pMask)
 	m_pRenderArea->update();
 }
 
+void QScope::drawData(const double* pData64)
+{
+	if (m_pRenderArea->m_pData64 != nullptr)
+		memcpy(m_pRenderArea->m_pData64, pData64, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+
+	m_pRenderArea->update();
+}
+
 
 
 QRenderArea::QRenderArea(QWidget *parent) :
-    QWidget(parent), m_pData(nullptr), m_pMask(nullptr), 
-	m_bSelectionAvailable(false), m_bMaskUse(false), m_winLineLen(0), m_mdLineLen(0),
+    QWidget(parent), m_pData(nullptr), m_pMask(nullptr), m_pData64(nullptr),
+	m_bSelectionAvailable(false), m_bMaskUse(false), m_b64Use(false), m_winLineLen(0), m_mdLineLen(0),
 	m_nHMajorGrid(8), m_nHMinorGrid(64), m_nVMajorGrid(4), m_bZeroLine(false)
 {
     QPalette pal = this->palette();
@@ -229,15 +242,25 @@ void QRenderArea::setSize(QRange xRange, QRange yRange)
 	m_sizeGraph = { m_xRange.max - m_xRange.min , m_yRange.max - m_yRange.min };
 
 	// Allocate data buffer
-	if (m_pData) { delete[] m_pData; m_pData = nullptr; }
-	m_pData = new float[(int)m_sizeGraph.width()];
-	memset(m_pData, 0, sizeof(float) * (int)m_sizeGraph.width());
+	if (!m_b64Use)
+	{
+		if (m_pData) { delete[] m_pData; m_pData = nullptr; }
+		m_pData = new float[(int)m_sizeGraph.width()];
+		memset(m_pData, 0, sizeof(float) * (int)m_sizeGraph.width());
+	}
 
 	if (m_bMaskUse)
 	{
 		if (m_pMask) { delete[] m_pMask; m_pMask = nullptr; }
 		m_pMask = new float[(int)m_sizeGraph.width()];
 		memset(m_pMask, 0, sizeof(float) * (int)m_sizeGraph.width());
+	}
+
+	if (m_b64Use)
+	{
+		if (m_pData64) { delete[] m_pData64; m_pData64 = nullptr; }
+		m_pData64 = new double[(int)m_sizeGraph.width()];
+		memset(m_pData64, 0, sizeof(double) * (int)m_sizeGraph.width());
 	}
 
 	this->update();
@@ -275,7 +298,7 @@ void QRenderArea::paintEvent(QPaintEvent *)
 		painter.drawLine(0, (m_yRange.max / (m_yRange.max - m_yRange.min)) * h, w, (m_yRange.max / (m_yRange.max - m_yRange.min)) * h);
 	
     // Draw graph
-    if (m_pData != nullptr)
+    if (m_pData != nullptr) // single case
     {        
 		painter.setPen(QColor(0xfff65d)); // data graph (yellow)
 		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
@@ -289,6 +312,20 @@ void QRenderArea::paintEvent(QPaintEvent *)
 			painter.drawLine(x0, x1);			
         }
     }
+	if (m_pData64 != nullptr) // double case
+	{
+		painter.setPen(QColor(0xfff65d)); // data graph (yellow)
+		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		{
+			QPointF x0, x1;
+			x0.setX((double)(i) / (double)m_sizeGraph.width() * w);
+			x0.setY((double)(m_yRange.max - m_pData64[i]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+			x1.setX((double)(i + 1) / (double)m_sizeGraph.width() * w);
+			x1.setY((double)(m_yRange.max - m_pData64[i + 1]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+
+			painter.drawLine(x0, x1);
+		}
+	}
 	
 	if (m_bMaskUse && (m_pMask != nullptr))
 	{

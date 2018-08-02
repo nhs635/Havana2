@@ -5,6 +5,7 @@
 #include <Havana2/MainWindow.h>
 #include <Havana2/QStreamTab.h>
 #include <Havana2/QResultTab.h>
+#include <Havana2/QDeviceControlTab.h>
 
 #include <Havana2/Dialog/DigitizerSetupDlg.h>
 
@@ -120,7 +121,11 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 			pStreamTab->m_pThreadCh1Process->startThreading();
 			pStreamTab->m_pThreadCh2Process->startThreading();
 			pStreamTab->m_pThreadDeinterleave->startThreading();
-
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+			m_pMainWnd->m_pDeviceControlTab->startNirfAcquisition();
+#endif
+#endif
 			// Start Data Acquisition
 			if (m_pDataAcquisition->StartAcquisition())
 			{
@@ -146,6 +151,11 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 	{
 		// Stop Thread Process
 		m_pDataAcquisition->StopAcquisition();
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+		m_pMainWnd->m_pDeviceControlTab->stopNirfAcquisition();
+#endif
+#endif
 		pStreamTab->m_pThreadDeinterleave->stopThreading();
 		pStreamTab->m_pThreadCh1Process->stopThreading();
 		pStreamTab->m_pThreadCh2Process->stopThreading();

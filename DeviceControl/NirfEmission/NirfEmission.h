@@ -13,19 +13,26 @@ public:
 	NirfEmission();
 	~NirfEmission();
 	
-	int nAlines;	
+	int N;
+	int nAlines;		
+	int nAcqs;
+	double* data;
 
 	bool initialize();
 	void start();
 	void stop();
 
+	// callbacks
+	callback2<int, const double*> DidAcquireData;
+	callback<void> DidStopData;
+	callback<const char*> SendStatusMessage;
+
 private:	
 	double max_rate;
-	double* data;
 	
 	const char* physicalChannel;
 	const char* sampleClockSource;
-	const char* triggerSource;
+	const char* alinesTrigger;
 
 	TaskHandle _taskHandle;
 	void dumpError(int res, const char* pPreamble);
