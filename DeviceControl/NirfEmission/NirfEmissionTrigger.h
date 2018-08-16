@@ -18,6 +18,8 @@ public:
 	void stop();
 
 private:		
+	const char* syncPowerTerminal;
+	const char* syncResetTerminal;
 	const char* counterChannel;
 	const char* sourceTerminal;
 

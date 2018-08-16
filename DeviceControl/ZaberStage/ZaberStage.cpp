@@ -119,6 +119,12 @@ bool ZaberStage::ConnectStage()
 					printf("\n");
 				
 					i = 0;
+
+					if (received_msg[1] == 20)
+					{
+						printf("pullback finished.\n");
+						DidMovedAbsolute();
+					}
 				}
 			}
 		});

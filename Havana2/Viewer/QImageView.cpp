@@ -59,6 +59,7 @@ QImageView::QImageView(ColorTable::colortable ctable, int width, int height, boo
 	
     // Set image size
     m_width = width;
+    m_width4 = ((width + 3) >> 2) << 2;
     m_height = height;
 	
     // Create layout
@@ -79,7 +80,7 @@ QImageView::QImageView(ColorTable::colortable ctable, int width, int height, boo
 		m_pRenderImage->m_pImage->setColorTable(m_colorTable.m_colorTableVector.at(ctable));
 	}
 	else
-		m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
+        m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
 
 	memset(m_pRenderImage->m_pImage->bits(), 0, m_pRenderImage->m_pImage->byteCount());
 
@@ -113,6 +114,7 @@ void QImageView::resetSize(int width, int height)
 {
 	// Set image size
 	m_width = width;
+    m_width4 = ((width + 3) >> 2) << 2;
 	m_height = height;	
 
 	// Create QImage object
@@ -134,7 +136,7 @@ void QImageView::resetSize(int width, int height)
 			m_pRenderImage->m_pImage->setColor(i, rgb[i]);
 	}
 	else
-		m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
+        m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
 
 	memset(m_pRenderImage->m_pImage->bits(), 0, m_pRenderImage->m_pImage->byteCount());
 
@@ -189,6 +191,13 @@ void QImageView::setCircle(int len, ...)
 	va_end(ap);
 }
 
+void QImageView::setContour(int len, uint16_t* pContour)
+{
+    m_pRenderImage->m_contour = np::Uint16Array(len);
+    if (len > 0)
+        memcpy(m_pRenderImage->m_contour.raw_ptr(), pContour, sizeof(uint16_t) * len);
+}
+
 void QImageView::setHLineChangeCallback(const std::function<void(int)> &slot) 
 { 
 	m_pRenderImage->DidChangedHLine.clear();
@@ -229,8 +238,11 @@ void QImageView::drawImage(uint8_t* pImage)
 
 void QImageView::drawRgbImage(uint8_t* pImage)
 {		
-	QImage *pImg = new QImage(pImage, m_width, m_height, QImage::Format_RGB888);
-	m_pRenderImage->m_pImage = std::move(pImg);
+    QImage *pImg = new QImage(pImage, m_width4, m_height, QImage::Format_RGB888);
+    if (m_width4 == m_width)
+        m_pRenderImage->m_pImage = std::move(pImg);
+    else
+        memcpy(m_pRenderImage->m_pImage->bits(), pImg->copy(0, 0, m_width, m_height).bits(), m_pRenderImage->m_pImage->byteCount());
 	m_pRenderImage->update();
 }
 
@@ -240,16 +252,16 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 QRenderImage::QRenderImage(QWidget *parent) :
 	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000),
 	m_bMeasureDistance(false), m_nClicked(0),
-	m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false)
+    m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false)
 {
 	m_pHLineInd = new int[10];
-	m_pVLineInd = new int[10];
+    m_pVLineInd = new int[10];
 }
 
 QRenderImage::~QRenderImage()
 {
 	delete m_pHLineInd;
-	delete m_pVLineInd;
+    delete m_pVLineInd;
 }
 
 void QRenderImage::paintEvent(QPaintEvent *)
@@ -301,6 +313,21 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		painter.setPen(m_colorLine);
 		painter.drawEllipse(center, radius, radius);
 	}
+    if (m_contour.length() != 0)
+    {
+        QPen pen; pen.setColor(Qt::green);
+        painter.setPen(pen);
+        for (int i = 0; i < m_contour.length() - 1; i++)
+        {
+            QPointF x0, x1;
+            x0.setX((float)(i) / (float)m_contour.length() * (float)w);
+            x0.setY((float)(m_contour[i]) / (float)m_pImage->height() * (float)h);
+            x1.setX((float)(i + 1) / (float)m_contour.length() * w);
+            x1.setY((float)(m_contour[i + 1]) / (float)m_pImage->height() * (float)h);
+
+            painter.drawLine(x0, x1);
+        }
+    }
 
 	// Measure distance
 	if (m_bMeasureDistance)

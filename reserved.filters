@@ -175,6 +175,12 @@
     <ClCompile Include="Havana2\Dialog\OctIntensityHistDlg.cpp">
       <Filter>Havana2\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfDistCompDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfEmissionProfileDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
@@ -227,6 +233,9 @@
     </ClInclude>
     <ClInclude Include="Havana2\Configuration.h">
       <Filter>Havana2</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_MainWindow.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -297,6 +306,12 @@
     </QtMoc>
     <QtMoc Include="DataAcquisition\DataAcquisition.h">
       <Filter>Data Control\Data Acquisition</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\NirfDistCompDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\NirfEmissionProfileDlg.h">
+      <Filter>Havana2\Dialog</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

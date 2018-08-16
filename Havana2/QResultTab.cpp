@@ -13,6 +13,10 @@
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/PulseReviewDlg.h>
 #endif
+#ifdef OCT_NIRF
+#include <Havana2/Dialog/NirfEmissionProfileDlg.h>
+#include <Havana2/Dialog/NirfDistCompDlg.h>
+#endif
 
 #include <MemoryBuffer/MemoryBuffer.h>
 
@@ -50,7 +54,9 @@ QResultTab::QResultTab(QWidget *parent) :
 	, m_pMedfiltIntensityMap(nullptr), m_pMedfiltLifetimeMap(nullptr)
 #endif
 #ifdef OCT_NIRF
-	, m_pImgObjNirf(nullptr), m_pImgObjNirfMap(nullptr), m_nirfOffset(0)
+    , m_pImgObjNirf(nullptr), m_pImgObjNirfMap(nullptr), m_nirfOffset(0)
+	, m_pMedfiltNirf(nullptr)
+    , m_pNirfEmissionProfileDlg(nullptr), m_pNirfDistCompDlg(nullptr)
 #endif
 {
 	// Set main window objects
@@ -107,7 +113,7 @@ QResultTab::QResultTab(QWidget *parent) :
 	// Create image view buffers
 	ColorTable temp_ctable;
 	m_pImgObjRectImage = new ImageObject(m_pConfig->nAlines4, m_pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
-	m_pImgObjCircImage = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
+    m_pImgObjCircImage = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
 
     // Set layout for left panel
 	pVBoxLayout_ImageView->addWidget(m_pImageView_RectImage);
@@ -178,6 +184,9 @@ QResultTab::~QResultTab()
 	if (m_pMedfiltIntensityMap) delete m_pMedfiltIntensityMap;
 	if (m_pMedfiltLifetimeMap) delete m_pMedfiltLifetimeMap;
 #endif
+#ifdef OCT_NIRF
+    if (m_pMedfiltNirf) delete m_pMedfiltNirf;
+#endif
 	if (m_pCirc) delete m_pCirc;	
 }
 
@@ -201,6 +210,11 @@ void QResultTab::setWidgetsText()
 	m_pLineEdit_IntensityMin->setText(QString::number(m_pConfig->flimIntensityRange.min, 'f', 1));
 	m_pLineEdit_LifetimeMax->setText(QString::number(m_pConfig->flimLifetimeRange.max, 'f', 1));
 	m_pLineEdit_LifetimeMin->setText(QString::number(m_pConfig->flimLifetimeRange.min, 'f', 1));
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+	m_pLineEdit_NirfMax->setText(QString::number(m_pConfig->nirfRange.max, 'f', 1));
+	m_pLineEdit_NirfMin->setText(QString::number(m_pConfig->nirfRange.min, 'f', 1));
+#endif
 #endif
 }
 
@@ -329,6 +343,13 @@ void QResultTab::createVisualizationOptionTab()
     m_pToggleButton_MeasureDistance->setText("Measure Distance");
 	m_pToggleButton_MeasureDistance->setDisabled(true);
 
+#ifdef OCT_NIRF
+	// Create push button for NIRF Distance Compensation
+	m_pPushButton_NirfDistanceCompensation = new QPushButton(this);
+	m_pPushButton_NirfDistanceCompensation->setText("NIRF Distance Compensation...");
+    m_pPushButton_NirfDistanceCompensation->setDisabled(true);
+#endif
+
 	// Create push button for OCT Intensity Histogram
 	m_pPushButton_OctIntensityHistogram = new QPushButton(this);
 	m_pPushButton_OctIntensityHistogram->setText("OCT Intensity Histogram...");
@@ -427,8 +448,14 @@ void QResultTab::createVisualizationOptionTab()
     pGridLayout_Visualization->addWidget(m_pSlider_SelectFrame, 1, 1, 1, 4);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 5);
 
+#ifdef OCT_NIRF
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
+	pGridLayout_Visualization->addWidget(m_pPushButton_NirfDistanceCompensation, 2, 1, 1, 2);
+	pGridLayout_Visualization->addWidget(m_pPushButton_OctIntensityHistogram, 2, 3, 1, 2);
+#else
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0, 1, 3);
 	pGridLayout_Visualization->addWidget(m_pPushButton_OctIntensityHistogram, 2, 3, 1, 2);
+#endif
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 5);	
 
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);
@@ -476,6 +503,9 @@ void QResultTab::createVisualizationOptionTab()
 	// Connect signal and slot
 	connect(m_pSlider_SelectFrame, SIGNAL(valueChanged(int)), this, SLOT(visualizeImage(int)));
 	connect(m_pToggleButton_MeasureDistance, SIGNAL(toggled(bool)), this, SLOT(measureDistance(bool)));
+#ifdef OCT_NIRF
+	connect(m_pPushButton_NirfDistanceCompensation, SIGNAL(clicked(bool)), this, SLOT(createNirfDistCompDlg()));
+#endif
 	connect(m_pPushButton_OctIntensityHistogram, SIGNAL(clicked(bool)), this, SLOT(createOctIntensityHistDlg()));
 	connect(m_pCheckBox_ShowGuideLine, SIGNAL(toggled(bool)), this, SLOT(showGuideLine(bool)));
 	connect(m_pCheckBox_CircularizeImage, SIGNAL(toggled(bool)), this, SLOT(changeVisImage(bool)));
@@ -585,13 +615,14 @@ void QResultTab::createEnFaceMapTab()
 	// Create widgets for NIRF map
 	m_pImageView_NirfMap = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines4, 1);
 	m_pImageView_NirfMap->setMinimumHeight(150);
-	m_pImageView_NirfMap->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
+    m_pImageView_NirfMap->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
+    m_pImageView_NirfMap->setDoubleClickedMouseCallback([&]() { createNirfEmissionProfileDlg(); });
 	m_pImageView_NirfMap->getRender()->m_colorLine = 0x00ff00;
 
 	m_pLineEdit_NirfMax = new QLineEdit(this);
 	m_pLineEdit_NirfMax->setText(QString::number(m_pConfig->nirfRange.max, 'f', 1));
 	m_pLineEdit_NirfMax->setAlignment(Qt::AlignCenter);
-	m_pLineEdit_NirfMax->setFixedWidth(30);
+    m_pLineEdit_NirfMax->setFixedWidth(30);
 	m_pLineEdit_NirfMax->setDisabled(true);
 	m_pLineEdit_NirfMin = new QLineEdit(this);
 	m_pLineEdit_NirfMin->setText(QString::number(m_pConfig->nirfRange.min, 'f', 1));
@@ -769,6 +800,55 @@ void QResultTab::deletePulseReviewDlg()
 }
 #endif
 
+#ifdef OCT_NIRF
+void QResultTab::createNirfEmissionProfileDlg()
+{
+    if (m_pNirfEmissionProfileDlg == nullptr)
+    {
+        m_pNirfEmissionProfileDlg = new NirfEmissionProfileDlg(false, this);
+        connect(m_pNirfEmissionProfileDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfEmissionProfileDlg()));
+        m_pNirfEmissionProfileDlg->show();
+
+        visualizeImage(m_pSlider_SelectFrame->value());
+    }
+    m_pNirfEmissionProfileDlg->raise();
+    m_pNirfEmissionProfileDlg->activateWindow();
+}
+
+void QResultTab::deleteNirfEmissionProfileDlg()
+{
+    m_pNirfEmissionProfileDlg->deleteLater();
+    m_pNirfEmissionProfileDlg = nullptr;
+}
+
+void QResultTab::createNirfDistCompDlg()
+{
+	if (m_pNirfDistCompDlg == nullptr)
+	{
+		m_pNirfDistCompDlg = new NirfDistCompDlg(this);
+		connect(m_pNirfDistCompDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfDistCompDlg()));
+		m_pNirfDistCompDlg->show();        
+
+        visualizeEnFaceMap(true);
+        visualizeImage(m_pSlider_SelectFrame->value());
+	}
+	m_pNirfDistCompDlg->raise();
+	m_pNirfDistCompDlg->activateWindow();
+}
+
+void QResultTab::deleteNirfDistCompDlg()
+{
+	m_pNirfDistCompDlg->deleteLater();
+	m_pNirfDistCompDlg = nullptr;
+
+    m_pImageView_RectImage->setContour(0, nullptr);
+    m_pImageView_RectImage->setHorizontalLine(0);
+
+    visualizeEnFaceMap(true);
+    visualizeImage(m_pSlider_SelectFrame->value());
+}
+#endif
+
 
 void QResultTab::enableUserDefinedAlines(bool checked)
 { 
@@ -789,10 +869,11 @@ void QResultTab::visualizeImage(int frame)
 #ifdef GALVANO_MIRROR
 		if (m_pConfig->galvoHorizontalShift)
 		{
+            int roi_oct_height_non4 = m_pImageView_RectImage->getRender()->m_pImage->width();
 			for (int i = 0; i < roi_oct.width; i++)
 			{
-				uint8_t* pImg = m_pImgObjRectImage->arr.raw_ptr() + i * roi_oct.height;
-				std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_oct.height);
+                uint8_t* pImg = m_pImgObjRectImage->arr.raw_ptr() + i * roi_oct.height;
+                std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_oct_height_non4);
 			}
 		}
 #endif
@@ -815,16 +896,40 @@ void QResultTab::visualizeImage(int frame)
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjIntensity, m_pImgObjLifetime);
 		
 #elif defined (STANDALONE_OCT)
-
 #ifdef OCT_NIRF
 		// NIRF Visualization
 		uint8_t* rectNirf = &m_pImgObjNirfMap->arr(0, m_pImgObjNirfMap->arr.size(1) - 1 - frame);
-#ifdef GALVANO_MIRROR
-		if (m_pConfig->galvoHorizontalShift)
-			std::rotate(rectNirf, rectNirf + m_pConfig->galvoHorizontalShift, rectNirf + roi_oct.height);
-#endif
+
 		for (int i = 0; i < RING_THICKNESS; i++)
 			memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * m_pImgObjNirfMap->arr.size(0));
+
+        if (m_pNirfEmissionProfileDlg)
+        {
+            np::FloatArray nirf_emssion(m_nirfMap.size(0));
+            memcpy(nirf_emssion.raw_ptr(), &m_nirfMap0(0, frame), sizeof(float) * nirf_emssion.length());
+
+#ifdef GALVANO_MIRROR
+            if (m_pConfig->galvoHorizontalShift)
+                std::rotate(nirf_emssion.raw_ptr(), nirf_emssion.raw_ptr() + m_pConfig->galvoHorizontalShift, nirf_emssion.raw_ptr() + nirf_emssion.length());
+#endif
+            m_pNirfEmissionProfileDlg->getScope()->drawData(nirf_emssion.raw_ptr());
+        }
+
+        if (m_pNirfDistCompDlg)
+        {
+            np::Uint16Array contour(m_nirfMap.size(0));
+			if (m_pNirfDistCompDlg->distMap.length() > 0)
+			{
+				memcpy(contour, &m_pNirfDistCompDlg->distMap(0, frame), sizeof(uint16_t) * contour.length());
+#ifdef GALVANO_MIRROR
+				if (m_pConfig->galvoHorizontalShift)
+					std::rotate(contour.raw_ptr(), contour.raw_ptr() + m_pConfig->galvoHorizontalShift, contour.raw_ptr() + contour.length());
+#endif
+				ippsAddC_16u_ISfs((Ipp16u)m_pConfig->nirfLumContourOffset, contour.raw_ptr(), contour.length(), 0);
+				m_pImageView_RectImage->setContour(contour.length(), contour.raw_ptr());
+				m_pImageView_RectImage->setHorizontalLine(2, m_pConfig->nirfOuterSheathPos, m_pConfig->nirfOuterSheathPos);
+			}
+        }
 
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
 #else
@@ -886,8 +991,8 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 		if (!m_pCheckBox_HsvEnhancedMap->isChecked())
 		{
 			// Paste FLIM color ring to RGB rect image
-			memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 2 * RING_THICKNESS - 1), pIntObj->qrgbimg.bits(), pIntObj->qrgbimg.byteCount());
-			memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * RING_THICKNESS - 1), pLftObj->qrgbimg.bits(), pLftObj->qrgbimg.byteCount());
+            memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 2 * RING_THICKNESS), pIntObj->qrgbimg.bits(), pIntObj->qrgbimg.byteCount());
+            memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * RING_THICKNESS), pLftObj->qrgbimg.bits(), pLftObj->qrgbimg.byteCount());
 		}
 		else		
 			// Paste FLIM color ring to RGB rect image
@@ -931,10 +1036,10 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	if (!m_pCheckBox_CircularizeImage->isChecked())
 	{
 		// Paste NIRF color ring to RGB rect image
-		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * RING_THICKNESS - 1), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+        memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
 	
 		// Draw image
-		if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(pRectObj->qrgbimg.bits());
+        if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(pRectObj->qrgbimg.bits());
 	}
 	// Circ View
 	else
@@ -958,7 +1063,7 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 	{
 		if (scaling)
 		{
-			IppiSize roi_proj = { m_octProjection.size(0), m_octProjection.size(1) };
+            IppiSize roi_proj = { m_octProjection.size(0), m_octProjection.size(1) };
 
 			// Scaling OCT projection
 			ippiScale_32f8u_C1R(m_octProjection, sizeof(float) * roi_proj.width, m_visOctProjection, sizeof(uint8_t) * roi_proj.width,
@@ -967,10 +1072,11 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 #ifdef GALVANO_MIRROR
 			if (m_pConfig->galvoHorizontalShift)
 			{
+                int roi_proj_width_non4 = m_pImageView_RectImage->getRender()->m_pImage->width();
 				for (int i = 0; i < roi_proj.height; i++)
 				{
-					uint8_t* pImg = m_visOctProjection.raw_ptr() + i * roi_proj.width;
-					std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj.width);
+                    uint8_t* pImg = m_visOctProjection.raw_ptr() + i * roi_proj.width;
+                    std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
 				}
 			}
 #endif
@@ -1001,12 +1107,42 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 				}
 			}
 
-			IppiSize roi_proj0 = { m_nirfMap.size(0), m_nirfMap.size(1) };
+            m_nirfMap0 = np::FloatArray2(roi_proj.width, roi_proj.height);
+            memset(m_nirfMap0.raw_ptr(), 0, sizeof(float) * m_nirfMap0.length());
+            ippiCopy_32f_C1R(m_nirfMap.raw_ptr(), sizeof(float) * m_nirfMap.size(0), m_nirfMap0.raw_ptr(), sizeof(float) * m_nirfMap0.size(0), roi_proj);
 
 			// Scaling NIRF map
-			ippiScale_32f8u_C1R(m_nirfMap.raw_ptr(), sizeof(float) * roi_proj0.width, m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
-				roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+            if (m_pNirfDistCompDlg)
+            {
+                ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap0.raw_ptr(), m_nirfMap0.length()); // BG subtraction
+                if (m_pNirfDistCompDlg->isCompensating())
+                    ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap0.raw_ptr(), m_nirfMap0.length()); // Distance compensation
+                if (m_pNirfDistCompDlg->isTBRMode())
+                {
+                    if (m_pNirfDistCompDlg->nirfBackgroundLevel > 0)
+                    {
+                        ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+                        ippsDivC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+                    }
+                }
+            }
+            ippiScale_32f8u_C1R(m_nirfMap0.raw_ptr(), sizeof(float) * roi_proj.width, m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
+                roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 			ippiMirror_8u_C1IR(m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+                int roi_proj_width_non4 = m_pImageView_RectImage->getRender()->m_pImage->width();
+				for (int i = 0; i < roi_proj.height; i++)
+				{
+                    uint8_t* pImg = m_pImgObjNirfMap->arr.raw_ptr() + i * roi_proj.width;
+                    std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
+				}
+			}
+#endif
+            if (m_pNirfDistCompDlg)
+                if (m_pNirfDistCompDlg->isFiltered())
+                    (*m_pMedfiltNirf)(m_pImgObjNirfMap->arr.raw_ptr());
 #endif
 
 #ifdef OCT_FLIM
@@ -1133,9 +1269,9 @@ void QResultTab::changeVisImage(bool toggled)
 void QResultTab::checkCircCenter(const QString &str)
 {
 	int circCenter = str.toInt();
-	if (circCenter + CIRC_RADIUS + 1 > m_pImageView_RectImage->getRender()->m_pImage->height())
+    if (circCenter + CIRC_RADIUS + 1 > m_pImageView_RectImage->getRender()->m_pImage->height())
 	{
-		circCenter = m_pImageView_RectImage->getRender()->m_pImage->height() - CIRC_RADIUS - 1;
+        circCenter = m_pImageView_RectImage->getRender()->m_pImage->height() - CIRC_RADIUS - 1;
 		m_pLineEdit_CircCenter->setText(QString("%1").arg(circCenter));
 	}
 	m_pConfig->circCenter = circCenter;
@@ -1166,10 +1302,21 @@ void QResultTab::adjustOctContrast()
 
 	ColorTable temp_ctable;
 
-	if (m_pImgObjRectImage) delete m_pImgObjRectImage;
-	m_pImgObjRectImage = new ImageObject(m_pImageView_RectImage->getRender()->m_pImage->width(), m_pImageView_RectImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
-	if (m_pImgObjCircImage) delete m_pImgObjCircImage;
-	m_pImgObjCircImage = new ImageObject(m_pImageView_CircImage->getRender()->m_pImage->width(), m_pImageView_CircImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
+    int rect_width4 = 0;
+    if (m_pImgObjRectImage)
+    {
+        rect_width4 = m_pImgObjRectImage->getWidth();
+        delete m_pImgObjRectImage;
+    }
+    m_pImgObjRectImage = new ImageObject(rect_width4, m_pImageView_RectImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
+
+    int circ_width4 = 0;
+    if (m_pImgObjCircImage)
+    {
+        circ_width4 = m_pImgObjCircImage->getWidth();
+        delete m_pImgObjCircImage;
+    }
+    m_pImgObjCircImage = new ImageObject(circ_width4, m_pImageView_CircImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
 
 	visualizeEnFaceMap(true);
 	visualizeImage(m_pSlider_SelectFrame->value());
@@ -1232,7 +1379,10 @@ void QResultTab::adjustNirfContrast()
 	float max_intensity = m_pLineEdit_NirfMax->text().toFloat();
 
 	m_pConfig->nirfRange.min = min_intensity;
-	m_pConfig->nirfRange.max = max_intensity;
+    m_pConfig->nirfRange.max = max_intensity;
+
+    if (m_pNirfEmissionProfileDlg)
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_nirfMap.size(0) }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 
 	visualizeEnFaceMap(true);
 	visualizeImage(m_pSlider_SelectFrame->value());
@@ -1252,8 +1402,20 @@ void QResultTab::startProcessing()
 {	
 	m_pSlider_SelectFrame->setValue(0);
 
+    if (m_pSaveResultDlg)
+        m_pSaveResultDlg->close();
 	if (m_pOctIntensityHistDlg)
 		m_pOctIntensityHistDlg->close();
+#ifdef OCT_FLIM
+    if (m_pPulseReviewDlg)
+        m_pPulseReviewDlg->close();
+#endif
+#ifdef OCT_NIRF
+    if (m_pNirfEmissionProfileDlg)
+        m_pNirfEmissionProfileDlg->close();
+    if (m_pNirfDistCompDlg)
+        m_pNirfDistCompDlg->close();
+#endif
 
 	int id = m_pButtonGroup_DataSelection->checkedId();
 	switch (id)
@@ -1424,6 +1586,14 @@ void QResultTab::externalDataProcessing()
 				{
 					config.nAlines = m_pLineEdit_UserDefinedAlines->text().toInt();
 					config.nAlines4 = ((config.nAlines + 3) >> 2) << 2;
+#ifdef OCT_FLIM
+                    if (config.nAlines != config.nAlines4)
+                    {
+                        printf("[ERROR] nAlines should be a multiple of 4.\n");
+                        file.close();
+                        return;
+                    }
+#endif
 					config.nFrameSize = config.nChannels * config.nScans * config.nAlines;
 				}
 				config.octDiscomVal = m_pLineEdit_DiscomValue->text().toInt();
@@ -1635,27 +1805,31 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pImageView_CircImage->setEnabled(true);
         m_pImageView_CircImage->setUpdatesEnabled(true);
 
-		m_pImageView_RectImage->resetSize(pConfig->nAlines4, pConfig->n2ScansFFT);
+        m_pImageView_RectImage->resetSize(pConfig->nAlines, pConfig->n2ScansFFT);
 		m_pImageView_CircImage->resetSize(2 * CIRC_RADIUS, 2 * CIRC_RADIUS);
 
-		m_pImageView_OctProjection->resetSize(pConfig->nAlines4, pConfig->nFrames);
+        m_pImageView_OctProjection->resetSize(pConfig->nAlines, pConfig->nFrames);
 #ifdef OCT_FLIM
 		m_pImageView_IntensityMap->resetSize(pConfig->n4Alines, pConfig->nFrames);
 		m_pImageView_LifetimeMap->resetSize(pConfig->n4Alines, pConfig->nFrames);
 #endif
 #ifdef OCT_NIRF
-		m_pImageView_NirfMap->resetSize(pConfig->nAlines4, pConfig->nFrames);
+        m_pImageView_NirfMap->resetSize(pConfig->nAlines, pConfig->nFrames);
 #endif
 		// Reset widgets
+		m_pLabel_OctProjection->setEnabled(true);
 		m_pImageView_OctProjection->setEnabled(true);        
         m_pImageView_OctProjection->setUpdatesEnabled(true);
 #ifdef OCT_FLIM
+		m_pLabel_IntensityMa->setEnabled(true);
 		m_pImageView_IntensityMap->setEnabled(true);        
         m_pImageView_IntensityMap->setUpdatesEnabled(true);
+		m_pLabel_LifetimeMap->setEnabled(true);
 		m_pImageView_LifetimeMap->setEnabled(true);        
         m_pImageView_LifetimeMap->setUpdatesEnabled(true);
 #endif
 #ifdef OCT_NIRF
+		m_pLabel_NirfMap->setEnabled(true);
 		m_pImageView_NirfMap->setEnabled(true);
 		m_pImageView_NirfMap->setUpdatesEnabled(true);
 #endif
@@ -1684,6 +1858,9 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pSlider_SelectFrame->setRange(0, pConfig->nFrames - 1);
 		m_pSlider_SelectFrame->setValue(0);
 		
+#ifdef OCT_NIRF
+		m_pPushButton_NirfDistanceCompensation->setEnabled(true);
+#endif
 		m_pPushButton_OctIntensityHistogram->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
@@ -1737,15 +1914,19 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
         m_pImageView_CircImage->setDisabled(true);
         m_pImageView_CircImage->setUpdatesEnabled(false);
 
+		m_pLabel_OctProjection->setDisabled(true);
 		m_pImageView_OctProjection->setDisabled(true);
         m_pImageView_OctProjection->setUpdatesEnabled(false);
 #ifdef OCT_FLIM
+		m_pLabel_IntensityMap->setDisabled(true);
 		m_pImageView_IntensityMap->setDisabled(true);
         m_pImageView_IntensityMap->setUpdatesEnabled(false);
+		m_pLabel_LifetimeMap->setDisabled(true);
 		m_pImageView_LifetimeMap->setDisabled(true);
         m_pImageView_LifetimeMap->setUpdatesEnabled(false);
 #endif
 #ifdef OCT_NIRF
+		m_pLabel_NirfMap->setDisabled(true);
 		m_pImageView_NirfMap->setDisabled(true);
 		m_pImageView_NirfMap->setUpdatesEnabled(false);
 #endif
@@ -1780,6 +1961,9 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 
 		m_pSlider_SelectFrame->setDisabled(true);
 
+#ifdef OCT_NIRF
+		m_pPushButton_NirfDistanceCompensation->setDisabled(true);
+#endif
 		m_pPushButton_OctIntensityHistogram->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
@@ -1795,7 +1979,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pComboBox_LifetimeColorTable->setDisabled(true);
 #endif
 #ifdef OCT_NIRF
-		m_pLabel_NirfMap->setDisabled(true);
+		m_pLabel_NirfOffset->setDisabled(true);
 		m_pLineEdit_NirfOffset->setText(QString::number(0));
 		m_pLineEdit_NirfOffset->setDisabled(true);
 		m_pScrollBar_NirfOffset->setValue(0);
@@ -1860,6 +2044,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLabel_SelectFrame->setEnabled(true);
 		m_pSlider_SelectFrame->setEnabled(true);
 
+#ifdef OCT_NIRF
+		m_pPushButton_NirfDistanceCompensation->setEnabled(true);
+#endif
 		m_pPushButton_OctIntensityHistogram->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
@@ -1933,6 +2120,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLabel_SelectFrame->setDisabled(true);
 		m_pSlider_SelectFrame->setDisabled(true);
 
+#ifdef OCT_NIRF
+		m_pPushButton_NirfDistanceCompensation->setDisabled(true);
+#endif
 		m_pPushButton_OctIntensityHistogram->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
@@ -2005,7 +2195,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 	m_nirfSignal = np::FloatArray();
-	m_nirfMap = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
+    m_nirfMap = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
 	m_nirfOffset = 0;
 #endif
 
@@ -2013,9 +2203,9 @@ void QResultTab::setObjects(Configuration* pConfig)
 	ColorTable temp_ctable;
 
 	if (m_pImgObjRectImage) delete m_pImgObjRectImage;
-	m_pImgObjRectImage = new ImageObject(pConfig->nAlines4, pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+    m_pImgObjRectImage = new ImageObject(pConfig->nAlines4, pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
 	if (m_pImgObjCircImage) delete m_pImgObjCircImage;
-	m_pImgObjCircImage = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+    m_pImgObjCircImage = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
 	m_pImgObjIntensity = new ImageObject(pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
@@ -2061,6 +2251,13 @@ void QResultTab::setObjects(Configuration* pConfig)
         m_pMedfiltIntensityMap = new medfilt(pConfig->n4Alines, pConfig->nFrames, 5, 1);
         m_pMedfiltLifetimeMap = new medfilt(pConfig->n4Alines, pConfig->nFrames, 11, 1);
     }
+#endif
+#ifdef OCT_NIRF
+    if (m_pMedfiltNirf) delete m_pMedfiltNirf;
+    if (m_pCheckBox_SingleFrame->isChecked() == false)
+        m_pMedfiltNirf = new medfilt(pConfig->nAlines4, pConfig->nFrames, 9, 3);
+    else
+        m_pMedfiltNirf = new medfilt(pConfig->nAlines4, pConfig->nFrames, 9, 1);
 #endif
 }
 
@@ -2456,7 +2653,7 @@ void QResultTab::imageMerge(Configuration* pConfig)
 
 void QResultTab::getOctProjection(std::vector<np::FloatArray2>& vecImg, np::FloatArray2& octProj, int offset)
 {
-	int len = CIRC_RADIUS;
+    int len = CIRC_RADIUS - PROJECTION_OFFSET;
 	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)vecImg.size()),
 		[&](const tbb::blocked_range<size_t>& r) {
 		for (size_t i = r.begin(); i != r.end(); ++i)
@@ -2470,3 +2667,4 @@ void QResultTab::getOctProjection(std::vector<np::FloatArray2>& vecImg, np::Floa
 		}
 	});
 }
+

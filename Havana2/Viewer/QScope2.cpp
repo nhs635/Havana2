@@ -173,7 +173,7 @@ void QScope2::resetAxis(QRange x_range, QRange y_range,
     m_pRenderArea->update();
 }
 
-void QScope2::drawData(float* pData1, float* pData2)
+void QScope2::drawData(const float* pData1, const float* pData2)
 {
 	if (m_pRenderArea->m_pData1 != nullptr)
 		memcpy(m_pRenderArea->m_pData1, pData1, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());

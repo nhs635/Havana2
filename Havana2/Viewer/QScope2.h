@@ -33,7 +33,7 @@ public:
                    QString x_unit = "", QString y_unit = "");
 
 public slots:
-    void drawData(float* pData1, float* pData2);
+    void drawData(const float* pData1, const float* pData2);
 
 private:
     QGridLayout *m_pGridLayout;

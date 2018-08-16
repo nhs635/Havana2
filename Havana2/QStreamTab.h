@@ -36,6 +36,9 @@ class OctIntensityHistDlg;
 #ifdef OCT_FLIM
 class FlimCalibDlg;
 #endif
+#ifdef OCT_NIRF
+class NirfEmissionProfileDlg;
+#endif
 
 
 class QStreamTab : public QDialog
@@ -63,7 +66,7 @@ public:
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 	inline void makeNirfEmissionProfileDlg() { createNirfEmissionProfileDlg(); }
-	inline QScope* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
+    inline NirfEmissionProfileDlg* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
 #endif
 #endif
 	inline int getCurrentAline() const { return m_pSlider_SelectAline->value(); }
@@ -159,13 +162,13 @@ private slots:
 
 signals:
 #ifdef OCT_FLIM
-	void plotPulse(float*);
-	void plotFringe(float*);
-	void plotAline(float*);
+	void plotPulse(const float*);
+	void plotFringe(const float*);
+	void plotAline(const float*);
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
 #elif defined (STANDALONE_OCT)
-	void plotFringe(float*, float*);
-	void plotAline(float*, float*);
+	void plotFringe(const float*, const float*);
+	void plotAline(const float*, const float*);
 #ifndef OCT_NIRF
 	void paintRectImage(uint8_t*);
 	void paintCircImage(uint8_t*);
@@ -305,7 +308,7 @@ private:
 	QGroupBox *m_pGroupBox_NirfVisualization;
 
 	QPushButton *m_pPushButton_NirfEmissionProfile;
-	QScope *m_pNirfEmissionProfileDlg;
+    NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
 
 	QLabel *m_pLabel_NirfEmission;
 	QLineEdit *m_pLineEdit_NirfEmissionMax;

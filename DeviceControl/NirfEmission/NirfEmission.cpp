@@ -161,7 +161,8 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 		chrono::milliseconds elapsed = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
 
 		if (pNirfEmission->nAcqs % 500 == 0)
-			printf("@@ NIRF time: %d msec // NIRF rate: %.2f acqs/sec\n", (int)elapsed.count(), 1000.0 * (double)pNirfEmission->nAcqs / (double)elapsed.count());
+			printf("@@ NIRF time: %.2f sec // NIRF rate: %.2f acqs/sec\n", 
+				(double)elapsed.count() / 1000.0, 1000.0 * (double)pNirfEmission->nAcqs / (double)elapsed.count());
 	}
 
 	(void)nSamples;

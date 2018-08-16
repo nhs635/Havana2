@@ -3,6 +3,8 @@
 
 #include <Havana2/Configuration.h>
 
+#include <Common/callback.h>
+
 #ifdef PULLBACK_DEVICE
 
 #include "zb_serial.h"
@@ -29,6 +31,9 @@ public:
 	void Stop();
 	void MoveAbsoulte(double position);
 	void SetTargetSpeed(double speed);	
+
+public:
+	callback<void> DidMovedAbsolute;
 
 private:
 	const char* device_name;

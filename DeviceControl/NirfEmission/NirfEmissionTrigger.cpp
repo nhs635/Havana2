@@ -14,6 +14,10 @@ using namespace std;
 NirfEmissionTrigger::NirfEmissionTrigger() :
 	_taskHandle(nullptr),
 	nAlines(1024),
+#ifdef NI_NIRF_SYNC
+	syncPowerTerminal(NI_NIRF_SYNC_POWER),
+	syncResetTerminal(NI_NIRF_SYNC_RESET),
+#endif
 	counterChannel(NI_NIRF_ALINES_COUNTER),
     sourceTerminal(NI_NIRF_TRIGGER_SOURCE)
 {
@@ -41,6 +45,32 @@ bool NirfEmissionTrigger::initialize()
 		dumpError(res, "ERROR: Failed to initialize NI Counter: ");
 		return false;
 	}
+
+#ifdef NI_NIRF_SYNC
+	//if ((res = DAQmxCreateDOChan(_taskHandle, syncResetTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
+	//	return false;
+	//}
+
+	//if ((res = DAQmxCreateDOChan(_taskHandle, syncPowerTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
+	//	return false;
+	//}
+	//
+	//if ((res = DAQmxWriteDigitalScalarU32(_taskHandle, TRUE, DAQmx_Val_WaitInfinitely, 0xFFFF, NULL)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
+	//	return false;
+	//}
+
+	//if ((res = DAQmxCreateDOChan(_taskHandle, syncPowerTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
+	//	return false;
+	//}
+#endif
 
 	if ((res = DAQmxCreateCOPulseChanTicks(_taskHandle, counterChannel, NULL, sourceTerminal, DAQmx_Val_Low, 0, lowTicks, highTicks)) != 0)
 	{

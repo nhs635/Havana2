@@ -28,6 +28,7 @@ public:
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
 	inline DigitizerSetupDlg* getDigitizerSetupDlg() const { return m_pDigitizerSetupDlg; }
 	bool isAcquisitionButtonToggled() { return m_pToggleButton_Acquisition->isChecked(); }	
+	bool isSavingButtonToggled() { return m_pToggleButton_Saving->isChecked(); }
 	
 public:
 	void changedTab(bool change);

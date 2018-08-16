@@ -8,6 +8,9 @@
 #ifdef ECG_TRIGGERING
 #include <DeviceControl/ECGMonitoring/EcgMonitoring.h>
 #endif
+#ifdef PULLBACK_DEVICE
+#include <DeviceControl/ZaberStage/ZaberStage.h>
+#endif
 
 #include <QtCore/QFile>
 #include <QtWidgets/QMessageBox.h>
@@ -159,7 +162,14 @@ bool MemoryBuffer::startRecording()
 #ifdef PULLBACK_DEVICE
 	// Pullback
 	if (m_pDeviceControlTab->isZaberStageEnabled())
+	{
+		m_pDeviceControlTab->getZaberStage()->DidMovedAbsolute += [&]() {
+			// Finish recording when the pullback is finished.
+			m_bIsRecording = false;
+			m_pOperationTab->setRecordingButton(false);
+		};
 		m_pDeviceControlTab->pullback();
+	}
 #endif
 	
 	// Start Recording

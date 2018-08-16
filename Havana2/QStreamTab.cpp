@@ -28,6 +28,9 @@
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/FlimCalibDlg.h>
 #endif
+#ifdef OCT_NIRF
+#include <Havana2/Dialog/NirfEmissionProfileDlg.h>
+#endif
 
 
 QStreamTab::QStreamTab(QWidget *parent) :
@@ -272,15 +275,15 @@ QStreamTab::QStreamTab(QWidget *parent) :
 
 	// Connect signal and slot
 #ifdef OCT_FLIM
-	connect(this, SIGNAL(plotPulse(float*)), m_pScope_FlimPulse, SLOT(drawData(float*)));
-	connect(this, SIGNAL(plotFringe(float*)), m_pScope_OctFringe, SLOT(drawData(float*)));
-	connect(this, SIGNAL(plotAline(float*)), m_pScope_OctDepthProfile, SLOT(drawData(float*)));
+	connect(this, SIGNAL(plotPulse(const float*)), m_pScope_FlimPulse, SLOT(drawData(const float*)));
+	connect(this, SIGNAL(plotFringe(const float*)), m_pScope_OctFringe, SLOT(drawData(const float*)));
+	connect(this, SIGNAL(plotAline(const float*)), m_pScope_OctDepthProfile, SLOT(drawData(const float*)));
 
 	connect(this, SIGNAL(makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*)),
 		this, SLOT(constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*)));
 #elif defined (STANDALONE_OCT)	
-	connect(this, SIGNAL(plotFringe(float*, float*)), m_pScope_OctFringe, SLOT(drawData(float*, float*)));
-	connect(this, SIGNAL(plotAline(float*, float*)), m_pScope_OctDepthProfile, SLOT(drawData(float*, float*)));
+	connect(this, SIGNAL(plotFringe(const float*, const float*)), m_pScope_OctFringe, SLOT(drawData(const float*, const float*)));
+	connect(this, SIGNAL(plotAline(const float*, const float*)), m_pScope_OctDepthProfile, SLOT(drawData(const float*, const float*)));
 
 #ifndef OCT_NIRF
 	connect(this, SIGNAL(paintRectImage(uint8_t*)), m_pImageView_RectImage, SLOT(drawImage(uint8_t*)));
@@ -755,7 +758,7 @@ void QStreamTab::setNirfAcquisitionCallback()
 
 				// Visualization
 				if (m_pNirfEmissionProfileDlg)
-					m_pNirfEmissionProfileDlg->drawData(data);
+                    m_pNirfEmissionProfileDlg->getScope()->drawData(data);
 
 				// Push the buffer to sync Queue
 				m_syncNirfVisualization.Queue_sync.push(nirf_ptr);
@@ -1309,11 +1312,8 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 
 #ifdef OCT_NIRF
 	// Reset NIRF emission profile dialog	
-	if (m_pNirfEmissionProfileDlg)
-	{
-		m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)nAlines },
-		{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
-	}
+    if (m_pNirfEmissionProfileDlg)
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 #endif
 }
 
@@ -1582,20 +1582,15 @@ void QStreamTab::adjustNirfContrast()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 	
 	if (m_pNirfEmissionProfileDlg)
-	{
-		m_pNirfEmissionProfileDlg->resetAxis({ 0, (double)m_pConfig->nAlines },
-		{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max }, 1, 1, 0, 0, "", "");
-	}
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines },	{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 }
 
 void QStreamTab::createNirfEmissionProfileDlg()
 {
 	if (m_pNirfEmissionProfileDlg == nullptr)
 	{
-		m_pNirfEmissionProfileDlg = new QScope({ 0, (double)m_pConfig->nAlines }, 
-			{ m_pLineEdit_NirfEmissionMin->text().toFloat(), m_pLineEdit_NirfEmissionMax->text().toFloat() }, 2, 2, 1, 1, 0, 0, "", "", false, true);
+        m_pNirfEmissionProfileDlg = new NirfEmissionProfileDlg(true, this);
 		connect(m_pNirfEmissionProfileDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfEmissionProfileDlg()));
-		m_pNirfEmissionProfileDlg->setFixedSize(600, 250);
 		m_pNirfEmissionProfileDlg->show();
 	}
 	m_pNirfEmissionProfileDlg->raise();

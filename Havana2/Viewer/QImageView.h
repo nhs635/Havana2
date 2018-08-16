@@ -56,6 +56,7 @@ public:
 	void setHorizontalLine(int len, ...);
 	void setVerticalLine(int len, ...);
 	void setCircle(int len, ...);
+    void setContour(int len, uint16_t* pContour);
 
 	void setHLineChangeCallback(const std::function<void(int)> &slot);
 	void setVLineChangeCallback(const std::function<void(int)> &slot);
@@ -77,6 +78,7 @@ private:
 
 private:
     int m_width;
+    int m_width4;
     int m_height;
 
 	bool m_bSquareConstraint;
@@ -107,6 +109,8 @@ public:
 	bool m_bRadial;
 	int m_rMax;
 	QColor m_colorLine;
+
+    np::Uint16Array m_contour;
 
 	bool m_bMeasureDistance;
 	int m_nClicked;

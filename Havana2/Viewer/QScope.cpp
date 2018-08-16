@@ -36,6 +36,9 @@ QScope::QScope(QRange x_range, QRange y_range,
 
     // Initialization
     setUpdatesEnabled(true);
+
+	// Connect
+	connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)), this, SLOT(changeAlwaysOnTop(Qt::ApplicationState)));
 }
 
 QScope::~QScope()
@@ -54,6 +57,17 @@ void QScope::keyPressEvent(QKeyEvent * e)
 	if (e->key() != Qt::Key_Escape)
 		QDialog::keyPressEvent(e);
 }
+
+void QScope::changeAlwaysOnTop(Qt::ApplicationState state)
+{
+	if (state == Qt::ApplicationActive)
+		this->setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+	else
+		this->setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
+
+	this->show();
+}
+
 
 void QScope::setAxis(QRange x_range, QRange y_range,
                      int num_x_ticks, int num_y_ticks,

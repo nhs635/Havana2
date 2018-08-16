@@ -32,6 +32,9 @@ struct CrossSectionCheckList
 	bool bCh[3];
 	bool bMulti;
 #endif
+#ifdef OCT_NIRF
+    bool bNirf;
+#endif
 };
 
 struct EnFaceCheckList
@@ -40,6 +43,9 @@ struct EnFaceCheckList
 	bool bScaled;
 #ifdef OCT_FLIM
 	bool bCh[3];
+#endif
+#ifdef OCT_NIRF
+    bool bNirf;
 #endif
 	bool bOctProj;
 };
@@ -62,6 +68,7 @@ private:
 private slots:
 	void saveCrossSections();
 	void saveEnFaceMaps();
+    void setRange();
 	void enableRectResize(bool);
 	void enableCircResize(bool);
 	void setWidgetsEnabled(bool);
@@ -76,12 +83,21 @@ private:
 		std::vector<np::Uint8Array2>& intensityMap, std::vector<np::Uint8Array2>& lifetimeMap,
 		CrossSectionCheckList checkList);
 #elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
 	void scaling(std::vector<np::FloatArray2>& vectorOctImage);
+#else
+    void scaling(std::vector<np::FloatArray2>& vectorOctImage,
+        np::Uint8Array2& nirfMap, CrossSectionCheckList checkList);
+#endif
 #endif
 	void converting(CrossSectionCheckList checkList);
 	void rectWriting(CrossSectionCheckList checkList);
 	void circularizing(CrossSectionCheckList checkList);
 	void circWriting(CrossSectionCheckList checkList);
+
+#ifdef OCT_NIRF
+    void saveCompDetailsLog(const QString savepath);
+#endif
 
 // Variables ////////////////////////////////////////////
 private:
@@ -93,7 +109,7 @@ private:
 	int m_nSavedFrames;
 
 private: // for threading operation
-#ifdef OCT_FLIM
+#if defined(OCT_FLIM) || defined(OCT_NIRF)
 	Queue<ImgObjVector*> m_syncQueueConverting;
 #endif
 	Queue<ImgObjVector*> m_syncQueueRectWriting;
@@ -116,6 +132,14 @@ private:
 	QCheckBox* m_pCheckBox_CrossSectionCh3;
 	QCheckBox* m_pCheckBox_Multichannel;
 #endif
+#ifdef OCT_NIRF
+    QCheckBox* m_pCheckBox_CrossSectionNirf;
+#endif
+
+    // Set Range
+    QLabel* m_pLabel_Range;
+    QLineEdit* m_pLineEdit_RangeStart;
+    QLineEdit* m_pLineEdit_RangeEnd;
 
 	// Save En Face Maps
 	QPushButton* m_pPushButton_SaveEnFaceMaps;
@@ -125,6 +149,9 @@ private:
 	QCheckBox* m_pCheckBox_EnFaceCh1;
 	QCheckBox* m_pCheckBox_EnFaceCh2;
 	QCheckBox* m_pCheckBox_EnFaceCh3;
+#endif
+#ifdef OCT_NIRF
+    QCheckBox* m_pCheckBox_EnFaceNirf;
 #endif
 	QCheckBox* m_pCheckBox_OctMaxProjection;
 };

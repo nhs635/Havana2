@@ -80,6 +80,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #ifdef GALVANO_MIRROR
 	inline QCheckBox* getEnableGalvanoMirrorControl() const { return m_pCheckBox_GalvanoMirrorControl; }
 #endif
+#ifdef PULLBACK_DEVICE
+	inline ZaberStage* getZaberStage() const { return m_pZaberStage; }
+#endif
 
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ECG_TRIGGERING

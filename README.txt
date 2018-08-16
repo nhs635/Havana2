@@ -77,7 +77,12 @@ Havana2.VC*
   (OCT intensity histogram)
 - Havana2 v1.2.4
   (Synchronized OCT-NIRF Streaming & Recording)
+- Havana2 v1.2.4.1
+  (OCT-NIRF modified & Auto pullback stop)
+- Havana2 v1.2.4.2
+  (OCT-NIRF distance calibration & minor error modification)
 
 
 To be updated:
 - Synchronized start for galvano mirror
+- OCT-NIRF Synchronization & Fluent Recording & 1170 Alines

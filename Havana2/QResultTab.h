@@ -27,6 +27,10 @@ class OctIntensityHistDlg;
 #ifdef OCT_FLIM
 class PulseReviewDlg;
 #endif
+#ifdef OCT_NIRF
+class NirfEmissionProfileDlg;
+class NirfDistCompDlg;
+#endif
 
 class OCTProcess;
 #ifdef OCT_FLIM
@@ -54,6 +58,11 @@ public:
 #ifdef OCT_FLIM
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
 #endif
+#ifdef OCT_NIRF
+
+    inline NirfEmissionProfileDlg* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
+	inline NirfDistCompDlg* getNirfDistCompDlg() const { return m_pNirfDistCompDlg; }
+#endif
 	inline QRadioButton* getRadioInBuffer() const { return m_pRadioButton_InBuffer; }
 	inline QProgressBar* getProgressBar() const { return m_pProgressBar_PostProcessing; }
 	inline QImageView* getRectImageView() const { return m_pImageView_RectImage; }
@@ -63,10 +72,11 @@ public:
 #ifdef OCT_FLIM
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
 #endif
-	inline void setUserDefinedAlines(int nAlines) { m_pLineEdit_UserDefinedAlines->setText(QString::number(nAlines)); }
-#ifdef GALVANO_MIRROR
-	inline void invalidate() { visualizeEnFaceMap(true); visualizeImage(getCurrentFrame()); }
+#ifdef OCT_NIRF
+    inline int getCurrentNirfOffset() const { return m_pScrollBar_NirfOffset->value(); }
 #endif
+	inline void setUserDefinedAlines(int nAlines) { m_pLineEdit_UserDefinedAlines->setText(QString::number(nAlines)); }
+	inline void invalidate() { visualizeEnFaceMap(true); visualizeImage(getCurrentFrame()); }
 	void setWidgetsText();
 
 private:
@@ -83,6 +93,12 @@ private slots: // widget operation
 #ifdef OCT_FLIM
 	void createPulseReviewDlg();
 	void deletePulseReviewDlg();
+#endif
+#ifdef OCT_NIRF    
+    void createNirfEmissionProfileDlg();
+    void deleteNirfEmissionProfileDlg();
+	void createNirfDistCompDlg();
+	void deleteNirfDistCompDlg();
 #endif
 	void enableUserDefinedAlines(bool);
 	void visualizeImage(int);
@@ -199,6 +215,7 @@ public: // for visualization
 #ifdef OCT_NIRF
 	np::FloatArray m_nirfSignal;
 	np::FloatArray2 m_nirfMap;
+    np::FloatArray2 m_nirfMap0;
 	int m_nirfOffset;
 #endif
 
@@ -229,6 +246,9 @@ public:
 #ifdef OCT_FLIM
 	medfilt* m_pMedfiltIntensityMap;
 	medfilt* m_pMedfiltLifetimeMap;
+#endif
+#ifdef OCT_NIRF
+    medfilt* m_pMedfiltNirf;
 #endif
 
 
@@ -275,6 +295,11 @@ private:
     QLabel *m_pLabel_SelectFrame;
 	
     QPushButton* m_pToggleButton_MeasureDistance;
+
+#ifdef OCT_NIRF
+	QPushButton *m_pPushButton_NirfDistanceCompensation;
+	NirfDistCompDlg *m_pNirfDistCompDlg;	
+#endif
 
 	QPushButton *m_pPushButton_OctIntensityHistogram;
 	OctIntensityHistDlg *m_pOctIntensityHistDlg;
@@ -323,7 +348,8 @@ private:
     QImageView *m_pImageView_HsvEnhancedMap;
 #endif
 #ifdef OCT_NIRF
-	QImageView *m_pImageView_NirfMap;
+    QImageView *m_pImageView_NirfMap;
+    NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
 #endif
 
     QImageView *m_pImageView_ColorbarOctProjection;

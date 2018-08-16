@@ -1,14 +1,14 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.4" // NIRF Version Released~~~!!
+#define VERSION						"1.2.4.2"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
-#define PX14_ENABLE                 true
-#define NI_ENABLE					true
+#define PX14_ENABLE                 false
+#define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
 //#define OCT_FLIM
@@ -27,9 +27,11 @@
 #if NI_ENABLE
 //#define ECG_TRIGGERING
 #endif
+#else
+//#define NI_NIRF_SYNC
 #endif
-//#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+#define GALVANO_MIRROR
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -63,10 +65,15 @@
 #endif
 
 #ifdef OCT_NIRF
-#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI11"
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai2"
-#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr3" // ctr0,1,2,3 => PFI12,13,14,15
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8"
+#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI11" // "/Dev3/PFI0"
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai2" // "Dev3/ai0"
+#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr3" // "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI1"
+
+#ifdef NI_NIRF_SYNC
+#define NI_NIRF_SYNC_POWER			"/Dev1/PFI0"
+#define NI_NIRF_SYNC_RESET			"/Dev1/PFI1"
+#endif
 #endif
 
 #ifdef GALVANO_MIRROR
@@ -78,8 +85,8 @@
 #define ZABER_PORT					"COM9"
 #define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64;
 #define ZABER_MICRO_RESOLUTION		32
-#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
-#define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
+#define ZABER_CONVERSION_FACTOR		1.6384 // 1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : ;  /
+#define ZABER_MICRO_STEPSIZE		0.09921875  // 0.49609375 // micro-meter /// // 
 
 #define FAULHABER_PORT				"COM2"
 #define FAULHABER_POSITIVE_ROTATION false
@@ -93,7 +100,7 @@
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			50
 #else
-#define WRITING_BUFFER_SIZE	        500
+#define WRITING_BUFFER_SIZE	        1200
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -116,7 +123,10 @@
 #define RING_THICKNESS				80 
 #endif
 
-#define CIRC_RADIUS					1300 // It should be a multiple of 4.
+#define CIRC_RADIUS					1300 // Only even number
+#if (CIRC_RADIUS % 2)
+#error("CIRC_RADIUS should be even number.");
+#endif
 #define PROJECTION_OFFSET			150
 
 #ifdef OCT_FLIM
@@ -217,6 +227,20 @@ public:
 #ifdef OCT_NIRF
 		nirfRange.max = settings.value("nirfRangeMax").toFloat();
 		nirfRange.min = settings.value("nirfRangeMin").toFloat();
+#endif
+		// NIRF distance compensation
+#ifdef OCT_NIRF
+		nirfCompCoeffs[0] = settings.value("nirfCompCoeffs_a").toFloat();
+		nirfCompCoeffs[1] = settings.value("nirfCompCoeffs_b").toFloat();
+		nirfCompCoeffs[2] = settings.value("nirfCompCoeffs_c").toFloat();
+		nirfCompCoeffs[3] = settings.value("nirfCompCoeffs_d").toFloat();
+
+		nirfFactorThres = settings.value("nirfFactorThres").toFloat();
+		nirfFactorPropConst = settings.value("nirfFactorPropConst").toFloat();
+		nirfDistPropConst = settings.value("nirfDistPropConst").toFloat();
+
+		nirfLumContourOffset = settings.value("nirfLumContourOffset").toInt();
+		nirfOuterSheathPos = settings.value("nirfOuterSheathPos").toInt();
 #endif
 		// Device control
 #ifdef ECG_TRIGGERING
@@ -321,6 +345,20 @@ public:
 		settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 1));
 		settings.setValue("nirfRangeMin", QString::number(nirfRange.min, 'f', 1));
 #endif
+		// NIRF distance compensation
+#ifdef OCT_NIRF
+		settings.setValue("nirfCompCoeffs_a", QString::number(nirfCompCoeffs[0], 'f', 10));
+		settings.setValue("nirfCompCoeffs_b", QString::number(nirfCompCoeffs[1], 'f', 10));
+		settings.setValue("nirfCompCoeffs_c", QString::number(nirfCompCoeffs[2], 'f', 10));
+		settings.setValue("nirfCompCoeffs_d", QString::number(nirfCompCoeffs[3], 'f', 10));
+		
+		settings.setValue("nirfFactorThres", QString::number(nirfFactorThres, 'f', 1));
+		settings.setValue("nirfFactorPropConst", QString::number(nirfFactorPropConst, 'f', 3));
+		settings.setValue("nirfDistPropConst", QString::number(nirfDistPropConst, 'f', 3));
+
+		settings.setValue("nirfLumContourOffset", nirfLumContourOffset);
+		settings.setValue("nirfOuterSheathPos", nirfOuterSheathPos);
+#endif
 
 		// Device control
 #ifdef ECG_TRIGGERING
@@ -397,6 +435,14 @@ public:
 #ifdef OCT_NIRF
 	Range<float> nirfRange;
 #endif
+
+	// NIRF ditance compensation
+	float nirfCompCoeffs[4];
+	float nirfFactorThres;
+	float nirfFactorPropConst;
+	float nirfDistPropConst;
+	int nirfLumContourOffset;
+	int nirfOuterSheathPos;
 
 	// System type
 	QString systemType;

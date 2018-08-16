@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                        
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
@@ -18,6 +18,10 @@
 #include <Havana2/Dialog/SaveResultDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/PulseReviewDlg.h>
+#endif
+#ifdef OCT_NIRF
+#include <Havana2/Dialog/NirfEmissionProfileDlg.h>
+#include <Havana2/Dialog/NirfDistCompDlg.h>
 #endif
 
 #include <DataProcess/OCTProcess/OCTProcess.h>
@@ -116,11 +120,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {	
-	if (m_pOperationTab->isAcquisitionButtonToggled())
+	if (m_pOperationTab->isSavingButtonToggled())
+	{
+		e->ignore();
+		QMessageBox::critical(this, "Exit", "Please wait until the saving process is finished.");
+	}
+	else if (m_pOperationTab->isAcquisitionButtonToggled())
 	{
 		e->ignore();
 		QMessageBox::critical(this, "Exit", "Stop acquisition first!");
-	}
+	}	
 	else
 	{
 		if (m_pOperationTab->getDigitizerSetupDlg())
@@ -144,6 +153,12 @@ void MainWindow::closeEvent(QCloseEvent *e)
 			m_pResultTab->getSaveResultDlg()->close();
 		if (m_pResultTab->getOctIntensityHistDlg())
 			m_pResultTab->getOctIntensityHistDlg()->close();
+#ifdef OCT_NIRF
+        if (m_pResultTab->getNirfEmissionProfileDlg())
+            m_pResultTab->getNirfEmissionProfileDlg()->close();
+		if (m_pResultTab->getNirfDistCompDlg())
+			m_pResultTab->getNirfDistCompDlg()->close();
+#endif
 
 		e->accept();
 	}
@@ -212,6 +227,12 @@ void MainWindow::changedTab(int index)
 #ifdef OCT_FLIM
 		if (m_pResultTab->getPulseReviewDlg())
 			m_pResultTab->getPulseReviewDlg()->close();
+#endif
+#ifdef OCT_NIRF
+        if (m_pResultTab->getNirfEmissionProfileDlg())
+            m_pResultTab->getNirfEmissionProfileDlg()->close();
+        if (m_pResultTab->getNirfDistCompDlg())
+            m_pResultTab->getNirfDistCompDlg()->close();
 #endif
 
 #ifdef GALVANO_MIRROR

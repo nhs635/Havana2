@@ -38,7 +38,7 @@ public:
 	{
 		m_pSerialPort->setPortName(portName);
 		m_pSerialPort->setBaudRate(baudRate);
-		m_pSerialPort->setDataBits( dataBits);
+		m_pSerialPort->setDataBits(dataBits);
 		m_pSerialPort->setParity(parity);
 		m_pSerialPort->setStopBits(stopBits);
 		m_pSerialPort->setFlowControl(flowControl);

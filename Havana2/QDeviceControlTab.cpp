@@ -435,6 +435,24 @@ void QDeviceControlTab::createGalvanoMirrorControl()
     m_pLabel_ScanAdjustment->setBuddy(m_pScrollBar_ScanAdjustment);
 	m_pLabel_ScanAdjustment->setDisabled(true);
 
+#if !NI_ENABLE
+    m_pCheckBox_GalvanoMirrorControl->setDisabled(true);
+    m_pToggleButton_ScanTriggering->setDisabled(true);
+    m_pLineEdit_FastPeakToPeakVoltage->setDisabled(true);
+    m_pLineEdit_FastOffsetVoltage->setDisabled(true);
+    m_pLabel_FastScanVoltage->setDisabled(true);
+    m_pLabel_FastScanPlusMinus->setDisabled(true);
+    m_pLabel_FastGalvanoVoltage->setDisabled(true);
+    m_pLineEdit_SlowPeakToPeakVoltage->setDisabled(true);
+    m_pLineEdit_SlowOffsetVoltage->setDisabled(true);
+    m_pLabel_SlowScanVoltage->setDisabled(true);
+    m_pLabel_SlowScanPlusMinus->setDisabled(true);
+    m_pLabel_SlowGalvanoVoltage->setDisabled(true);
+    m_pLineEdit_SlowScanIncrement->setDisabled(true);
+    m_pLabel_SlowScanIncrement->setDisabled(true);
+    m_pLabel_SlowScanIncrementVoltage->setDisabled(true);
+#endif
+
     pGridLayout_GalvanoMirrorControl->addWidget(m_pCheckBox_GalvanoMirrorControl, 0, 0, 1, 6);
 
 	QHBoxLayout *pHBoxLayout_ToggleButtons = new QHBoxLayout;

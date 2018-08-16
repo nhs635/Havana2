@@ -84,7 +84,9 @@ SOURCES += Havana2/Havana2.cpp \
     Havana2/Dialog/FlimCalibDlg.cpp \
     Havana2/Dialog/DigitizerSetupDlg.cpp \
     Havana2/Dialog/SaveResultDlg.cpp \
-    Havana2/Dialog/PulseReviewDlg.cpp
+    Havana2/Dialog/PulseReviewDlg.cpp \
+    Havana2/Dialog/NirfEmissionProfileDlg.cpp \
+    Havana2/Dialog/NirfDistCompDlg.cpp
 
 SOURCES += DataProcess/OCTProcess/OCTProcess.cpp \
     DataProcess/FLIMProcess/FLIMProcess.cpp \
@@ -125,7 +127,9 @@ HEADERS += Havana2/Configuration.h \
     Havana2/Dialog/FlimCalibDlg.h \
     Havana2/Dialog/DigitizerSetupDlg.h \
     Havana2/Dialog/SaveResultDlg.h \
-    Havana2/Dialog/PulseReviewDlg.h
+    Havana2/Dialog/PulseReviewDlg.h \
+    Havana2/Dialog/NirfEmissionProfileDlg.h \
+    Havana2/Dialog/NirfDistCompDlg.h
 
 HEADERS += DataProcess/OCTProcess/OCTProcess.h \
     DataProcess/FLIMProcess/FLIMProcess.h \
