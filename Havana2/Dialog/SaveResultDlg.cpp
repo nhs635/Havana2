@@ -462,12 +462,22 @@ void SaveResultDlg::saveEnFaceMaps()
                 QFile fileNirfMap(nirfName);
                 if (false != fileNirfMap.open(QIODevice::WriteOnly))
                 {
-                    IppiSize roi_proj = { m_pResultTab->m_nirfMap.size(0), m_pResultTab->m_nirfMap.size(1) };
+                    IppiSize roi_nirf = { m_pResultTab->m_nirfMap.size(0), m_pResultTab->m_nirfMap.size(1) };
 
-                    np::FloatArray2 nirfMap(roi_proj.width, roi_proj.height);
+                    np::FloatArray2 nirfMap(roi_nirf.width, roi_nirf.height);
                     ippiCopy_32f_C1R(m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * m_pResultTab->m_nirfMap0.size(0),
-                                     nirfMap.raw_ptr(), sizeof(float) * nirfMap.size(0), roi_proj);
-
+                                     nirfMap.raw_ptr(), sizeof(float) * nirfMap.size(0), roi_nirf);
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+					{
+						int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
+						for (int i = 0; i < roi_nirf.height; i++)
+						{
+							float* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+						}
+					}
+#endif
                     fileNirfMap.write(reinterpret_cast<char*>(&nirfMap(0, start - 1)), sizeof(float) * nirfMap.size(0) * (end - start + 1));
                     fileNirfMap.close();
                 }                
@@ -487,7 +497,17 @@ void SaveResultDlg::saveEnFaceMaps()
                     np::FloatArray2 octProj(roi_proj.width, roi_proj.height);
                     ippiCopy_32f_C1R(m_pResultTab->m_octProjection.raw_ptr(), sizeof(float) * m_pResultTab->m_octProjection.size(0),
                                      octProj.raw_ptr(), sizeof(float) * octProj.size(0), roi_proj);
-
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+					{
+						int roi_proj_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
+						for (int i = 0; i < roi_proj.height; i++)
+						{
+							float* pImg = octProj.raw_ptr() + i * roi_proj.width;
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
+						}
+					}
+#endif
                     fileOctMaxProj.write(reinterpret_cast<char*>(&octProj(0, start - 1)), sizeof(float) * octProj.size(0) * (end - start + 1));
 					fileOctMaxProj.close();
 				}
@@ -721,6 +741,11 @@ void SaveResultDlg::setWidgetsEnabled(bool enabled)
 #ifdef OCT_NIRF
     m_pCheckBox_CrossSectionNirf->setEnabled(enabled);
 #endif
+
+	// Set Range
+	m_pLabel_Range->setEnabled(enabled);
+	m_pLineEdit_RangeStart->setEnabled(enabled);
+	m_pLineEdit_RangeEnd->setEnabled(enabled);
 
 	// Save En Face Maps
 	m_pPushButton_SaveEnFaceMaps->setEnabled(enabled);
@@ -1146,9 +1171,10 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             m_syncQueueCircularizing.push(pImgObjVec);
         }        
 
-        if (m_pResultTab->getNirfDistCompDlg())
-            if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-                saveCompDetailsLog(rectPath + "dist_comp_details.log");
+		if (checkList.bRect)
+			if (m_pResultTab->getNirfDistCompDlg())
+				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+					saveCompDetailsLog(rectPath + "dist_comp_details.log");
     }
 #endif
 }
@@ -1164,6 +1190,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 		// Get the buffer from the previous sync Queue
 		ImgObjVector *pImgObjVec = m_syncQueueCircularizing.pop();
 		ImgObjVector *pImgObjVecCirc = new ImgObjVector;
+		int polishedSurface = 0;
 
 #ifdef OCT_FLIM
 		if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
@@ -1179,7 +1206,41 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 			if (checkList.bCirc)
 			{
 				np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qindeximg.bits(), pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
-				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qindeximg.bits(), "vertical", m_pConfig->circCenter);
+
+				// Ball lens polished surface detection				
+				np::DoubleArray mean_profile(PROJECTION_OFFSET);
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+					[&](const tbb::blocked_range<size_t>& r) {
+					for (size_t i = r.begin(); i != r.end(); ++i)
+					{
+						uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
+						ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
+					}
+				});
+
+				np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+				memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+					[&](const tbb::blocked_range<size_t>& r) {
+					for (size_t i = r.begin(); i != r.end(); ++i)
+					{
+						drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+					}
+				});
+
+				for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+				{
+					bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+					if (det && (mean_profile(i) > 30))
+					{
+						polishedSurface = i + 1;
+						printf("%d\n", polishedSurface);
+						break;
+					}
+				}
+				
+				int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qindeximg.bits(), "vertical", center);
 			}
 
 			// Vector pushing back
@@ -1199,9 +1260,10 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 					if (checkList.bCh[i] && checkList.bCirc)
 					{
 						// Paste FLIM color ring to RGB rect image
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 2 * RING_THICKNESS),
+						int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 1 * RING_THICKNESS),
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
 							pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(2 + 2 * i)->qrgbimg.byteCount()); // Lifetime
 
 						// Circularize
@@ -1224,7 +1286,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 				{
 					if (checkList.bCh[i])
 					{
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - (nCh - n++) * RING_THICKNESS),
+						int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - (nCh - n++) * RING_THICKNESS),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
 					}
 				}
@@ -1246,13 +1309,48 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 
             if (checkList.bCirc)
             {
-                // Paste FLIM color ring to RGB rect image
-                memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 1 * RING_THICKNESS),
-                    pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
-
-                // Circularize
                 np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
-                (*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+
+				// Ball lens polished surface detection				
+				np::DoubleArray mean_profile(PROJECTION_OFFSET);
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+					[&](const tbb::blocked_range<size_t>& r) {
+					for (size_t i = r.begin(); i != r.end(); ++i)
+					{
+						uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
+						ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
+					}
+				});
+
+				np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+				memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+					[&](const tbb::blocked_range<size_t>& r) {
+					for (size_t i = r.begin(); i != r.end(); ++i)
+					{
+						drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+					}
+				});
+
+				for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+				{
+					bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+					if (det && (mean_profile(i) > 30))
+					{
+						polishedSurface = i + 1;
+						//printf("%d\n", polishedSurface);
+						break;
+					}
+				}
+
+				int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+
+				// Paste FLIM color ring to RGB rect image
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
+					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+
+				// Circularize
+                (*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qrgbimg.bits(), "vertical", "rgb", center);
             }
 
             // Vector pushing back
@@ -1460,9 +1558,10 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
             delete pImgObjVecCirc;
         }
 
-        if (m_pResultTab->getNirfDistCompDlg())
-            if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-                saveCompDetailsLog(circPath + "dist_comp_details.log");
+		if (checkList.bCirc)
+			if (m_pResultTab->getNirfDistCompDlg())
+				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())				
+	                saveCompDetailsLog(circPath + "dist_comp_details.log");
     }
 #endif
 }
@@ -1493,8 +1592,8 @@ void SaveResultDlg::saveCompDetailsLog(const QString savepath)
 
     out << QString("@ NIRF Offset: %1\n").arg(QString::number(m_pResultTab->getCurrentNirfOffset()));
     out << QString("@ Lumen Contour Offset: %1\n").arg(QString::number(m_pConfig->nirfLumContourOffset));
-    out << QString("@ Outer Sheath Position: %1\n\n").arg(QString::number(m_pConfig->nirfOuterSheathPos));
-    out << QString("@ Fast Scan Adjustment: %1\n").arg(QString::number(m_pConfig->galvoHorizontalShift));
+    out << QString("@ Outer Sheath Position: %1\n").arg(QString::number(m_pConfig->nirfOuterSheathPos));
+    out << QString("@ Fast Scan Adjustment: %1\n\n").arg(QString::number(m_pConfig->galvoHorizontalShift));
 
     out << QString("@ NIRF Background: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBg));
     out << QString("@ NIRF Background for TBR: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBackgroundLevel));

@@ -120,14 +120,15 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				80 
+#define RING_THICKNESS				300 
 #endif
 
-#define CIRC_RADIUS					1300 // Only even number
+#define CIRC_RADIUS					1200 // Only even number
 #if (CIRC_RADIUS % 2)
 #error("CIRC_RADIUS should be even number.");
 #endif
 #define PROJECTION_OFFSET			150
+#define BALL_SIZE					55
 
 #ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire

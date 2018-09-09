@@ -206,6 +206,7 @@ private: // for threading operation
 public: // for visualization
 	std::vector<np::FloatArray2> m_vectorOctImage;
 	np::FloatArray2 m_octProjection;
+	int m_polishedSurface;
 #ifdef OCT_FLIM
 	std::vector<np::FloatArray2> m_intensityMap; // (256 x N) x 3
 	std::vector<np::FloatArray2> m_lifetimeMap; // (256 x N) x 3

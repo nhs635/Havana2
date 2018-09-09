@@ -242,9 +242,8 @@ bool MemoryBuffer::startRecording()
 						nirf_temp = m_syncBufferingNirf.Queue_sync.pop();
 					} while (nirf_temp != nullptr);
 				}
-#else
-				break;
 #endif
+				break;
 			}
 		}
 		printf("Data copying thread is finished.\n");

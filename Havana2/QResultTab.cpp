@@ -44,7 +44,7 @@
 
 QResultTab::QResultTab(QWidget *parent) :
     QDialog(parent), 
-	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr), m_pCirc(nullptr),
+	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr), m_pCirc(nullptr), m_polishedSurface(0),
 	m_pMedfiltRect(nullptr), 
 	m_pSaveResultDlg(nullptr), m_pOctIntensityHistDlg(nullptr)
 #ifdef OCT_FLIM
@@ -933,13 +933,52 @@ void QResultTab::visualizeImage(int frame)
 
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
 #else
+		// Ball lens polished surface detection
+		np::DoubleArray mean_profile(PROJECTION_OFFSET);
+		tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+				[&](const tbb::blocked_range<size_t>& r) {
+				for (size_t i = r.begin(); i != r.end(); ++i)
+				{
+					uint8_t *pLine = &m_pImgObjRectImage->arr(0, m_pConfig->circCenter + (int)i);
+					ippiMean_8u_C1R(pLine, m_pImgObjRectImage->arr.size(0), { m_pImgObjRectImage->arr.size(0), 1 }, &mean_profile((int)i));
+				}
+		});
+
+		np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+		memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+		tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+			[&](const tbb::blocked_range<size_t>& r) {
+			for (size_t i = r.begin(); i != r.end(); ++i)
+			{
+				drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+			}
+		});
+
+		for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+		{
+			bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+			if (det && (mean_profile(i) > 30))
+			{
+				m_polishedSurface = i + 1;
+				//printf("%d\n", m_polishedSurface);
+				break;
+			}
+		}
+
+		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+		if (m_pCheckBox_ShowGuideLine->isChecked())
+		{
+			m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
+			m_pImageView_CircImage->setCircle(1, PROJECTION_OFFSET);
+		}
+
 		if (!m_pCheckBox_CircularizeImage->isChecked())
 		{
 			if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(m_pImgObjRectImage->qindeximg.bits());
 		}
 		else
 		{
-			(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", m_pConfig->circCenter);
+			(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", center);
 			if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(m_pImgObjCircImage->qindeximg.bits());
 		}
 #endif
@@ -1028,6 +1067,52 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 #ifdef OCT_NIRF
 void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj, ImageObject *pNirfObj)
 {
+	// Ball lens polished surface detection
+	np::DoubleArray mean_profile(PROJECTION_OFFSET);
+	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+		[&](const tbb::blocked_range<size_t>& r) {
+		for (size_t i = r.begin(); i != r.end(); ++i)
+		{
+			uint8_t *pLine = &pRectObj->arr(0, m_pConfig->circCenter + (int)i);
+			ippiMean_8u_C1R(pLine, pRectObj->arr.size(0), { pRectObj->arr.size(0), 1 }, &mean_profile((int)i));
+		}
+	});
+
+	np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+	memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+		[&](const tbb::blocked_range<size_t>& r) {
+		for (size_t i = r.begin(); i != r.end(); ++i)
+		{
+			drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+		}
+	});
+
+	for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+	{
+		bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+		if (det && (mean_profile(i) > 30))
+		{
+			m_polishedSurface = i + 1;
+			//printf("%d\n", m_polishedSurface);
+			break;
+		}
+	}
+	
+	int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+	if (m_pCheckBox_ShowGuideLine->isChecked())
+	{
+		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
+		m_pImageView_CircImage->setCircle(1, PROJECTION_OFFSET);
+	}
+
+	//QFile file("test.data");
+	//if (true == file.open(QFile::WriteOnly))
+	//{
+	//	file.write(reinterpret_cast<char*>(mean_profile.raw_ptr()), sizeof(double) * mean_profile.length());
+	//	file.close();
+	//}
+
 	// Convert RGB
 	pRectObj->convertRgb();
 	pNirfObj->convertNonScaledRgb();
@@ -1045,11 +1130,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	else
 	{		
 		// Paste NIRF color ring to RGB rect image
-		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 1 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
 
 		// Circularize
 		np::Uint8Array2 rect_temp(pRectObj->qrgbimg.bits(), 3 * pRectObj->arr.size(0), pRectObj->arr.size(1));
-		(*m_pCirc)(rect_temp, pCircObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+		(*m_pCirc)(rect_temp, pCircObj->qrgbimg.bits(), "vertical", "rgb", center);
 
 		// Draw image        
 		if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(pCircObj->qrgbimg.bits());
@@ -1235,7 +1320,8 @@ void QResultTab::showGuideLine(bool toggled)
 {
 	if (toggled)
 	{
-		m_pImageView_RectImage->setHorizontalLine(3, m_pConfig->circCenter, m_pConfig->circCenter + PROJECTION_OFFSET, m_pConfig->circCenter + CIRC_RADIUS);
+		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
 		m_pImageView_CircImage->setCircle(1, PROJECTION_OFFSET);
 	}
 	else
@@ -1276,12 +1362,15 @@ void QResultTab::checkCircCenter(const QString &str)
 	}
 	m_pConfig->circCenter = circCenter;
 
-	if (m_pCheckBox_ShowGuideLine->isChecked())
-		m_pImageView_RectImage->setHorizontalLine(3, m_pConfig->circCenter, m_pConfig->circCenter + PROJECTION_OFFSET, m_pConfig->circCenter + CIRC_RADIUS);
-
 	getOctProjection(m_vectorOctImage, m_octProjection, circCenter);
 	visualizeEnFaceMap(true);
 	visualizeImage(m_pSlider_SelectFrame->value());
+
+	if (m_pCheckBox_ShowGuideLine->isChecked())
+	{
+		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
+	}
 }
 
 void QResultTab::adjustOctContrast()
@@ -1550,7 +1639,7 @@ void QResultTab::inBufferDataProcessing()
 void QResultTab::externalDataProcessing()
 {	
 	// Get path to read
-	QString fileName = QFileDialog::getOpenFileName(nullptr, "Load external OCT FLIM data", "", "OCT FLIM raw data (*.data)");
+	QString fileName = QFileDialog::getOpenFileName(nullptr, "Load external data", "", "Raw data (*.data)");
 	if (fileName != "")
 	{
 		std::thread t1([&, fileName]() {
