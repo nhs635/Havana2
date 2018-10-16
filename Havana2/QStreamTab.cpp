@@ -83,7 +83,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	// Create buffers for threading operation
     m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#else
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, 2 * m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#endif
 #endif
     m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch1 Processing
@@ -95,7 +99,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
     m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 Processing
     m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // Ch2 OCT Visualization
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	m_syncNirfVisualization.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#else
+	m_syncNirfVisualization.allocate_queue_buffer(1, 2 * m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#endif
 #endif
 #endif
 	
@@ -130,7 +138,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 
 #ifdef OCT_NIRF
-	m_visNirf = np::DoubleArray(m_pConfig->nAlines);
+#ifndef TWO_CHANNEL_NIRF
+	m_visNirf = np::DoubleArray2(1, m_pConfig->nAlines);
+#else
+	m_visNirf = np::DoubleArray2(2, m_pConfig->nAlines);
+#endif
 #endif
 #endif 
 
@@ -144,7 +156,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pConfig->flimLifetimeColorTable));
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
+#else
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, 2 * RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
+#endif
 #endif
 #endif
 	
@@ -754,11 +770,19 @@ void QStreamTab::setNirfAcquisitionCallback()
 			if (nirf_ptr != nullptr)
 			{
 				// Body
+#ifndef TWO_CHANNEL_NIRF
 				memcpy(nirf_ptr, data, sizeof(double) * m_pConfig->nAlines);
+#else
+				memcpy(nirf_ptr, data, sizeof(double) * 2 * m_pConfig->nAlines);
+#endif
 
 				// Visualization
 				if (m_pNirfEmissionProfileDlg)
+#ifndef TWO_CHANNEL_NIRF
                     m_pNirfEmissionProfileDlg->getScope()->drawData(data);
+#else
+					m_pNirfEmissionProfileDlg->getScope()->drawData(data, data + m_pConfig->nAlines);
+#endif
 
 				// Push the buffer to sync Queue
 				m_syncNirfVisualization.Queue_sync.push(nirf_ptr);
@@ -788,7 +812,11 @@ void QStreamTab::setNirfAcquisitionCallback()
 				if (nirf_data != nullptr)
 				{
 					// Body (Copying the frame data)
+#ifndef TWO_CHANNEL_NIRF
 					memcpy(nirf_data, data, sizeof(double) * m_pConfig->nAlines);
+#else
+					memcpy(nirf_data, data, sizeof(double) * 2 * m_pConfig->nAlines);
+#endif
 
 					// Push to the copy queue for copying transfered data in copy thread
 					m_pMemBuff->m_syncBufferingNirf.Queue_sync.push(nirf_data);
@@ -1082,7 +1110,11 @@ void QStreamTab::setVisualizationCallback()
                 visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
 #else
 				// Draw Images
-				m_visNirf = np::DoubleArray(res3_data, m_pConfig->nAlines);
+#ifndef TWO_CHANNEL_NIRF
+				m_visNirf = np::DoubleArray2(res3_data, 1, m_pConfig->nAlines);
+#else
+				m_visNirf = np::DoubleArray2(res3_data, 2, m_pConfig->nAlines);
+#endif
 				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
@@ -1229,9 +1261,13 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_syncNirfVisualization.deallocate_queue_buffer();
 #endif
 
-    m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+    m_pMemBuff->m_syncBuffering.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
 #ifdef OCT_NIRF
-	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+#ifndef TWO_CHANNEL_NIRF
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, nAlines, PROCESSING_BUFFER_SIZE);
+#else
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, 2 * nAlines, PROCESSING_BUFFER_SIZE);
+#endif
 #endif
     m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh1Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
@@ -1243,7 +1279,11 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
     m_syncCh2Processing.allocate_queue_buffer(m_pConfig->nScans, nAlines, PROCESSING_BUFFER_SIZE);
     m_syncCh2Visualization.allocate_queue_buffer(m_pConfig->n2ScansFFT, nAlines, PROCESSING_BUFFER_SIZE);
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	m_syncNirfVisualization.allocate_queue_buffer(1, nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#else
+	m_syncNirfVisualization.allocate_queue_buffer(1, 2 * nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+#endif
 #endif
 #endif
 
@@ -1289,7 +1329,11 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, nAlines);
 
 #ifdef OCT_NIRF
-	m_visNirf = np::DoubleArray(m_pConfig->nAlines);
+#ifndef TWO_CHANNEL_NIRF
+	m_visNirf = np::DoubleArray2(1, m_pConfig->nAlines);
+#else
+	m_visNirf = np::DoubleArray2(2, m_pConfig->nAlines);
+#endif
 #endif
 #endif 
 
@@ -1306,7 +1350,11 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 	if (m_pImgObjNirf) delete m_pImgObjNirf;
+#ifndef TWO_CHANNEL_NIRF
 	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
+#else
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, 2 * RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable::hot));
+#endif
 #endif
 #endif
 
@@ -1410,6 +1458,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	// NIRF Visualization
 	IppiSize roi_nirf = { m_pConfig->nAlines, 1 };
 
+#ifndef TWO_CHANNEL_NIRF
 	np::FloatArray scanNirf(roi_nirf.width);
 	ippsConvert_64f32f(res3, scanNirf, roi_nirf.width);
 	uint8_t* rectNirf = m_pImgObjNirf->arr.raw_ptr();	
@@ -1417,6 +1466,23 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	
 	for (int i = 1; i < RING_THICKNESS; i++)
 		memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * roi_nirf.width);
+#else
+	np::FloatArray scanNirf1(roi_nirf.width);
+	ippsConvert_64f32f(res3, scanNirf1, roi_nirf.width);
+	uint8_t* rectNirf1 = m_pImgObjNirf->arr.raw_ptr();
+	ippiScale_32f8u_C1R(scanNirf1, roi_nirf.width * sizeof(double), rectNirf1, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+
+	for (int i = 1; i < RING_THICKNESS; i++)
+		memcpy(&m_pImgObjNirf->arr(0, i), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
+
+	np::FloatArray scanNirf2(roi_nirf.width);
+	ippsConvert_64f32f(res3 + roi_nirf.width, scanNirf2, roi_nirf.width);
+	uint8_t* rectNirf2 = &m_pImgObjNirf->arr(0, RING_THICKNESS);
+	ippiScale_32f8u_C1R(scanNirf2, roi_nirf.width * sizeof(double), rectNirf2, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+
+	for (int i = 1; i < RING_THICKNESS; i++)
+		memcpy(&m_pImgObjNirf->arr(0, i + RING_THICKNESS), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
+#endif
 
 	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
 
@@ -1478,7 +1544,11 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	if (!m_pCheckBox_CircularizeImage->isChecked())
 	{
 		// Paste FLIM color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
 		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - RING_THICKNESS - 1), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+#else
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 2 * RING_THICKNESS - 1), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+#endif
 
 		// Scan adjust
 #ifdef GALVANO_MIRROR
@@ -1496,7 +1566,11 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	else
 	{
 		// Paste FLIM color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
 		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - RING_THICKNESS), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+#else
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 2 * RING_THICKNESS), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+#endif
 
 		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
 		(*m_pCirc)(rect_temp, circObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);

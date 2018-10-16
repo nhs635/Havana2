@@ -253,7 +253,11 @@ void NirfDistCompDlg::loadDistanceMap()
         printf("[ERROR] Invalid external data or there is no such a file (dist_map.bin)!\n");
     else
     {
+#ifndef TWO_CHANNEL_NIRF
         distMap = np::Uint16Array2(m_pResultTab->m_nirfMap.size(0), m_pResultTab->m_nirfMap.size(1));
+#else
+		distMap = np::Uint16Array2(m_pResultTab->m_nirfMap1.size(0), m_pResultTab->m_nirfMap1.size(1));
+#endif
         file.read(reinterpret_cast<char*>(distMap.raw_ptr()), sizeof(uint16_t) * distMap.length());
         file.close();
 

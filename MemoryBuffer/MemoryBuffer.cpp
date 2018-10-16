@@ -70,8 +70,13 @@ void MemoryBuffer::allocateWritingBuffer()
 #ifdef OCT_NIRF
 		for (int i = 0; i < WRITING_BUFFER_SIZE; i++)
 		{
+#ifndef TWO_CHANNEL_NIRF
 			double* buffer = new double[m_pConfig->nAlines];
 			memset(buffer, 0, m_pConfig->nAlines * sizeof(double));
+#else
+			double* buffer = new double[2 * m_pConfig->nAlines];
+			memset(buffer, 0, 2 * m_pConfig->nAlines * sizeof(double));
+#endif
 			m_queueWritingBufferNirf.push(buffer);
 		}
 #endif
@@ -167,6 +172,7 @@ bool MemoryBuffer::startRecording()
 			// Finish recording when the pullback is finished.
 			m_bIsRecording = false;
 			m_pOperationTab->setRecordingButton(false);
+			m_pDeviceControlTab->getFaulhaberOperationButton()->setChecked(false);
 		};
 		m_pDeviceControlTab->pullback();
 	}
@@ -203,7 +209,11 @@ bool MemoryBuffer::startRecording()
 #ifdef OCT_NIRF
 					double* buffer_nirf = m_queueWritingBufferNirf.front();
 					m_queueWritingBufferNirf.pop();
+#ifndef TWO_CHANNEL_NIRF
 					memcpy(buffer_nirf, nirf, sizeof(double) * m_pConfig->nAlines);
+#else
+					memcpy(buffer_nirf, nirf, sizeof(double) * 2 * m_pConfig->nAlines);
+#endif
 					m_queueWritingBufferNirf.push(buffer_nirf);				
 #endif
 					m_nRecordedFrames++;
@@ -434,7 +444,11 @@ void MemoryBuffer::write()
 		{
 			buffer_nirf = m_queueWritingBufferNirf.front();
 			m_queueWritingBufferNirf.pop();
+#ifndef TWO_CHANNEL_NIRF
 			nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * m_pConfig->nAlines);
+#else
+			nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * 2 * m_pConfig->nAlines);
+#endif
 			m_queueWritingBufferNirf.push(buffer_nirf);
 		}
 	}

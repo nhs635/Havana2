@@ -151,7 +151,12 @@ signals:
 	void paintLifetimeMap(uint8_t*);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void paintNirfMap(uint8_t*);
+#else
+	void paintNirfMap1(uint8_t*);
+	void paintNirfMap2(uint8_t*);
+#endif
 #endif
 	void processedSingleFrame(int);
 
@@ -214,9 +219,18 @@ public: // for visualization
 	std::vector<np::FloatArray2> m_vectorPulseMask;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	np::FloatArray m_nirfSignal;
 	np::FloatArray2 m_nirfMap;
     np::FloatArray2 m_nirfMap0;
+#else
+	np::FloatArray m_nirfSignal1;
+	np::FloatArray2 m_nirfMap1;
+	np::FloatArray2 m_nirfMap1_0;
+	np::FloatArray m_nirfSignal2;
+	np::FloatArray2 m_nirfMap2;
+	np::FloatArray2 m_nirfMap2_0;
+#endif
 	int m_nirfOffset;
 #endif
 
@@ -238,7 +252,12 @@ private:
 	ImageObject *m_pImgObjHsvEnhancedMap;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	ImageObject *m_pImgObjNirfMap;
+#else
+	ImageObject *m_pImgObjNirfMap1;
+	ImageObject *m_pImgObjNirfMap2;
+#endif
 #endif	
 
 public:
@@ -299,7 +318,8 @@ private:
 
 #ifdef OCT_NIRF
 	QPushButton *m_pPushButton_NirfDistanceCompensation;
-	NirfDistCompDlg *m_pNirfDistCompDlg;	
+	NirfDistCompDlg *m_pNirfDistCompDlg;
+	NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
 #endif
 
 	QPushButton *m_pPushButton_OctIntensityHistogram;
@@ -339,7 +359,12 @@ private:
     QLabel *m_pLabel_LifetimeMap;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	QLabel *m_pLabel_NirfMap;
+#else
+	QLabel *m_pLabel_NirfMap1;
+	QLabel *m_pLabel_NirfMap2;
+#endif
 #endif
 
     QImageView *m_pImageView_OctProjection;
@@ -349,8 +374,12 @@ private:
     QImageView *m_pImageView_HsvEnhancedMap;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
     QImageView *m_pImageView_NirfMap;
-    NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
+#else
+	QImageView *m_pImageView_NirfMap1;
+	QImageView *m_pImageView_NirfMap2;
+#endif
 #endif
 
     QImageView *m_pImageView_ColorbarOctProjection;

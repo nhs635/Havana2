@@ -6,7 +6,11 @@
 #include <QtCore>
 
 #include <Havana2/Configuration.h>
+#ifndef TWO_CHANNEL_NIRF
 #include <Havana2/Viewer/QScope.h>
+#else
+#include <Havana2/Viewer/QScope2.h>
+#endif
 
 #include <Common/array.h>
 #include <Common/callback.h>
@@ -31,7 +35,11 @@ private:
     void keyPressEvent(QKeyEvent *e);
 
 public:
+#ifndef TWO_CHANNEL_NIRF
     inline QScope* getScope() const { return m_pScope; }
+#else
+	inline QScope2* getScope() const { return m_pScope; }
+#endif
 
 // Variables ////////////////////////////////////////////
 private:	
@@ -42,7 +50,11 @@ private:
 
 private:
     bool m_bIsStreaming;
+#ifndef TWO_CHANNEL_NIRF
     QScope *m_pScope;
+#else
+	QScope2 *m_pScope;
+#endif
 #endif
 };
 

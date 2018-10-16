@@ -10,7 +10,7 @@ QScope2::QScope2(QWidget *parent) :
 QScope2::QScope2(QRange x_range, QRange y_range,
                int num_x_ticks, int num_y_ticks,
                double x_interval, double y_interval, double x_offset, double y_offset,
-               QString x_unit, QString y_unit, QWidget *parent) :
+               QString x_unit, QString y_unit, bool _64_use, QWidget *parent) :
 	QDialog(parent)
 {
     // Set default size
@@ -22,6 +22,7 @@ QScope2::QScope2(QRange x_range, QRange y_range,
 
     // Create render area
     m_pRenderArea = new QRenderArea2(this);
+	m_pRenderArea->m_b64Use = _64_use;
     m_pRenderArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     // Set Axis
@@ -41,6 +42,10 @@ QScope2::~QScope2()
 	if (m_pRenderArea->m_pData1)
 		delete[] m_pRenderArea->m_pData1;
 	if (m_pRenderArea->m_pData2)
+		delete[] m_pRenderArea->m_pData2;
+	if (m_pRenderArea->m_pData1_64)
+		delete[] m_pRenderArea->m_pData1;
+	if (m_pRenderArea->m_pData2_64)
 		delete[] m_pRenderArea->m_pData2;
 }
 
@@ -107,10 +112,20 @@ void QScope2::setAxis(QRange x_range, QRange y_range,
     }
 
 	// Allocate data buffer
-	m_pRenderArea->m_pData1 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
-	memset(m_pRenderArea->m_pData1, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
-	m_pRenderArea->m_pData2 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
-	memset(m_pRenderArea->m_pData2, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+	if (!m_pRenderArea->m_b64Use)
+	{
+		m_pRenderArea->m_pData1 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData1, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+		m_pRenderArea->m_pData2 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData2, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+	}
+	else
+	{
+		m_pRenderArea->m_pData1_64 = new double[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData1_64, 0, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+		m_pRenderArea->m_pData2_64 = new double[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData2_64, 0, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+	}
 
     m_pRenderArea->update();
 }
@@ -154,21 +169,43 @@ void QScope2::resetAxis(QRange x_range, QRange y_range,
 	}
 
 	// Reallocate data buffer
-	if (m_pRenderArea->m_pData1)
-	{
-		delete[] m_pRenderArea->m_pData1;
-		m_pRenderArea->m_pData1 = nullptr;
-	}
-	m_pRenderArea->m_pData1 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
-	memset(m_pRenderArea->m_pData1, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
 
-	if (m_pRenderArea->m_pData2)
+	if (!m_pRenderArea->m_b64Use)
 	{
-		delete[] m_pRenderArea->m_pData2;
-		m_pRenderArea->m_pData2 = nullptr;
+		if (m_pRenderArea->m_pData1)
+		{
+			delete[] m_pRenderArea->m_pData1;
+			m_pRenderArea->m_pData1 = nullptr;
+		}
+		m_pRenderArea->m_pData1 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData1, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+
+		if (m_pRenderArea->m_pData2)
+		{
+			delete[] m_pRenderArea->m_pData2;
+			m_pRenderArea->m_pData2 = nullptr;
+		}
+		m_pRenderArea->m_pData2 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData2, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
 	}
-	m_pRenderArea->m_pData2 = new float[(int)m_pRenderArea->m_sizeGraph.width()];
-	memset(m_pRenderArea->m_pData2, 0, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+	else
+	{
+		if (m_pRenderArea->m_pData1_64)
+		{
+			delete[] m_pRenderArea->m_pData1_64;
+			m_pRenderArea->m_pData1_64 = nullptr;
+		}
+		m_pRenderArea->m_pData1_64 = new double[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData1_64, 0, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+
+		if (m_pRenderArea->m_pData2_64)
+		{
+			delete[] m_pRenderArea->m_pData2_64;
+			m_pRenderArea->m_pData2_64 = nullptr;
+		}
+		m_pRenderArea->m_pData2_64 = new double[(int)m_pRenderArea->m_sizeGraph.width()];
+		memset(m_pRenderArea->m_pData2_64, 0, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+	}	
 
     m_pRenderArea->update();
 }
@@ -183,9 +220,20 @@ void QScope2::drawData(const float* pData1, const float* pData2)
 	m_pRenderArea->update();
 }
 
+void QScope2::drawData(const double* pData1_64, const double* pData2_64)
+{
+	if (m_pRenderArea->m_pData1_64 != nullptr)
+		memcpy(m_pRenderArea->m_pData1_64, pData1_64, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+	if (m_pRenderArea->m_pData2_64 != nullptr)
+		memcpy(m_pRenderArea->m_pData2_64, pData2_64, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+
+	m_pRenderArea->update();
+}
+
 
 QRenderArea2::QRenderArea2(QWidget *parent) :
-	QWidget(parent)
+	QWidget(parent), m_pData1(nullptr), m_pData2(nullptr), 
+	m_pData1_64(nullptr), m_pData2_64(nullptr)
 {
     QPalette pal = this->palette();
     pal.setColor(QPalette::Background, QColor(0x282d30));
@@ -238,6 +286,35 @@ void QRenderArea2::paintEvent(QPaintEvent *)
 			x0.setY((float)(m_yRange.max - m_pData1[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
 			x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
 			x1.setY((float)(m_yRange.max - m_pData1[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+			painter.drawLine(x0, x1);
+		}
+	}
+
+	if (m_pData2_64 != nullptr) // double case 2
+	{
+		painter.setPen(QColor(0x5dfff2));
+		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		{
+			QPointF x0, x1;
+			x0.setX((double)(i) / (double)m_sizeGraph.width() * w);
+			x0.setY((double)(m_yRange.max - m_pData2_64[i]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+			x1.setX((double)(i + 1) / (double)m_sizeGraph.width() * w);
+			x1.setY((double)(m_yRange.max - m_pData2_64[i + 1]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+
+			painter.drawLine(x0, x1);
+		}
+	}
+	if (m_pData1_64 != nullptr) // double case 1
+	{
+		painter.setPen(QColor(0xfff65d));
+		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		{
+			QPointF x0, x1;
+			x0.setX((double)(i) / (double)m_sizeGraph.width() * w);
+			x0.setY((double)(m_yRange.max - m_pData1_64[i]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+			x1.setX((double)(i + 1) / (double)m_sizeGraph.width() * w);
+			x1.setY((double)(m_yRange.max - m_pData1_64[i + 1]) * (double)h / (double)(m_yRange.max - m_yRange.min));
+
 			painter.drawLine(x0, x1);
 		}
 	}

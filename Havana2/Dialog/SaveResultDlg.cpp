@@ -313,27 +313,57 @@ void SaveResultDlg::saveCrossSections()
 
 #ifdef OCT_NIRF
         // NIRF maps ////////////////////////////////////////////////////////////////////////////////
+#ifndef TWO_CHANNEL_NIRF
         IppiSize roi_nirf = { m_pResultTab->m_nirfMap0.size(0), m_pResultTab->m_nirfMap0.size(1) };
+#else
+		IppiSize roi_nirf = { m_pResultTab->m_nirfMap1_0.size(0), m_pResultTab->m_nirfMap1_0.size(1) };
+#endif
 
+#ifndef TWO_CHANNEL_NIRF
         np::Uint8Array2 nirfMap(roi_nirf.width, roi_nirf.height);
         ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
             roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+#else
+		np::Uint8Array2 nirfMap1(roi_nirf.width, roi_nirf.height);
+		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap1_0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap1.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
+			roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+
+		np::Uint8Array2 nirfMap2(roi_nirf.width, roi_nirf.height);
+		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap2_0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap2.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
+			roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+#endif
 #ifdef GALVANO_MIRROR
             if (m_pConfig->galvoHorizontalShift)
             {
                 int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
                 for (int i = 0; i < roi_nirf.height; i++)
                 {
+#ifndef TWO_CHANNEL_NIRF
                     uint8_t* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
                     std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+#else
+					uint8_t* pImg1 = nirfMap1.raw_ptr() + i * roi_nirf.width;
+					std::rotate(pImg1, pImg1 + m_pConfig->galvoHorizontalShift, pImg1 + roi_nirf_width_non4);
+
+					uint8_t* pImg2 = nirfMap2.raw_ptr() + i * roi_nirf.width;
+					std::rotate(pImg2, pImg2 + m_pConfig->galvoHorizontalShift, pImg2 + roi_nirf_width_non4);
+#endif
                 }
             }
 #endif
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			if (m_pResultTab->getNirfDistCompDlg()->isFiltered())
+			{
+#ifndef TWO_CHANNEL_NIRF
+				(*m_pResultTab->m_pMedfiltNirf)(nirfMap.raw_ptr());
+#else			
+				(*m_pResultTab->m_pMedfiltNirf)(nirfMap1.raw_ptr());
+				(*m_pResultTab->m_pMedfiltNirf)(nirfMap2.raw_ptr());
 #endif
-        if (m_pResultTab->getNirfDistCompDlg())
-            if (m_pResultTab->getNirfDistCompDlg()->isFiltered())
-                (*m_pResultTab->m_pMedfiltNirf)(nirfMap.raw_ptr());
-
+			}
+		}
+#endif
 		// Set Widgets //////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(false);
 		emit m_pResultTab->setWidgets(false);
@@ -346,7 +376,11 @@ void SaveResultDlg::saveCrossSections()
 #ifndef OCT_NIRF
         std::thread scaleImages([&]() { scaling(m_pResultTab->m_vectorOctImage); });
 #else
+#ifndef TWO_CHANNEL_NIRF
         std::thread scaleImages([&]() { scaling(m_pResultTab->m_vectorOctImage, nirfMap, checkList); });
+#else
+		std::thread scaleImages([&]() { scaling(m_pResultTab->m_vectorOctImage, nirfMap1, nirfMap2, checkList); });
+#endif
 #endif
 #endif
 #if defined(OCT_FLIM) || defined(OCT_NIRF)
@@ -441,6 +475,7 @@ void SaveResultDlg::saveEnFaceMaps()
 #ifdef OCT_NIRF
             if (checkList.bNirf)
             {
+#ifndef TWO_CHANNEL_NIRF
                 QString nirfName;
                 if (m_pResultTab->getNirfDistCompDlg())
                 {                    
@@ -485,6 +520,60 @@ void SaveResultDlg::saveEnFaceMaps()
                 if (m_pResultTab->getNirfDistCompDlg())
                     if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
                         saveCompDetailsLog(nirfName.replace("enface", "log"));
+#else
+				QString nirfName[2];
+				for (int i = 0; i < 2; i++)
+				{
+					if (m_pResultTab->getNirfDistCompDlg())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+						{
+							if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+								nirfName[i] = enFacePath + QString("tbr_nirf_map_ch%1_range[%2 %3].enface").arg(i + 1).arg(start).arg(end);
+							else
+								nirfName[i] = enFacePath + QString("comp_nirf_map_ch%1_range[%2 %3].enface").arg(i + 1).arg(start).arg(end);
+						}
+						else
+							nirfName[i] = enFacePath + QString("bg_sub_nirf_map_ch%1_range[%2 %3].enface").arg(i + 1).arg(start).arg(end);
+					}
+					else
+					{
+						nirfName[i] = enFacePath + QString("raw_nirf_map_ch%1_range[%2 %3].enface").arg(i + 1).arg(start).arg(end);
+					}
+				}
+
+				for (int i = 0; i < 2 ; i++)
+				{
+					QFile fileNirfMap(nirfName[i]);
+					if (false != fileNirfMap.open(QIODevice::WriteOnly))
+					{
+						auto pNirfMap = (i == 0) ? &m_pResultTab->m_nirfMap1 : &m_pResultTab->m_nirfMap2;
+						auto pNirfMap0 = (i == 0) ? &m_pResultTab->m_nirfMap1_0 : &m_pResultTab->m_nirfMap2_0;
+						IppiSize roi_nirf = { pNirfMap->size(0), pNirfMap->size(1) };
+
+						np::FloatArray2 nirfMap(roi_nirf.width, roi_nirf.height);
+						ippiCopy_32f_C1R(pNirfMap0->raw_ptr(), sizeof(float) * pNirfMap0->size(0),
+							nirfMap.raw_ptr(), sizeof(float) * nirfMap.size(0), roi_nirf);
+#ifdef GALVANO_MIRROR
+						if (m_pConfig->galvoHorizontalShift)
+						{
+							int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
+							for (int i = 0; i < roi_nirf.height; i++)
+							{
+								float* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
+								std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+							}
+						}
+#endif
+						fileNirfMap.write(reinterpret_cast<char*>(&nirfMap(0, start - 1)), sizeof(float) * nirfMap.size(0) * (end - start + 1));
+						fileNirfMap.close();
+					}
+
+					if (m_pResultTab->getNirfDistCompDlg())
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+							saveCompDetailsLog(nirfName[i].replace("enface", "log"));
+				}
+#endif
             }
 #endif
 			if (checkList.bOctProj)
@@ -603,6 +692,7 @@ void SaveResultDlg::saveEnFaceMaps()
             if (checkList.bNirf)
             {
                 // NIRF maps ////////////////////////////////////////////////////////////////////////////////
+#ifndef TWO_CHANNEL_NIRF
                 IppiSize roi_nirf = { m_pResultTab->m_nirfMap0.size(0), m_pResultTab->m_nirfMap0.size(1) };
                 ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(ColorTable::hot));
 
@@ -647,6 +737,58 @@ void SaveResultDlg::saveEnFaceMaps()
                 if (m_pResultTab->getNirfDistCompDlg())
                     if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
                         saveCompDetailsLog(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1).replace("bmp", "log"));
+#else
+				for (int i = 0; i < 2; i++)
+				{
+					auto pNirfMap = (i == 0) ? &m_pResultTab->m_nirfMap1 : &m_pResultTab->m_nirfMap2;
+					auto pNirfMap0 = (i == 0) ? &m_pResultTab->m_nirfMap1_0 : &m_pResultTab->m_nirfMap2_0;
+
+					IppiSize roi_nirf = { pNirfMap0->size(0), pNirfMap0->size(1) };
+					ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+
+					ippiScale_32f8u_C1R(pNirfMap0->raw_ptr(), sizeof(float) * roi_nirf.width, imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+					ippiMirror_8u_C1IR(imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, ippAxsHorizontal);
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+					{
+						int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
+						for (int i = 0; i < roi_nirf.height; i++)
+						{
+							uint8_t* pImg = imgObjNirfMap.arr.raw_ptr() + i * roi_nirf.width;
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+						}
+					}
+#endif
+					if (m_pResultTab->getNirfDistCompDlg())
+						if (m_pResultTab->getNirfDistCompDlg()->isFiltered())
+							(*m_pResultTab->m_pMedfiltNirf)(imgObjNirfMap.arr.raw_ptr());
+
+					QString nirfName;
+					if (m_pResultTab->getNirfDistCompDlg())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+						{
+							if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+								nirfName = enFacePath + QString("tbr_nirf_map_ch%1_range[%2 %3]_i[%4 %5].bmp");
+							else
+								nirfName = enFacePath + QString("comp_nirf_map_ch%1_range[%2 %3]_i[%4 %5].bmp");
+						}
+						else
+							nirfName = enFacePath + QString("bg_sub_nirf_map_ch%1_range[%2 %3]_i[%4 %5].bmp");
+					}
+					else
+					{
+						nirfName = enFacePath + QString("raw_nirf_map_ch%1_range[%2 %3]_i[%4 %5].bmp");
+					}
+
+					imgObjNirfMap.qindeximg.copy(0, roi_nirf.height - end, pNirfMap->size(0), end - start + 1).
+						save(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1), "bmp");
+
+					if (m_pResultTab->getNirfDistCompDlg())
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+							saveCompDetailsLog(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1).replace("bmp", "log"));
+				}
+#endif
             }
 #endif
 			if (checkList.bOctProj)
@@ -770,7 +912,11 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage,
 #ifndef OCT_NIRF
 void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage)
 #else
+#ifndef TWO_CHANNEL_NIRF
 void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Uint8Array2& nirfMap, CrossSectionCheckList checkList)
+#else
+void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Uint8Array2& nirfMap1, np::Uint8Array2& nirfMap2, CrossSectionCheckList checkList)
+#endif
 #endif
 #endif
 {
@@ -802,7 +948,11 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 
 #ifdef OCT_NIRF
        // Image objects for NIRF
+#ifndef TWO_CHANNEL_NIRF
         pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot)));
+#else
+		pImgObjVec->push_back(new ImageObject(roi_oct.height, 2 * RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot)));
+#endif
 #endif
 
 		// OCT Visualization
@@ -845,9 +995,19 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
         IppiSize roi_nirf = { roi_oct.height, 1 };
         if (checkList.bNirf)
         {
+#ifndef TWO_CHANNEL_NIRF
             uint8_t* rectNirf = &nirfMap(0, frameCount);
             for (int j = 0; j < RING_THICKNESS; j++)
                 memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf, sizeof(uint8_t) * roi_nirf.width);
+#else
+			uint8_t* rectNirf1 = &nirfMap1(0, frameCount);
+			for (int j = 0; j < RING_THICKNESS; j++)
+				memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
+
+			uint8_t* rectNirf2 = &nirfMap2(0, frameCount);
+			for (int j = 0; j < RING_THICKNESS; j++)
+				memcpy(&pImgObjVec->at(1)->arr(0, j + RING_THICKNESS), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
+#endif
         }
 #endif
 		frameCount++;
@@ -1135,8 +1295,13 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             if (((frameCount + 1) >= start) && ((frameCount + 1) <= end))
             {
                 // Paste FLIM color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
                 memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * RING_THICKNESS),
                     pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+#else
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS),
+					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+#endif
 
                 if (checkList.bRect)
                 {
@@ -1190,7 +1355,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 		// Get the buffer from the previous sync Queue
 		ImgObjVector *pImgObjVec = m_syncQueueCircularizing.pop();
 		ImgObjVector *pImgObjVecCirc = new ImgObjVector;
-		int polishedSurface = 0;
+		//int polishedSurface = 0;
 
 #ifdef OCT_FLIM
 		if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
@@ -1208,38 +1373,39 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 				np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qindeximg.bits(), pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 
 				// Ball lens polished surface detection				
-				np::DoubleArray mean_profile(PROJECTION_OFFSET);
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
-					[&](const tbb::blocked_range<size_t>& r) {
-					for (size_t i = r.begin(); i != r.end(); ++i)
-					{
-						uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
-						ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
-					}
-				});
+				//np::DoubleArray mean_profile(PROJECTION_OFFSET);
+				//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+				//	[&](const tbb::blocked_range<size_t>& r) {
+				//	for (size_t i = r.begin(); i != r.end(); ++i)
+				//	{
+				//		uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
+				//		ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
+				//	}
+				//});
 
-				np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
-				memset(drv_profile, 0, sizeof(double) * drv_profile.length());
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
-					[&](const tbb::blocked_range<size_t>& r) {
-					for (size_t i = r.begin(); i != r.end(); ++i)
-					{
-						drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
-					}
-				});
+				//np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+				//memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+				//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+				//	[&](const tbb::blocked_range<size_t>& r) {
+				//	for (size_t i = r.begin(); i != r.end(); ++i)
+				//	{
+				//		drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+				//	}
+				//});
 
-				for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
-				{
-					bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
-					if (det && (mean_profile(i) > 30))
-					{
-						polishedSurface = i + 1;
-						printf("%d\n", polishedSurface);
-						break;
-					}
-				}
+				//for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+				//{
+				//	bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+				//	if (det && (mean_profile(i) > 30))
+				//	{
+				//		polishedSurface = i + 1;
+				//		printf("%d\n", polishedSurface);
+				//		break;
+				//	}
+				//}
+				//polishedSurface = BALL_SIZE;
 				
-				int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+				int center = m_pConfig->circCenter; // +polishedSurface - BALL_SIZE;
 				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qindeximg.bits(), "vertical", center);
 			}
 
@@ -1260,7 +1426,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 					if (checkList.bCh[i] && checkList.bCirc)
 					{
 						// Paste FLIM color ring to RGB rect image
-						int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+						int center = m_pConfig->circCenter; // +polishedSurface - BALL_SIZE;
 						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
 						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
@@ -1286,7 +1452,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 				{
 					if (checkList.bCh[i])
 					{
-						int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+						int center = m_pConfig->circCenter; // +polishedSurface - BALL_SIZE;
 						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - (nCh - n++) * RING_THICKNESS),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
 					}
@@ -1311,43 +1477,48 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
             {
                 np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 
-				// Ball lens polished surface detection				
-				np::DoubleArray mean_profile(PROJECTION_OFFSET);
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
-					[&](const tbb::blocked_range<size_t>& r) {
-					for (size_t i = r.begin(); i != r.end(); ++i)
-					{
-						uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
-						ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
-					}
-				});
+				//// Ball lens polished surface detection				
+				//np::DoubleArray mean_profile(PROJECTION_OFFSET);
+				//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+				//	[&](const tbb::blocked_range<size_t>& r) {
+				//	for (size_t i = r.begin(); i != r.end(); ++i)
+				//	{
+				//		uint8_t *pLine = &rect_temp(0, m_pConfig->circCenter + (int)i);
+				//		ippiMean_8u_C1R(pLine, rect_temp.size(0), { rect_temp.size(0), 1 }, &mean_profile((int)i));
+				//	}
+				//});
 
-				np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
-				memset(drv_profile, 0, sizeof(double) * drv_profile.length());
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
-					[&](const tbb::blocked_range<size_t>& r) {
-					for (size_t i = r.begin(); i != r.end(); ++i)
-					{
-						drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
-					}
-				});
+				//np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+				//memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+				//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+				//	[&](const tbb::blocked_range<size_t>& r) {
+				//	for (size_t i = r.begin(); i != r.end(); ++i)
+				//	{
+				//		drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+				//	}
+				//});
 
-				for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
-				{
-					bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
-					if (det && (mean_profile(i) > 30))
-					{
-						polishedSurface = i + 1;
-						//printf("%d\n", polishedSurface);
-						break;
-					}
-				}
+				//for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+				//{
+				//	bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+				//	if (det && (mean_profile(i) > 30))
+				//	{
+				//		polishedSurface = i + 1;
+				//		//printf("%d\n", polishedSurface);
+				//		break;
+				//	}
+				//}
 
-				int center = m_pConfig->circCenter + polishedSurface - BALL_SIZE;
+				int center = m_pConfig->circCenter; // +polishedSurface - BALL_SIZE;
 
 				// Paste FLIM color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
 				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+#else
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
+					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+#endif
 
 				// Circularize
                 (*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qrgbimg.bits(), "vertical", "rgb", center);
@@ -1593,7 +1764,9 @@ void SaveResultDlg::saveCompDetailsLog(const QString savepath)
     out << QString("@ NIRF Offset: %1\n").arg(QString::number(m_pResultTab->getCurrentNirfOffset()));
     out << QString("@ Lumen Contour Offset: %1\n").arg(QString::number(m_pConfig->nirfLumContourOffset));
     out << QString("@ Outer Sheath Position: %1\n").arg(QString::number(m_pConfig->nirfOuterSheathPos));
+#ifdef GALVANO_MIRROR
     out << QString("@ Fast Scan Adjustment: %1\n\n").arg(QString::number(m_pConfig->galvoHorizontalShift));
+#endif
 
     out << QString("@ NIRF Background: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBg));
     out << QString("@ NIRF Background for TBR: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBackgroundLevel));

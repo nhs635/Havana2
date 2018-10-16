@@ -31,9 +31,6 @@ public:
 private:
 	void keyPressEvent(QKeyEvent *e);
 
-private slots:
-	void changeAlwaysOnTop(Qt::ApplicationState);
-
 public:
 	inline QRenderArea* getRender() { return m_pRenderArea; }
 

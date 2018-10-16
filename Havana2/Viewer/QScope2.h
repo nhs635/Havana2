@@ -20,7 +20,7 @@ public:
     explicit QScope2(QRange x_range, QRange y_range,
                     int num_x_ticks = 2, int num_y_ticks = 2,
                     double x_interval = 1, double y_interval = 1, double x_offset = 0, double y_offset = 0,
-                    QString x_unit = "", QString y_unit = "", QWidget *parent = 0);
+                    QString x_unit = "", QString y_unit = "", bool _64_use = false, QWidget *parent = 0);
 	virtual ~QScope2();
 
 public:
@@ -34,6 +34,7 @@ public:
 
 public slots:
     void drawData(const float* pData1, const float* pData2);
+	void drawData(const double* pData1_64, const double* pData2_64);
 
 private:
     QGridLayout *m_pGridLayout;
@@ -57,6 +58,9 @@ protected:
 public:
     float* m_pData1;
 	float* m_pData2;
+	double* m_pData1_64;
+	double* m_pData2_64;
+	bool m_b64Use;
 
     QRange m_xRange;
     QRange m_yRange;

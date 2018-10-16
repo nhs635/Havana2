@@ -14,6 +14,7 @@ public:
 	~NirfEmission();
 	
 	int N;
+	int nCh;
 	int nAlines;		
 	int nAcqs;
 	double* data;
@@ -27,7 +28,7 @@ public:
 	callback<void> DidStopData;
 	callback<const char*> SendStatusMessage;
 
-private:	
+private:
 	double max_rate;
 	
 	const char* physicalChannel;

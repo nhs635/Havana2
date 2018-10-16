@@ -1,14 +1,14 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.4.2"
+#define VERSION						"1.2.4.3"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
-#define PX14_ENABLE                 false
-#define NI_ENABLE					false
+#define PX14_ENABLE                 true
+#define NI_ENABLE					true
 
 /////////////////////// System setup ////////////////////////
 //#define OCT_FLIM
@@ -28,15 +28,17 @@
 //#define ECG_TRIGGERING
 #endif
 #else
+#define PROGRAMMATIC_GAIN_CONTROL
+#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
-#define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+//#define GALVANO_MIRROR
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
 #if PX14_ENABLE
-#define ADC_RATE					340 // MHz
+#define ADC_RATE					100 // MHz
 
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
@@ -65,10 +67,16 @@
 #endif
 
 #ifdef OCT_NIRF
-#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI11" // "/Dev3/PFI0"
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai2" // "Dev3/ai0"
-#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr3" // "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI1"
+#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI0"
+#ifndef TWO_CHANNEL_NIRF
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai8" // "Dev3/ai0"
+#else
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai8:9" // "Dev3/ai0"
+#endif
+#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI13" // "/Dev3/PFI1"
+
+#define NI_PMT_GAIN_CHANNEL		    "Dev1/ao1"
 
 #ifdef NI_NIRF_SYNC
 #define NI_NIRF_SYNC_POWER			"/Dev1/PFI0"
@@ -82,13 +90,13 @@
 #endif
 
 #ifdef PULLBACK_DEVICE
-#define ZABER_PORT					"COM9"
-#define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64;
-#define ZABER_MICRO_RESOLUTION		32
-#define ZABER_CONVERSION_FACTOR		1.6384 // 1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : ;  /
-#define ZABER_MICRO_STEPSIZE		0.09921875  // 0.49609375 // micro-meter /// // 
+#define ZABER_PORT					"COM7" // mw pdt rj -> com7_MW /com6_YH
+#define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64; 
+#define ZABER_MICRO_RESOLUTION		32 
+#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 
-#define FAULHABER_PORT				"COM2"
+#define FAULHABER_PORT				"COM3"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
@@ -100,7 +108,7 @@
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			50
 #else
-#define WRITING_BUFFER_SIZE	        1200
+#define WRITING_BUFFER_SIZE	        20
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -120,10 +128,10 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				300 
+#define RING_THICKNESS				50 
 #endif
 
-#define CIRC_RADIUS					1200 // Only even number
+#define CIRC_RADIUS					700 // Only even number
 #if (CIRC_RADIUS % 2)
 #error("CIRC_RADIUS should be even number.");
 #endif
@@ -134,7 +142,7 @@
 #define INTENSITY_COLORTABLE		6 // fire
 #endif
 
-#define RENEWAL_COUNT				20
+#define RENEWAL_COUNT				5
 
 
 
@@ -169,6 +177,9 @@ public:
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	, nirf(false)
+#ifdef TWO_CHANNEL_NIRF
+	, _2ch_nirf(false)
+#endif
 #endif
 	, oldUhs(false)
 #endif
@@ -247,7 +258,7 @@ public:
 #ifdef ECG_TRIGGERING
 		ecgDelayRate = settings.value("ecgDelayRate").toFloat();
 #endif
-#ifdef OCT_FLIM
+#if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
 		pmtGainVoltage = settings.value("pmtGainVoltage").toFloat();
 #endif
 #ifdef GALVANO_MIRROR
@@ -365,8 +376,8 @@ public:
 #ifdef ECG_TRIGGERING
 		settings.setValue("ecgDelayRate", QString::number(ecgDelayRate, 'f', 2));
 #endif
-#ifdef OCT_FLIM
-		settings.setValue("pmtGainVoltage", QString::number(pmtGainVoltage, 'f', 2));
+#if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
+		settings.setValue("pmtGainVoltage", QString::number(pmtGainVoltage, 'f', 3));
 #endif
 #ifdef GALVANO_MIRROR
 		settings.setValue("galvoFastScanVoltage", QString::number(galvoFastScanVoltage, 'f', 1));
@@ -385,7 +396,15 @@ public:
 #ifdef OCT_FLIM
 		settings.setValue("system", "OCT-FLIM");
 #elif defined (STANDALONE_OCT) 	
+#ifndef OCT_NIRF
 		settings.setValue("system", "Standalone OCT");		
+#else
+#ifndef TWO_CHANNEL_NIRF
+		settings.setValue("system", "OCT-NIRF");
+#else
+		settings.setValue("system", "2Ch OCT-NIRF");
+#endif
+#endif
 #endif
 		// Current Time
 		QDate date = QDate::currentDate();
@@ -451,6 +470,9 @@ public:
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	bool nirf;
+#ifdef TWO_CHANNEL_NIRF
+	bool _2ch_nirf;
+#endif
 #endif
 	bool oldUhs;
 #endif
@@ -459,7 +481,7 @@ public:
 #ifdef ECG_TRIGGERING
 	float ecgDelayRate;
 #endif
-#ifdef OCT_FLIM
+#if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
 	float pmtGainVoltage;
 #endif
 #ifdef GALVANO_MIRROR

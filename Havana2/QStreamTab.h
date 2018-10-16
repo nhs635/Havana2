@@ -240,7 +240,7 @@ public:
 	np::FloatArray2 m_visImage2;
 
 #ifdef OCT_NIRF
-	np::DoubleArray m_visNirf;
+	np::DoubleArray2 m_visNirf;
 #endif
 #endif
 

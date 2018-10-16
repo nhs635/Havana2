@@ -37,6 +37,9 @@ class ElforlightLaser;
 #ifdef OCT_NIRF
 class NirfEmissionTrigger;
 class NirfEmission;
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+class PmtGainControl;
+#endif
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -73,6 +76,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	inline NirfEmission* getNirfEmission() const { return m_pNirfEmission; }
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	inline QCheckBox* getEnablePmtGainControl() const { return m_pCheckBox_PmtGainControl; }
+#endif
 	inline void startNirfAcquisition() { enableNirfEmissionAcquisition(true); }
 	inline void stopNirfAcquisition() { enableNirfEmissionAcquisition(false); }
 #endif
@@ -82,6 +88,7 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif
 #ifdef PULLBACK_DEVICE
 	inline ZaberStage* getZaberStage() const { return m_pZaberStage; }
+	inline QPushButton* getFaulhaberOperationButton() const { return m_pToggleButton_Rotate; }
 #endif
 
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,6 +165,11 @@ private slots: /////////////////////////////////////////////////////////////////
 #ifdef OCT_NIRF
 	// NIRF Emission Acquisition
 	void enableNirfEmissionAcquisition(bool);
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	// PMT Gain Control
+	void enablePmtGainControl(bool);
+	void changePmtGainVoltage(const QString &);
+#endif
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -212,6 +224,10 @@ private: ///////////////////////////////////////////////////////////////////////
 	// NIRF Emission
 	NirfEmissionTrigger* m_pNirfEmissionTrigger;
 	NirfEmission* m_pNirfEmission;
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	// PMT Gain Control
+	PmtGainControl* m_pPmtGainControl;
+#endif
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -284,6 +300,12 @@ private: ///////////////////////////////////////////////////////////////////////
 #ifdef OCT_NIRF
 	// Widgets for NIRF acquisition control
 	QCheckBox *m_pCheckBox_NirfAcquisitionControl;
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	// Widgets for FLIM control	// Gain control
+	QCheckBox *m_pCheckBox_PmtGainControl;
+	QLineEdit *m_pLineEdit_PmtGainVoltage;
+	QLabel *m_pLabel_PmtGainVoltage;
+#endif
 #endif
 #endif
 #ifdef GALVANO_MIRROR

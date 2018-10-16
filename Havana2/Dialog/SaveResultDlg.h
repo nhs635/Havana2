@@ -86,8 +86,13 @@ private:
 #ifndef OCT_NIRF
 	void scaling(std::vector<np::FloatArray2>& vectorOctImage);
 #else
+#ifndef TWO_CHANNEL_NIRF
     void scaling(std::vector<np::FloatArray2>& vectorOctImage,
         np::Uint8Array2& nirfMap, CrossSectionCheckList checkList);
+#else
+	void scaling(std::vector<np::FloatArray2>& vectorOctImage,
+		np::Uint8Array2& nirfMap1, np::Uint8Array2& nirfMap2, CrossSectionCheckList checkList);
+#endif
 #endif
 #endif
 	void converting(CrossSectionCheckList checkList);

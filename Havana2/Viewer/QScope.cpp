@@ -36,9 +36,6 @@ QScope::QScope(QRange x_range, QRange y_range,
 
     // Initialization
     setUpdatesEnabled(true);
-
-	// Connect
-	connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)), this, SLOT(changeAlwaysOnTop(Qt::ApplicationState)));
 }
 
 QScope::~QScope()
@@ -51,21 +48,10 @@ QScope::~QScope()
 		delete[] m_pRenderArea->m_pData64;
 }
 
-
 void QScope::keyPressEvent(QKeyEvent * e)
 {
 	if (e->key() != Qt::Key_Escape)
 		QDialog::keyPressEvent(e);
-}
-
-void QScope::changeAlwaysOnTop(Qt::ApplicationState state)
-{
-	if (state == Qt::ApplicationActive)
-		this->setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-	else
-		this->setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
-
-	this->show();
 }
 
 
@@ -262,19 +248,18 @@ void QRenderArea::setSize(QRange xRange, QRange yRange)
 		m_pData = new float[(int)m_sizeGraph.width()];
 		memset(m_pData, 0, sizeof(float) * (int)m_sizeGraph.width());
 	}
+	else
+	{
+		if (m_pData64) { delete[] m_pData64; m_pData64 = nullptr; }
+		m_pData64 = new double[(int)m_sizeGraph.width()];
+		memset(m_pData64, 0, sizeof(double) * (int)m_sizeGraph.width());
+	}
 
 	if (m_bMaskUse)
 	{
 		if (m_pMask) { delete[] m_pMask; m_pMask = nullptr; }
 		m_pMask = new float[(int)m_sizeGraph.width()];
 		memset(m_pMask, 0, sizeof(float) * (int)m_sizeGraph.width());
-	}
-
-	if (m_b64Use)
-	{
-		if (m_pData64) { delete[] m_pData64; m_pData64 = nullptr; }
-		m_pData64 = new double[(int)m_sizeGraph.width()];
-		memset(m_pData64, 0, sizeof(double) * (int)m_sizeGraph.width());
 	}
 
 	this->update();

@@ -54,7 +54,13 @@ QResultTab::QResultTab(QWidget *parent) :
 	, m_pMedfiltIntensityMap(nullptr), m_pMedfiltLifetimeMap(nullptr)
 #endif
 #ifdef OCT_NIRF
-    , m_pImgObjNirf(nullptr), m_pImgObjNirfMap(nullptr), m_nirfOffset(0)
+    , m_pImgObjNirf(nullptr)
+#ifndef TWO_CHANNEL_NIRF
+	, m_pImgObjNirfMap(nullptr)
+#else
+	, m_pImgObjNirfMap1(nullptr), m_pImgObjNirfMap2(nullptr)
+#endif	
+	, m_nirfOffset(0)
 	, m_pMedfiltNirf(nullptr)
     , m_pNirfEmissionProfileDlg(nullptr), m_pNirfDistCompDlg(nullptr)
 #endif
@@ -177,7 +183,12 @@ QResultTab::~QResultTab()
 #endif
 #ifdef OCT_NIRF
 	if (m_pImgObjNirf) delete m_pImgObjNirf;
+#ifndef TWO_CHANNEL_NIRF
 	if (m_pImgObjNirfMap) delete m_pImgObjNirfMap;
+#else
+	if (m_pImgObjNirfMap1) delete m_pImgObjNirfMap1;
+	if (m_pImgObjNirfMap2) delete m_pImgObjNirfMap2;
+#endif
 #endif
 	if (m_pMedfiltRect) delete m_pMedfiltRect;
 #ifdef OCT_FLIM
@@ -613,11 +624,25 @@ void QResultTab::createEnFaceMapTab()
 
 #ifdef OCT_NIRF
 	// Create widgets for NIRF map
+#ifndef TWO_CHANNEL_NIRF
 	m_pImageView_NirfMap = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines4, 1);
 	m_pImageView_NirfMap->setMinimumHeight(150);
     m_pImageView_NirfMap->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
     m_pImageView_NirfMap->setDoubleClickedMouseCallback([&]() { createNirfEmissionProfileDlg(); });
 	m_pImageView_NirfMap->getRender()->m_colorLine = 0x00ff00;
+#else
+	m_pImageView_NirfMap1 = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines4, 1);
+	m_pImageView_NirfMap1->setMinimumHeight(150);
+	m_pImageView_NirfMap1->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
+	m_pImageView_NirfMap1->setDoubleClickedMouseCallback([&]() { createNirfEmissionProfileDlg(); });
+	m_pImageView_NirfMap1->getRender()->m_colorLine = 0x00ff00;
+
+	m_pImageView_NirfMap2 = new QImageView(ColorTable::colortable(ColorTable::hot), m_pConfig->nAlines4, 1);
+	m_pImageView_NirfMap2->setMinimumHeight(150);
+	m_pImageView_NirfMap2->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
+	m_pImageView_NirfMap2->setDoubleClickedMouseCallback([&]() { createNirfEmissionProfileDlg(); });
+	m_pImageView_NirfMap2->getRender()->m_colorLine = 0x00ff00;
+#endif
 
 	m_pLineEdit_NirfMax = new QLineEdit(this);
 	m_pLineEdit_NirfMax->setText(QString::number(m_pConfig->nirfRange.max, 'f', 1));
@@ -634,9 +659,17 @@ void QResultTab::createEnFaceMapTab()
 	m_pImageView_ColorbarNirfMap->getRender()->setFixedWidth(15);
 	m_pImageView_ColorbarNirfMap->drawImage(color);
 	m_pImageView_ColorbarNirfMap->setFixedWidth(30);
-
+	
+#ifndef TWO_CHANNEL_NIRF
 	m_pLabel_NirfMap = new QLabel(this);
 	m_pLabel_NirfMap->setText("NIRF Map");
+#else
+	m_pLabel_NirfMap1 = new QLabel(this);
+	m_pLabel_NirfMap1->setText("NIRF Map Ch1");
+
+	m_pLabel_NirfMap2 = new QLabel(this);
+	m_pLabel_NirfMap2->setText("NIRF Map Ch2");
+#endif
 #endif
 
     // Set layout
@@ -673,8 +706,16 @@ void QResultTab::createEnFaceMapTab()
 #endif
 
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	pGridLayout_EnFace->addWidget(m_pLabel_NirfMap, 2, 0, 1, 3);
 	pGridLayout_EnFace->addWidget(m_pImageView_NirfMap, 3, 0);
+#else
+	pGridLayout_EnFace->addWidget(m_pLabel_NirfMap1, 2, 0, 1, 3);
+	pGridLayout_EnFace->addWidget(m_pImageView_NirfMap1, 3, 0);
+	
+	pGridLayout_EnFace->addWidget(m_pLabel_NirfMap2, 4, 0, 1, 3);
+	pGridLayout_EnFace->addWidget(m_pImageView_NirfMap2, 5, 0);
+#endif
 	pGridLayout_EnFace->addWidget(m_pImageView_ColorbarNirfMap, 3, 1);
 	QVBoxLayout *pVBoxLayout_Colorbar2 = new QVBoxLayout;
 	pVBoxLayout_Colorbar2->setSpacing(0);
@@ -693,7 +734,12 @@ void QResultTab::createEnFaceMapTab()
 	connect(this, SIGNAL(paintLifetimeMap(uint8_t*)), m_pImageView_LifetimeMap, SLOT(drawImage(uint8_t*)));
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	connect(this, SIGNAL(paintNirfMap(uint8_t*)), m_pImageView_NirfMap, SLOT(drawImage(uint8_t*)));
+#else
+	connect(this, SIGNAL(paintNirfMap1(uint8_t*)), m_pImageView_NirfMap1, SLOT(drawImage(uint8_t*)));
+	connect(this, SIGNAL(paintNirfMap2(uint8_t*)), m_pImageView_NirfMap2, SLOT(drawImage(uint8_t*)));
+#endif
 #endif
 
 	connect(m_pLineEdit_OctDbMax, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
@@ -898,13 +944,24 @@ void QResultTab::visualizeImage(int frame)
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 		// NIRF Visualization
+#ifndef TWO_CHANNEL_NIRF
 		uint8_t* rectNirf = &m_pImgObjNirfMap->arr(0, m_pImgObjNirfMap->arr.size(1) - 1 - frame);
 
 		for (int i = 0; i < RING_THICKNESS; i++)
 			memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * m_pImgObjNirfMap->arr.size(0));
+#else
+		uint8_t* rectNirf1 = &m_pImgObjNirfMap1->arr(0, m_pImgObjNirfMap1->arr.size(1) - 1 - frame);
+		uint8_t* rectNirf2 = &m_pImgObjNirfMap2->arr(0, m_pImgObjNirfMap2->arr.size(1) - 1 - frame);
+
+		for (int i = 0; i < RING_THICKNESS; i++)
+			memcpy(&m_pImgObjNirf->arr(0, i), rectNirf1, sizeof(uint8_t) * m_pImgObjNirfMap1->arr.size(0));
+		for (int i = 0; i < RING_THICKNESS; i++)
+			memcpy(&m_pImgObjNirf->arr(0, i + RING_THICKNESS), rectNirf2, sizeof(uint8_t) * m_pImgObjNirfMap2->arr.size(0));
+#endif
 
         if (m_pNirfEmissionProfileDlg)
         {
+#ifndef TWO_CHANNEL_NIRF
             np::FloatArray nirf_emssion(m_nirfMap.size(0));
             memcpy(nirf_emssion.raw_ptr(), &m_nirfMap0(0, frame), sizeof(float) * nirf_emssion.length());
 
@@ -913,11 +970,30 @@ void QResultTab::visualizeImage(int frame)
                 std::rotate(nirf_emssion.raw_ptr(), nirf_emssion.raw_ptr() + m_pConfig->galvoHorizontalShift, nirf_emssion.raw_ptr() + nirf_emssion.length());
 #endif
             m_pNirfEmissionProfileDlg->getScope()->drawData(nirf_emssion.raw_ptr());
+#else
+			np::FloatArray nirf_emssion1(m_nirfMap1.size(0));
+			memcpy(nirf_emssion1.raw_ptr(), &m_nirfMap1_0(0, frame), sizeof(float) * nirf_emssion1.length());
+			np::FloatArray nirf_emssion2(m_nirfMap2.size(0));
+			memcpy(nirf_emssion2.raw_ptr(), &m_nirfMap2_0(0, frame), sizeof(float) * nirf_emssion2.length());
+
+#ifdef GALVANO_MIRROR
+			if (m_pConfig->galvoHorizontalShift)
+			{
+				std::rotate(nirf_emssion1.raw_ptr(), nirf_emssion1.raw_ptr() + m_pConfig->galvoHorizontalShift, nirf_emssion1.raw_ptr() + nirf_emssion1.length());
+				std::rotate(nirf_emssion2.raw_ptr(), nirf_emssion2.raw_ptr() + m_pConfig->galvoHorizontalShift, nirf_emssion2.raw_ptr() + nirf_emssion2.length());
+			}
+#endif
+			m_pNirfEmissionProfileDlg->getScope()->drawData(nirf_emssion1.raw_ptr(), nirf_emssion2.raw_ptr());
+#endif
         }
 
         if (m_pNirfDistCompDlg)
         {
+#ifndef TWO_CHANNEL_NIRF
             np::Uint16Array contour(m_nirfMap.size(0));
+#else
+			np::Uint16Array contour(m_nirfMap1.size(0));
+#endif
 			if (m_pNirfDistCompDlg->distMap.length() > 0)
 			{
 				memcpy(contour, &m_pNirfDistCompDlg->distMap(0, frame), sizeof(uint16_t) * contour.length());
@@ -964,6 +1040,7 @@ void QResultTab::visualizeImage(int frame)
 				break;
 			}
 		}
+		m_polishedSurface = BALL_SIZE;
 
 		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
 		if (m_pCheckBox_ShowGuideLine->isChecked())
@@ -992,8 +1069,15 @@ void QResultTab::visualizeImage(int frame)
 		m_pImageView_LifetimeMap->getRender()->update();
 #endif	
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		m_pImageView_NirfMap->setHorizontalLine(1, m_pImgObjNirfMap->arr.size(1) - frame);
 		m_pImageView_NirfMap->getRender()->update();
+#else
+		m_pImageView_NirfMap1->setHorizontalLine(1, m_pImgObjNirfMap1->arr.size(1) - frame);
+		m_pImageView_NirfMap1->getRender()->update();
+		m_pImageView_NirfMap2->setHorizontalLine(1, m_pImgObjNirfMap2->arr.size(1) - frame);
+		m_pImageView_NirfMap2->getRender()->update();
+#endif
 #endif
 
 #ifdef OCT_FLIM
@@ -1068,38 +1152,38 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj, ImageObject *pNirfObj)
 {
 	// Ball lens polished surface detection
-	np::DoubleArray mean_profile(PROJECTION_OFFSET);
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
-		[&](const tbb::blocked_range<size_t>& r) {
-		for (size_t i = r.begin(); i != r.end(); ++i)
-		{
-			uint8_t *pLine = &pRectObj->arr(0, m_pConfig->circCenter + (int)i);
-			ippiMean_8u_C1R(pLine, pRectObj->arr.size(0), { pRectObj->arr.size(0), 1 }, &mean_profile((int)i));
-		}
-	});
+	//np::DoubleArray mean_profile(PROJECTION_OFFSET);
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)PROJECTION_OFFSET),
+	//	[&](const tbb::blocked_range<size_t>& r) {
+	//	for (size_t i = r.begin(); i != r.end(); ++i)
+	//	{
+	//		uint8_t *pLine = &pRectObj->arr(0, m_pConfig->circCenter + (int)i);
+	//		ippiMean_8u_C1R(pLine, pRectObj->arr.size(0), { pRectObj->arr.size(0), 1 }, &mean_profile((int)i));
+	//	}
+	//});
 
-	np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
-	memset(drv_profile, 0, sizeof(double) * drv_profile.length());
-	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
-		[&](const tbb::blocked_range<size_t>& r) {
-		for (size_t i = r.begin(); i != r.end(); ++i)
-		{
-			drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
-		}
-	});
+	//np::DoubleArray drv_profile(PROJECTION_OFFSET - 1);
+	//memset(drv_profile, 0, sizeof(double) * drv_profile.length());
+	//tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(PROJECTION_OFFSET - 1)),
+	//	[&](const tbb::blocked_range<size_t>& r) {
+	//	for (size_t i = r.begin(); i != r.end(); ++i)
+	//	{
+	//		drv_profile((int)i) = mean_profile((int)i + 1) - mean_profile((int)i);
+	//	}
+	//});
 
-	for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
-	{
-		bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
-		if (det && (mean_profile(i) > 30))
-		{
-			m_polishedSurface = i + 1;
-			//printf("%d\n", m_polishedSurface);
-			break;
-		}
-	}
+	//for (int i = 0; i < PROJECTION_OFFSET - 2; i++)
+	//{
+	//	bool det = (drv_profile(i + 1) * drv_profile(i) < 0) ? true : false;
+	//	if (det && (mean_profile(i) > 30))
+	//	{
+	//		m_polishedSurface = i + 1;
+	//		//printf("%d\n", m_polishedSurface);
+	//		break;
+	//	}
+	//}
 	
-	int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+	int center = m_pConfig->circCenter; // +m_polishedSurface - BALL_SIZE;
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
 		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
@@ -1121,7 +1205,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	if (!m_pCheckBox_CircularizeImage->isChecked())
 	{
 		// Paste NIRF color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
         memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+#else
+		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 2 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+#endif
 	
 		// Draw image
         if (m_pImageView_RectImage->isEnabled()) emit paintRectImage(pRectObj->qrgbimg.bits());
@@ -1130,7 +1218,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	else
 	{		
 		// Paste NIRF color ring to RGB rect image
+#ifndef TWO_CHANNEL_NIRF
 		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+#else
+		memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS), pNirfObj->qrgbimg.bits(), pNirfObj->qrgbimg.byteCount());
+#endif
 
 		// Circularize
 		np::Uint8Array2 rect_temp(pRectObj->qrgbimg.bits(), 3 * pRectObj->arr.size(0), pRectObj->arr.size(1));
@@ -1168,6 +1260,7 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 
 #ifdef OCT_NIRF
 			// Adjusting NIRF offset	
+#ifndef TWO_CHANNEL_NIRF
 			if (m_nirfSignal.length() != 0)
 			{
 				int sig_len = m_nirfSignal.length();
@@ -1195,10 +1288,68 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
             m_nirfMap0 = np::FloatArray2(roi_proj.width, roi_proj.height);
             memset(m_nirfMap0.raw_ptr(), 0, sizeof(float) * m_nirfMap0.length());
             ippiCopy_32f_C1R(m_nirfMap.raw_ptr(), sizeof(float) * m_nirfMap.size(0), m_nirfMap0.raw_ptr(), sizeof(float) * m_nirfMap0.size(0), roi_proj);
+#else
+			if (m_nirfSignal1.length() != 0)
+			{
+				int sig_len = m_nirfSignal1.length();
+				int map_len = m_nirfMap1.length();
+				int diff;
+
+				memset(m_nirfMap1.raw_ptr(), 0, sizeof(float) * m_nirfMap1.length());
+
+				if (sig_len > map_len)
+				{
+					diff = sig_len - map_len;
+					memcpy(&m_nirfMap1(m_nirfOffset, 0), m_nirfSignal1 + diff, sizeof(float) * (map_len - m_nirfOffset));
+				}
+				else if (sig_len == map_len)
+				{
+					memcpy(&m_nirfMap1(m_nirfOffset, 0), m_nirfSignal1, sizeof(float) * (map_len - m_nirfOffset));
+				}
+				else
+				{
+					diff = map_len - sig_len;
+					memcpy(&m_nirfMap1(diff + m_nirfOffset, 0), m_nirfSignal1, sizeof(float) * (sig_len - m_nirfOffset));
+				}
+			}
+
+			m_nirfMap1_0 = np::FloatArray2(roi_proj.width, roi_proj.height);
+			memset(m_nirfMap1_0.raw_ptr(), 0, sizeof(float) * m_nirfMap1_0.length());
+			ippiCopy_32f_C1R(m_nirfMap1.raw_ptr(), sizeof(float) * m_nirfMap1.size(0), m_nirfMap1_0.raw_ptr(), sizeof(float) * m_nirfMap1_0.size(0), roi_proj);
+
+			if (m_nirfSignal2.length() != 0)
+			{
+				int sig_len = m_nirfSignal2.length();
+				int map_len = m_nirfMap2.length();
+				int diff;
+
+				memset(m_nirfMap2.raw_ptr(), 0, sizeof(float) * m_nirfMap2.length());
+
+				if (sig_len > map_len)
+				{
+					diff = sig_len - map_len;
+					memcpy(&m_nirfMap2(m_nirfOffset, 0), m_nirfSignal2 + diff, sizeof(float) * (map_len - m_nirfOffset));
+				}
+				else if (sig_len == map_len)
+				{
+					memcpy(&m_nirfMap2(m_nirfOffset, 0), m_nirfSignal2, sizeof(float) * (map_len - m_nirfOffset));
+				}
+				else
+				{
+					diff = map_len - sig_len;
+					memcpy(&m_nirfMap2(diff + m_nirfOffset, 0), m_nirfSignal2, sizeof(float) * (sig_len - m_nirfOffset));
+				}
+			}
+
+			m_nirfMap2_0 = np::FloatArray2(roi_proj.width, roi_proj.height);
+			memset(m_nirfMap2_0.raw_ptr(), 0, sizeof(float) * m_nirfMap2_0.length());
+			ippiCopy_32f_C1R(m_nirfMap2.raw_ptr(), sizeof(float) * m_nirfMap2.size(0), m_nirfMap2_0.raw_ptr(), sizeof(float) * m_nirfMap2_0.size(0), roi_proj);
+#endif
 
 			// Scaling NIRF map
             if (m_pNirfDistCompDlg)
             {
+#ifndef TWO_CHANNEL_NIRF
                 ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap0.raw_ptr(), m_nirfMap0.length()); // BG subtraction
                 if (m_pNirfDistCompDlg->isCompensating())
                     ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap0.raw_ptr(), m_nirfMap0.length()); // Distance compensation
@@ -1210,24 +1361,76 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
                         ippsDivC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
                     }
                 }
+#else
+				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // BG subtraction
+				if (m_pNirfDistCompDlg->isCompensating())
+					ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // Distance compensation
+				if (m_pNirfDistCompDlg->isTBRMode())
+				{
+					if (m_pNirfDistCompDlg->nirfBackgroundLevel > 0)
+					{
+						ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+						ippsDivC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+					}
+				}
+
+				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // BG subtraction
+				if (m_pNirfDistCompDlg->isCompensating())
+					ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // Distance compensation
+				if (m_pNirfDistCompDlg->isTBRMode())
+				{
+					if (m_pNirfDistCompDlg->nirfBackgroundLevel > 0)
+					{
+						ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+						ippsDivC_32f_I(m_pNirfDistCompDlg->nirfBackgroundLevel, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+					}
+				}
+#endif
             }
+
+#ifndef TWO_CHANNEL_NIRF
             ippiScale_32f8u_C1R(m_nirfMap0.raw_ptr(), sizeof(float) * roi_proj.width, m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
                 roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 			ippiMirror_8u_C1IR(m_pImgObjNirfMap->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+#else
+			ippiScale_32f8u_C1R(m_nirfMap1_0.raw_ptr(), sizeof(float) * roi_proj.width, m_pImgObjNirfMap1->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
+				roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+			ippiMirror_8u_C1IR(m_pImgObjNirfMap1->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+
+			ippiScale_32f8u_C1R(m_nirfMap2_0.raw_ptr(), sizeof(float) * roi_proj.width, m_pImgObjNirfMap2->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width,
+				roi_proj, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+			ippiMirror_8u_C1IR(m_pImgObjNirfMap2->arr.raw_ptr(), sizeof(uint8_t) * roi_proj.width, roi_proj, ippAxsHorizontal);
+#endif
 #ifdef GALVANO_MIRROR
 			if (m_pConfig->galvoHorizontalShift)
 			{
                 int roi_proj_width_non4 = m_pImageView_RectImage->getRender()->m_pImage->width();
 				for (int i = 0; i < roi_proj.height; i++)
 				{
+#ifndef TWO_CHANNEL_NIRF
                     uint8_t* pImg = m_pImgObjNirfMap->arr.raw_ptr() + i * roi_proj.width;
                     std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
+#else
+					uint8_t* pImg1 = m_pImgObjNirfMap1->arr.raw_ptr() + i * roi_proj.width;
+					std::rotate(pImg1, pImg1 + m_pConfig->galvoHorizontalShift, pImg1 + roi_proj_width_non4);
+					uint8_t* pImg2 = m_pImgObjNirfMap2->arr.raw_ptr() + i * roi_proj.width;
+					std::rotate(pImg2, pImg2 + m_pConfig->galvoHorizontalShift, pImg2 + roi_proj_width_non4);
+#endif
 				}
 			}
 #endif
-            if (m_pNirfDistCompDlg)
-                if (m_pNirfDistCompDlg->isFiltered())
-                    (*m_pMedfiltNirf)(m_pImgObjNirfMap->arr.raw_ptr());
+			if (m_pNirfDistCompDlg)
+			{
+				if (m_pNirfDistCompDlg->isFiltered())
+				{
+#ifndef TWO_CHANNEL_NIRF
+					(*m_pMedfiltNirf)(m_pImgObjNirfMap->arr.raw_ptr());
+#else
+					(*m_pMedfiltNirf)(m_pImgObjNirfMap1->arr.raw_ptr());
+					(*m_pMedfiltNirf)(m_pImgObjNirfMap2->arr.raw_ptr());
+#endif
+				}
+			}
 #endif
 
 #ifdef OCT_FLIM
@@ -1297,7 +1500,12 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 	}
 		emit paintOctProjection(m_visOctProjection);
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		emit paintNirfMap(m_pImgObjNirfMap->arr.raw_ptr());
+#else
+		emit paintNirfMap1(m_pImgObjNirfMap1->arr.raw_ptr());
+		emit paintNirfMap2(m_pImgObjNirfMap2->arr.raw_ptr());
+#endif
 #endif
 #ifdef OCT_FLIM
 		emit paintIntensityMap(m_pImgObjIntensityMap->arr.raw_ptr());
@@ -1320,7 +1528,7 @@ void QResultTab::showGuideLine(bool toggled)
 {
 	if (toggled)
 	{
-		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+		int center = m_pConfig->circCenter; // +m_polishedSurface - BALL_SIZE;
 		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
 		m_pImageView_CircImage->setCircle(1, PROJECTION_OFFSET);
 	}
@@ -1368,7 +1576,7 @@ void QResultTab::checkCircCenter(const QString &str)
 
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int center = m_pConfig->circCenter + m_polishedSurface - BALL_SIZE;
+		int center = m_pConfig->circCenter; // +m_polishedSurface - BALL_SIZE;
 		m_pImageView_RectImage->setHorizontalLine(4, center + BALL_SIZE, center, center + PROJECTION_OFFSET, center + CIRC_RADIUS);
 	}
 }
@@ -1471,7 +1679,11 @@ void QResultTab::adjustNirfContrast()
     m_pConfig->nirfRange.max = max_intensity;
 
     if (m_pNirfEmissionProfileDlg)
+#ifndef TWO_CHANNEL_NIRF
         m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_nirfMap.size(0) }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
+#else
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_nirfMap1.size(0) }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
+#endif
 
 	visualizeEnFaceMap(true);
 	visualizeImage(m_pSlider_SelectFrame->value());
@@ -1601,13 +1813,23 @@ void QResultTab::inBufferDataProcessing()
 		if (!m_pCheckBox_SingleFrame->isChecked())
 		{
 			m_pMemBuff->circulation_nirf(WRITING_BUFFER_SIZE - m_pMemBuff->m_nRecordedFrames);
+#ifndef TWO_CHANNEL_NIRF
 			m_nirfSignal = np::FloatArray(pConfig->nAlines * pConfig->nFrames);
+#else
+			m_nirfSignal1 = np::FloatArray(pConfig->nAlines * pConfig->nFrames);
+			m_nirfSignal2 = np::FloatArray(pConfig->nAlines * pConfig->nFrames);
+#endif
 
 			double* buffer_nirf = nullptr;
 			for (int i = 0; i < m_pMemBuff->m_nRecordedFrames; i++)
 			{
 				buffer_nirf = m_pMemBuff->pop_front_nirf();
+#ifndef TWO_CHANNEL_NIRF
 				ippsConvert_64f32f(buffer_nirf, &m_nirfSignal(pConfig->nAlines * i), pConfig->nAlines);
+#else
+				ippsConvert_64f32f(buffer_nirf, &m_nirfSignal1(pConfig->nAlines * i), pConfig->nAlines);
+				ippsConvert_64f32f(buffer_nirf + pConfig->nAlines, &m_nirfSignal2(pConfig->nAlines * i), pConfig->nAlines);
+#endif
 				m_pMemBuff->push_back_nirf(buffer_nirf);
 			}
 		}
@@ -1792,6 +2014,7 @@ void QResultTab::externalDataProcessing()
 							printf("[ERROR] There is no nirf data or you selected an invalid nirf data!\n");
 						else
 						{
+#ifndef TWO_CHANNEL_NIRF
 							QTextStream in(&nirfFile);
 							int nLine = 0;
 							while (!in.atEnd())
@@ -1827,6 +2050,7 @@ void QResultTab::externalDataProcessing()
 
 							printf("NIRF data was successfully loaded...\n");
 							config.nirf = true;
+#endif
 						}
 					}
 					else
@@ -1835,6 +2059,7 @@ void QResultTab::externalDataProcessing()
 							printf("[ERROR] Invalid NIRF data!\n");
 						else
 						{
+#ifndef TWO_CHANNEL_NIRF
 							m_nirfSignal = np::FloatArray(config.nAlines * config.nFrames);
 
 							np::DoubleArray nirf_data(config.nAlines * config.nFrames);
@@ -1842,6 +2067,22 @@ void QResultTab::externalDataProcessing()
 							nirfFile.close();
 
 							ippsConvert_64f32f(nirf_data.raw_ptr(), m_nirfSignal.raw_ptr(), nirf_data.length());
+#else
+							m_nirfSignal1 = np::FloatArray(config.nAlines * config.nFrames);
+							m_nirfSignal2 = np::FloatArray(config.nAlines * config.nFrames);
+							
+							np::DoubleArray nirf_data(config.nAlines);
+							for (int i = 0; i < config.nFrames; i++)
+							{
+								nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * config.nAlines);
+								ippsConvert_64f32f(nirf_data.raw_ptr(), m_nirfSignal1.raw_ptr() + i * config.nAlines, config.nAlines);
+
+								nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * config.nAlines);
+								ippsConvert_64f32f(nirf_data.raw_ptr(), m_nirfSignal2.raw_ptr() + i * config.nAlines, config.nAlines);
+							}
+							nirfFile.close();
+							config._2ch_nirf = true;
+#endif
 
 							printf("NIRF data was successfully loaded...\n");
 							config.nirf = true;
@@ -1903,7 +2144,12 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pImageView_LifetimeMap->resetSize(pConfig->n4Alines, pConfig->nFrames);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
         m_pImageView_NirfMap->resetSize(pConfig->nAlines, pConfig->nFrames);
+#else
+		m_pImageView_NirfMap1->resetSize(pConfig->nAlines, pConfig->nFrames);
+		m_pImageView_NirfMap2->resetSize(pConfig->nAlines, pConfig->nFrames);
+#endif
 #endif
 		// Reset widgets
 		m_pLabel_OctProjection->setEnabled(true);
@@ -1918,9 +2164,19 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
         m_pImageView_LifetimeMap->setUpdatesEnabled(true);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		m_pLabel_NirfMap->setEnabled(true);
 		m_pImageView_NirfMap->setEnabled(true);
 		m_pImageView_NirfMap->setUpdatesEnabled(true);
+#else
+		m_pLabel_NirfMap1->setEnabled(true);
+		m_pImageView_NirfMap1->setEnabled(true);
+		m_pImageView_NirfMap1->setUpdatesEnabled(true);
+
+		m_pLabel_NirfMap2->setEnabled(true);
+		m_pImageView_NirfMap2->setEnabled(true);
+		m_pImageView_NirfMap2->setUpdatesEnabled(true);
+#endif
 #endif
 		m_pPushButton_StartProcessing->setEnabled(true);
         if (m_pRadioButton_External->isChecked() && (false == m_pCheckBox_SingleFrame->isChecked()))
@@ -2015,9 +2271,19 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
         m_pImageView_LifetimeMap->setUpdatesEnabled(false);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		m_pLabel_NirfMap->setDisabled(true);
 		m_pImageView_NirfMap->setDisabled(true);
 		m_pImageView_NirfMap->setUpdatesEnabled(false);
+#else
+		m_pLabel_NirfMap1->setDisabled(true);
+		m_pImageView_NirfMap1->setDisabled(true);
+		m_pImageView_NirfMap1->setUpdatesEnabled(false);
+
+		m_pLabel_NirfMap2->setDisabled(true);
+		m_pImageView_NirfMap2->setDisabled(true);
+		m_pImageView_NirfMap2->setUpdatesEnabled(false);
+#endif
 #endif
 		m_pPushButton_StartProcessing->setDisabled(true);
 		m_pPushButton_SaveResults->setDisabled(true);
@@ -2110,7 +2376,12 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pImageView_LifetimeMap->setEnabled(true);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		m_pImageView_NirfMap->setEnabled(true);
+#else
+		m_pImageView_NirfMap1->setEnabled(true);
+		m_pImageView_NirfMap2->setEnabled(true);
+#endif
 #endif
 
 		m_pPushButton_StartProcessing->setEnabled(true);
@@ -2151,12 +2422,21 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pComboBox_LifetimeColorTable->setEnabled(true);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		if (m_nirfSignal.length() != 0)
 		{
 			m_pLabel_NirfOffset->setEnabled(true);
 			m_pLineEdit_NirfOffset->setEnabled(true);
 			m_pScrollBar_NirfOffset->setEnabled(true);
 		}
+#else
+		if ((m_nirfSignal1.length() != 0) && (m_nirfSignal2.length() != 0))
+		{
+			m_pLabel_NirfOffset->setEnabled(true);
+			m_pLineEdit_NirfOffset->setEnabled(true);
+			m_pScrollBar_NirfOffset->setEnabled(true);
+		}
+#endif
 #endif
 
 		m_pLineEdit_OctDbMax->setEnabled(true);
@@ -2187,7 +2467,12 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pImageView_LifetimeMap->setDisabled(true);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		m_pImageView_NirfMap->setDisabled(true);
+#else
+		m_pImageView_NirfMap1->setDisabled(true);
+		m_pImageView_NirfMap2->setDisabled(true);
+#endif
 #endif
 
 		m_pPushButton_StartProcessing->setDisabled(true);
@@ -2283,8 +2568,15 @@ void QResultTab::setObjects(Configuration* pConfig)
 	}
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	m_nirfSignal = np::FloatArray();
     m_nirfMap = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
+#else
+	m_nirfSignal1 = np::FloatArray();
+	m_nirfMap1 = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
+	m_nirfSignal2 = np::FloatArray();
+	m_nirfMap2 = np::FloatArray2(pConfig->nAlines, pConfig->nFrames);
+#endif
 	m_nirfOffset = 0;
 #endif
 
@@ -2303,7 +2595,11 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 	if (m_pImgObjNirf) delete m_pImgObjNirf;
+#ifndef TWO_CHANNEL_NIRF
 	m_pImgObjNirf = new ImageObject(pConfig->nAlines4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+#else
+	m_pImgObjNirf = new ImageObject(pConfig->nAlines4, 2 * RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+#endif
 #endif
 
 	// En face map visualization buffers
@@ -2317,8 +2613,15 @@ void QResultTab::setObjects(Configuration* pConfig)
 	m_pImgObjHsvEnhancedMap = new ImageObject(pConfig->n4Alines, pConfig->nFrames, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	if (m_pImgObjNirfMap) delete m_pImgObjNirfMap;
 	m_pImgObjNirfMap = new ImageObject(pConfig->nAlines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+#else
+	if (m_pImgObjNirfMap1) delete m_pImgObjNirfMap1;
+	m_pImgObjNirfMap1 = new ImageObject(pConfig->nAlines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+	if (m_pImgObjNirfMap2) delete m_pImgObjNirfMap2;
+	m_pImgObjNirfMap2 = new ImageObject(pConfig->nAlines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+#endif
 #endif
 
 	// Circ & Medfilt objects

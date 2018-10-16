@@ -81,6 +81,8 @@ Havana2.VC*
   (OCT-NIRF modified & Auto pullback stop)
 - Havana2 v1.2.4.2
   (OCT-NIRF distance calibration & minor error modification)
+- Havana2 v1.2.4.3
+  (2-Ch NIRF)
 
 
 To be updated:

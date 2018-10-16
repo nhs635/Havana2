@@ -3,7 +3,7 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
-#ifdef OCT_FLIM
+#if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
 
 #if NI_ENABLE
 #include <NIDAQmx.h>

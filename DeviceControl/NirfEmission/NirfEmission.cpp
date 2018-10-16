@@ -11,6 +11,8 @@
 #include <NIDAQmx.h>
 using namespace std;
 
+#include <ipps.h>
+
 #include <chrono>
 chrono::steady_clock::time_point startTime, endTime;
 
@@ -21,6 +23,7 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 NirfEmission::NirfEmission() :
 	_taskHandle(nullptr),
 	N(1),
+	nCh(1),
 	nAlines(1024),
 	nAcqs(0),
 	max_rate(120000.0),
@@ -49,7 +52,10 @@ bool NirfEmission::initialize()
 	printf("Initializing NI Analog Input for NIRF Emission Acquisition...\n");
 
 	int res;
-	data = new double[nAlines];
+#ifdef TWO_CHANNEL_NIRF
+	nCh = 2;
+#endif
+	data = new double[nCh * nAlines];
 	N = 32;
 
 	/*********************************************/
@@ -145,16 +151,22 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 	NirfEmission* pNirfEmission = (NirfEmission*)callbackData;
 
 	static int n = 0;
-	DAQmxReadAnalogF64(taskHandle, pNirfEmission->N, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, pNirfEmission->data + n, pNirfEmission->N, NULL, NULL);	
+	int32 read;
+	int32 res = DAQmxReadAnalogF64(taskHandle, pNirfEmission->N, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, pNirfEmission->data + n, pNirfEmission->nCh * pNirfEmission->N, &read, NULL);
+	if (res != 0) printf("error\n");
 	
-	n = n + pNirfEmission->N;
-	if (n == pNirfEmission->nAlines)
+	n = n + pNirfEmission->nCh * pNirfEmission->N;
+	if (n == pNirfEmission->nCh * pNirfEmission->nAlines)
 	{
 		n = 0;
 		pNirfEmission->nAcqs++;
-
-		np::DoubleArray data(pNirfEmission->nAlines);
+		
+		np::DoubleArray data(pNirfEmission->nCh * pNirfEmission->nAlines);
+#ifndef TWO_CHANNEL_NIRF
 		memcpy(data, pNirfEmission->data, sizeof(double) * pNirfEmission->nAlines);
+#else
+		ippsCplxToReal_64fc((const Ipp64fc*)pNirfEmission->data, data.raw_ptr(), data.raw_ptr() + pNirfEmission->nAlines, pNirfEmission->nAlines);
+#endif
 		pNirfEmission->DidAcquireData(pNirfEmission->nAcqs, data.raw_ptr());
 
 		endTime = chrono::steady_clock::now();

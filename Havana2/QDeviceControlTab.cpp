@@ -25,7 +25,10 @@
 #if NI_ENABLE
 #include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
 #include <DeviceControl/NirfEmission/NirfEmission.h>
-#include <Havana2/Viewer/QScope.h>
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+#include <DeviceControl/FLIMControl/PmtGainControl.h>
+#endif
+#include <Havana2/Dialog/NirfEmissionProfileDlg.h>
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -108,6 +111,9 @@ void QDeviceControlTab::closeEvent(QCloseEvent* e)
 #ifdef OCT_NIRF
 #if NI_ENABLE
 	if (m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(false);
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	if (m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(false);
+#endif
 #endif
 #endif
 #ifdef GALVANO_MIRROR
@@ -347,14 +353,41 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 	m_pCheckBox_NirfAcquisitionControl = new QCheckBox(pGroupBox_NirfAcquisitionControl);
 	m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
 	m_pCheckBox_NirfAcquisitionControl->setDisabled(true);
+	
+	// Create widgets for PMT gain control
+	QHBoxLayout *pHBoxLayout_PmtGainControl = new QHBoxLayout;
+	pHBoxLayout_PmtGainControl->setSpacing(3);
+
+	m_pCheckBox_PmtGainControl = new QCheckBox(pGroupBox_NirfAcquisitionControl);
+	m_pCheckBox_PmtGainControl->setText("Enable PMT Gain Control");
+	m_pCheckBox_PmtGainControl->setFixedWidth(140);
+
+	m_pLineEdit_PmtGainVoltage = new QLineEdit(pGroupBox_NirfAcquisitionControl);
+	m_pLineEdit_PmtGainVoltage->setFixedWidth(35);
+	m_pLineEdit_PmtGainVoltage->setText(QString::number(m_pConfig->pmtGainVoltage, 'f', 3));
+	m_pLineEdit_PmtGainVoltage->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_PmtGainVoltage->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_pLineEdit_PmtGainVoltage->setEnabled(true);
+
+	m_pLabel_PmtGainVoltage = new QLabel("V", pGroupBox_NirfAcquisitionControl);
+	m_pLabel_PmtGainVoltage->setBuddy(m_pLineEdit_PmtGainVoltage);
+	m_pLabel_PmtGainVoltage->setEnabled(true);
+
+	pHBoxLayout_PmtGainControl->addWidget(m_pCheckBox_PmtGainControl);
+	pHBoxLayout_PmtGainControl->addWidget(m_pLineEdit_PmtGainVoltage);
+	pHBoxLayout_PmtGainControl->addWidget(m_pLabel_PmtGainVoltage);
 
 	pGridLayout_NirfAcquisitionControl->addWidget(m_pCheckBox_NirfAcquisitionControl, 0, 0);
+	pGridLayout_NirfAcquisitionControl->addItem(pHBoxLayout_PmtGainControl, 1, 0);
 
 	pGroupBox_NirfAcquisitionControl->setLayout(pGridLayout_NirfAcquisitionControl);
 	m_pVBoxLayout->addWidget(pGroupBox_NirfAcquisitionControl);
+	//m_pVBoxLayout_FlimControl->addItem(pHBoxLayout_PmtGainControl);
 
 	// Connect signal and slot
 	//connect(m_pCheckBox_NirfAcquisitionControl, SIGNAL(toggled(bool)), this, SLOT(enableNirfEmissionAcquisition(bool)));
+	connect(m_pCheckBox_PmtGainControl, SIGNAL(toggled(bool)), this, SLOT(enablePmtGainControl(bool)));
+	connect(m_pLineEdit_PmtGainVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage(const QString &)));
 }
 #endif
 
@@ -1093,6 +1126,62 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 		m_pCheckBox_NirfAcquisitionControl->setChecked(false);
 #endif
 	}
+}
+
+void QDeviceControlTab::enablePmtGainControl(bool toggled)
+{
+	if (toggled)
+	{
+#if NI_ENABLE
+		// Set text
+		m_pCheckBox_PmtGainControl->setText("Disable PMT Gain Control");
+
+		// Set enabled false for PMT gain control widgets
+		m_pLineEdit_PmtGainVoltage->setEnabled(false);
+		m_pLabel_PmtGainVoltage->setEnabled(false);
+
+		// Create PMT gain control objects
+		m_pPmtGainControl = new PmtGainControl;
+		m_pPmtGainControl->voltage = m_pLineEdit_PmtGainVoltage->text().toDouble();
+		if (m_pPmtGainControl->voltage > 1.0)
+		{
+			printf(">1.0V Gain cannot be assigned!\n");
+			m_pCheckBox_PmtGainControl->setChecked(false);
+			return;
+		}
+
+		// Initializing
+		if (!m_pPmtGainControl->initialize())
+		{
+			m_pCheckBox_PmtGainControl->setChecked(false);
+			return;
+		}
+
+		// Generate PMT gain voltage
+		m_pPmtGainControl->start();
+	}
+	else
+	{
+		// Delete PMT gain control objects
+		if (m_pPmtGainControl)
+		{
+			m_pPmtGainControl->stop();
+			delete m_pPmtGainControl;
+		}
+
+		// Set enabled true for PMT gain control widgets
+		m_pLineEdit_PmtGainVoltage->setEnabled(true);
+		m_pLabel_PmtGainVoltage->setEnabled(true);
+
+		// Set text
+		m_pCheckBox_PmtGainControl->setText("Enable PMT Gain Control");
+#endif
+	}
+}
+
+void QDeviceControlTab::changePmtGainVoltage(const QString &str)
+{
+	m_pConfig->pmtGainVoltage = str.toFloat();
 }
 #endif
 
