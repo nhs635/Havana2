@@ -58,6 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	// Set timer for renew configuration 
 	m_pTimer = new QTimer(this);
 	m_pTimer->start(5*60*1000); // renew per 5 min
+	m_pTimerSync = new QTimer(this);
+	m_pTimerSync->start(1000); // renew per 1 sec
 
     // Create tabs objects
     m_pOperationTab = new QOperationTab(this);
@@ -81,16 +83,34 @@ MainWindow::MainWindow(QWidget *parent) :
 	// Create status bar
 	QLabel *pStatusLabel_Temp1 = new QLabel(this);
 	m_pStatusLabel_ImagePos = new QLabel(QString("(%1, %2)").arg(0000, 4).arg(0000, 4), this);
-	QLabel *pStatusLabel_Temp3 = new QLabel(this);
+	
+	size_t di_bfn = m_pStreamTab->getDeinterleavingBufferQueueSize();
+	size_t p1_bfn = m_pStreamTab->getCh1ProcessingBufferQueueSize();
+	size_t p2_bfn = m_pStreamTab->getCh2ProcessingBufferQueueSize();
+	size_t v1_bfn = m_pStreamTab->getCh1VisualizationBufferQueueSize();
+	size_t v2_bfn = m_pStreamTab->getCh2VisualizationBufferQueueSize();
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	size_t vn_bfn = m_pStreamTab->getNirfVisualizationBufferQueueSize();
+	m_pStatusLabel_SyncStatus = new QLabel(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5 / VN bufn: %6")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3).arg(vn_bfn, 3), this);
+#else
+	m_pStatusLabel_SyncStatus = new QLabel(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3), this);
+#endif
+#else
+	m_pStatusLabel_SyncStatus = new QLabel(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3), this);
+#endif
 
 	pStatusLabel_Temp1->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 	m_pStatusLabel_ImagePos->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-	pStatusLabel_Temp3->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+	m_pStatusLabel_SyncStatus->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
 	// then add the widget to the status bar
 	statusBar()->addPermanentWidget(pStatusLabel_Temp1, 6);
 	statusBar()->addPermanentWidget(m_pStatusLabel_ImagePos, 1);
-	statusBar()->addPermanentWidget(pStatusLabel_Temp3, 2);
+	statusBar()->addPermanentWidget(m_pStatusLabel_SyncStatus, 2);
 
     // Set layout
     m_pGridLayout = new QGridLayout;
@@ -104,11 +124,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	// Connect signal and slot
 	connect(m_pTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
+	connect(m_pTimerSync, SIGNAL(timeout()), this, SLOT(onTimerSync()));
 	connect(m_pTabWidget, SIGNAL(currentChanged(int)), this, SLOT(changedTab(int)));
 }
 
 MainWindow::~MainWindow()
 {
+	m_pTimer->stop();
+	m_pTimerSync->stop();
+
 	if (m_pConfiguration)
 	{
 		m_pConfiguration->setConfigFile("Havana2.ini");
@@ -175,6 +199,28 @@ void MainWindow::onTimer()
 	m_pStreamTab->m_pOCT1->saveCalibration();
 #endif
 	m_pConfiguration->setConfigFile("Havana2.ini");
+}
+
+void MainWindow::onTimerSync()
+{
+	size_t di_bfn = m_pStreamTab->getDeinterleavingBufferQueueSize();
+	size_t p1_bfn = m_pStreamTab->getCh1ProcessingBufferQueueSize();
+	size_t p2_bfn = m_pStreamTab->getCh2ProcessingBufferQueueSize();
+	size_t v1_bfn = m_pStreamTab->getCh1VisualizationBufferQueueSize();
+	size_t v2_bfn = m_pStreamTab->getCh2VisualizationBufferQueueSize();
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	size_t vn_bfn = m_pStreamTab->getNirfVisualizationBufferQueueSize();
+	m_pStatusLabel_SyncStatus->setText(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5 / VN bufn: %6")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3).arg(vn_bfn, 3));
+#else
+	m_pStatusLabel_SyncStatus->setText(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3));
+#endif
+#else
+	m_pStatusLabel_SyncStatus->setText(QString("DI bufn: %1 / P1 bufn: %2 / P2 bufn: %3 / V1 bufn: %4 / V2 bufn: %5")
+		.arg(di_bfn, 3).arg(p1_bfn, 3).arg(p2_bfn, 3).arg(v1_bfn, 3).arg(v2_bfn, 3));
+#endif
 }
 
 void MainWindow::changedTab(int index)

@@ -32,6 +32,7 @@ protected:
 
 private slots:
 	void onTimer();
+	void onTimerSync();
 	void changedTab(int);
 
 // Variables ////////////////////////////////////////////
@@ -39,7 +40,7 @@ public:
 	Configuration* m_pConfiguration;
 
 private:
-	QTimer *m_pTimer;
+	QTimer *m_pTimer, *m_pTimerSync;
 		
 private:
     Ui::MainWindow *ui;
@@ -65,6 +66,7 @@ public:
 public:
 	// Status bar
 	QLabel *m_pStatusLabel_ImagePos;
+	QLabel *m_pStatusLabel_SyncStatus;
 };
 
 #endif // MAINWINDOW_H

@@ -84,6 +84,16 @@ public:
 #endif
 #endif
 #endif
+	inline size_t getDeinterleavingBufferQueueSize() const { return m_syncDeinterleaving.queue_buffer.size(); }
+	inline size_t getCh1ProcessingBufferQueueSize() const { return m_syncCh1Processing.queue_buffer.size(); }
+	inline size_t getCh2ProcessingBufferQueueSize() const { return m_syncCh2Processing.queue_buffer.size(); }
+	inline size_t getCh1VisualizationBufferQueueSize() const { return m_syncCh1Visualization.queue_buffer.size(); }
+	inline size_t getCh2VisualizationBufferQueueSize() const { return m_syncCh2Visualization.queue_buffer.size(); }
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+	inline size_t getNirfVisualizationBufferQueueSize() const { return m_syncNirfVisualization.queue_buffer.size(); }
+#endif
+#endif
 	void setWidgetsText();
 
 private:

@@ -354,6 +354,7 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 	m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
 	m_pCheckBox_NirfAcquisitionControl->setDisabled(true);
 	
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 	// Create widgets for PMT gain control
 	QHBoxLayout *pHBoxLayout_PmtGainControl = new QHBoxLayout;
 	pHBoxLayout_PmtGainControl->setSpacing(3);
@@ -376,9 +377,12 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 	pHBoxLayout_PmtGainControl->addWidget(m_pCheckBox_PmtGainControl);
 	pHBoxLayout_PmtGainControl->addWidget(m_pLineEdit_PmtGainVoltage);
 	pHBoxLayout_PmtGainControl->addWidget(m_pLabel_PmtGainVoltage);
+#endif
 
 	pGridLayout_NirfAcquisitionControl->addWidget(m_pCheckBox_NirfAcquisitionControl, 0, 0);
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 	pGridLayout_NirfAcquisitionControl->addItem(pHBoxLayout_PmtGainControl, 1, 0);
+#endif
 
 	pGroupBox_NirfAcquisitionControl->setLayout(pGridLayout_NirfAcquisitionControl);
 	m_pVBoxLayout->addWidget(pGroupBox_NirfAcquisitionControl);
@@ -386,8 +390,10 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 
 	// Connect signal and slot
 	//connect(m_pCheckBox_NirfAcquisitionControl, SIGNAL(toggled(bool)), this, SLOT(enableNirfEmissionAcquisition(bool)));
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 	connect(m_pCheckBox_PmtGainControl, SIGNAL(toggled(bool)), this, SLOT(enablePmtGainControl(bool)));
 	connect(m_pLineEdit_PmtGainVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage(const QString &)));
+#endif
 }
 #endif
 
@@ -1128,6 +1134,7 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 	}
 }
 
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 void QDeviceControlTab::enablePmtGainControl(bool toggled)
 {
 	if (toggled)
@@ -1183,6 +1190,7 @@ void QDeviceControlTab::changePmtGainVoltage(const QString &str)
 {
 	m_pConfig->pmtGainVoltage = str.toFloat();
 }
+#endif
 #endif
 
 #ifdef GALVANO_MIRROR

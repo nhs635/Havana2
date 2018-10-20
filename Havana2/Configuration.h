@@ -1,14 +1,14 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.4.3"
+#define VERSION						"1.2.4.4"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
-#define PX14_ENABLE                 true
-#define NI_ENABLE					true
+#define PX14_ENABLE                 false
+#define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
 //#define OCT_FLIM
@@ -28,8 +28,8 @@
 //#define ECG_TRIGGERING
 #endif
 #else
-#define PROGRAMMATIC_GAIN_CONTROL
-#define TWO_CHANNEL_NIRF
+//#define PROGRAMMATIC_GAIN_CONTROL
+//#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
 //#define GALVANO_MIRROR
