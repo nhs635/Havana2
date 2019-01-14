@@ -9,7 +9,6 @@
 #include <NIDAQmx.h>
 using namespace std;
 
-
 int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEventType, uInt32 nSamples, void *callbackData);
 
 
@@ -18,7 +17,7 @@ EcgMonitoring::EcgMonitoring() :
 	prev_peak_pos(0),
 	isRecording(false),
 	physicalChannel(NI_ECG_CHANNEL),
-    sourceTerminal(NI_ECG_TRIGGER_SOURCE)
+	sourceTerminal(NI_ECG_TRIGGER_SOURCE)
 {
 	for (int i = 0; i < N_VIS_SAMPS_ECG; i++)
 		deque_ecg.push_back(0.0);
@@ -33,30 +32,40 @@ EcgMonitoring::~EcgMonitoring()
 
 bool EcgMonitoring::initialize()
 {
-	printf("Initializing NI Analog Output for galvano mirror...\n");
+	printf("Initializing NI Analog Input for ECG monitoring...\n");
 
 	int res;
-	double max_rate = 10.0;
 	int N = 1;
 
 	if ((res = DAQmxCreateTask("", &_taskHandle)) != 0)
 	{
-		dumpError(res, "ERROR: Failed to set ECG Monitoring: ");
+		dumpError(res, "ERROR: Failed to set ECG monitoring: ");
 		return false;
 	}
-	if ((res = DAQmxCreateAIVoltageChan(_taskHandle, physicalChannel, "", DAQmx_Val_RSE, -10.0, 10.0, DAQmx_Val_Volts, NULL)) != 0)
+	if ((res = DAQmxCreateAIVoltageChan(_taskHandle, physicalChannel, "", DAQmx_Val_RSE, -5.0, 5.0, DAQmx_Val_Volts, NULL)) != 0)
 	{
-		dumpError(res, "ERROR: Failed to set ECG Monitoring: ");
+		dumpError(res, "ERROR: Failed to set ECG monitoring: ");
 		return false;
 	}
-	if ((res = DAQmxCfgSampClkTiming(_taskHandle, sourceTerminal, max_rate, DAQmx_Val_Rising, DAQmx_Val_ContSamps, N)) != 0)
+	if ((res = DAQmxCfgSampClkTiming(_taskHandle, sourceTerminal, ECG_SAMPLING_RATE, DAQmx_Val_Rising, DAQmx_Val_ContSamps, N)) != 0)
 	{
-		dumpError(res, "ERROR: Failed to set ECG Monitoring: ");
+		dumpError(res, "ERROR: Failed to set ECG monitoring: ");
 		return false;
 	}
-	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, N, 0, EveryNCallback, this)))
+	//if ((res = DAQmxCfgDigEdgeStartTrig(_taskHandle, sourceTerminal, DAQmx_Val_Rising)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to set ECG monitoring: ");
+	//	return false;
+	//}
+	//if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to set ECG monitoringn: ");
+	//	return false;
+	//}
+
+	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, N, 0, EveryNCallback, this)) != 0)
 	{
-		dumpError(res, "ERROR: Failed to set ECG Monitoring: ");
+		dumpError(res, "ERROR: Failed to set ECG monitoring: ");
 		return false;
 	}
 
@@ -94,8 +103,8 @@ void EcgMonitoring::dumpError(int res, const char* pPreamble)
 	if (res < 0)
 		DAQmxGetErrorString(res, errBuff, 2048);
 
-	//QMessageBox::critical(nullptr, "Error", (QString)pPreamble + (QString)errBuff);
 	printf("%s\n\n", ((QString)pPreamble + (QString)errBuff).toUtf8().data());
+	//SendStatusMessage(((QString)pPreamble + (QString)errBuff).toUtf8().data());
 
 	if (_taskHandle)
 	{
@@ -114,7 +123,13 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 	double data;
 	bool is_peak = false;
 
-	DAQmxReadAnalogScalarF64(taskHandle, DAQmx_Val_WaitInfinitely, &data, NULL);
+	int32 res;
+	if ((res = DAQmxReadAnalogScalarF64(taskHandle, 0.0, &data, NULL)) != 0)
+	{
+		pEcgMonitor->dumpError(res, "ERROR: Failed to read ECG Monitoring: ");
+		return -1;
+	}
+
 	n++;
 	pEcgMonitor->deque_ecg.push_back(data);
 	pEcgMonitor->deque_ecg.pop_front();
@@ -136,13 +151,13 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 				pEcgMonitor->deque_period.push_back(n - pEcgMonitor->prev_peak_pos);			
 				pEcgMonitor->prev_peak_pos = n;
 
-				if (pEcgMonitor->deque_period.size() == 6)
+				if (pEcgMonitor->deque_period.size() == 7)
 				{
 					pEcgMonitor->deque_period.pop_front();
 
 					double heart_interval = 0;
-					for (int i = 0; i < 5; i++)
-						heart_interval += (double)pEcgMonitor->deque_period.at(i) / 5.0;
+					for (int i = 0; i < 6; i++)
+						heart_interval += (double)pEcgMonitor->deque_period.at(i) / 6.0;
 
 					pEcgMonitor->heart_interval = heart_interval; // milliseconds
 					pEcgMonitor->renewHeartRate(60.0 / heart_interval * 1000.0);
@@ -153,7 +168,7 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 		}
 	}
 	
-	pEcgMonitor->acquiredData(data, is_peak);	
+	pEcgMonitor->acquiredData(data, is_peak);
 	
     (void)nSamples;
     (void)everyNsamplesEventType;

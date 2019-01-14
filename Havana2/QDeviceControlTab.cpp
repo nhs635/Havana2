@@ -23,6 +23,7 @@
 #endif
 #ifdef OCT_NIRF
 #if NI_ENABLE
+#include <DeviceControl/NirfEmission/NirfSyncBoard.h>
 #include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
 #include <DeviceControl/NirfEmission/NirfEmission.h>
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -95,37 +96,7 @@ QDeviceControlTab::~QDeviceControlTab()
 
 void QDeviceControlTab::closeEvent(QCloseEvent* e)
 {
-#ifdef ECG_TRIGGERING
-#if NI_ENABLE
-	if (m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(false);
-	if (m_pCheckBox_Voltage800Rps->isChecked()) m_pCheckBox_Voltage800Rps->setChecked(false);
-#endif
-#endif
-#ifdef OCT_FLIM
-#if NI_ENABLE
-	if (m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(false);
-	if (m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(false);
-#endif
-	if (m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(false);
-#endif
-#ifdef OCT_NIRF
-#if NI_ENABLE
-	if (m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(false);
-#ifdef PROGRAMMATIC_GAIN_CONTROL
-	if (m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(false);
-#endif
-#endif
-#endif
-#ifdef GALVANO_MIRROR
-#if NI_ENABLE
-	if (m_pCheckBox_GalvanoMirrorControl->isChecked()) m_pCheckBox_GalvanoMirrorControl->setChecked(false);
-#endif
-#endif
-#ifdef PULLBACK_DEVICE
-	if (m_pCheckBox_ZaberStageControl->isChecked()) m_pCheckBox_ZaberStageControl->setChecked(false);
-	if (m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(false);
-#endif
-
+	terminateAllDevices();
 	e->accept();
 }
 
@@ -226,6 +197,7 @@ void QDeviceControlTab::createEcgModuleControl()
 	pVBoxLayout_EcgModuleControl->addItem(pGridLayout_Voltage800Rps);
 
 	pGroupBox_EcgModuleControl->setLayout(pVBoxLayout_EcgModuleControl);
+	pGroupBox_EcgModuleControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
 	m_pVBoxLayout->addWidget(pGroupBox_EcgModuleControl);
 
 	// Connect signal and slot
@@ -332,6 +304,7 @@ void QDeviceControlTab::createFlimLaserPowerControl()
 	m_pVBoxLayout_FlimControl->addItem(pGridLayout_FlimLaserPowerControl);
 
 	m_pGroupBox_FlimControl->setLayout(m_pVBoxLayout_FlimControl);
+	m_pGroupBox_FlimControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
 	m_pGroupBox_FlimControl->resize(m_pVBoxLayout_FlimControl->minimumSize());
     m_pVBoxLayout->addWidget(m_pGroupBox_FlimControl);
 
@@ -363,28 +336,58 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 	m_pCheckBox_PmtGainControl->setText("Enable PMT Gain Control");
 	m_pCheckBox_PmtGainControl->setFixedWidth(140);
 
+	m_pLabel_PmtGainVoltage = new QLabel("V", pGroupBox_NirfAcquisitionControl);
+	m_pLabel_PmtGainVoltage->setEnabled(true);
+
+#ifndef TWO_CHANNEL_NIRF
 	m_pLineEdit_PmtGainVoltage = new QLineEdit(pGroupBox_NirfAcquisitionControl);
 	m_pLineEdit_PmtGainVoltage->setFixedWidth(35);
 	m_pLineEdit_PmtGainVoltage->setText(QString::number(m_pConfig->pmtGainVoltage, 'f', 3));
 	m_pLineEdit_PmtGainVoltage->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_PmtGainVoltage->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_pLineEdit_PmtGainVoltage->setEnabled(true);
-
-	m_pLabel_PmtGainVoltage = new QLabel("V", pGroupBox_NirfAcquisitionControl);
-	m_pLabel_PmtGainVoltage->setBuddy(m_pLineEdit_PmtGainVoltage);
-	m_pLabel_PmtGainVoltage->setEnabled(true);
-
+		
 	pHBoxLayout_PmtGainControl->addWidget(m_pCheckBox_PmtGainControl);
 	pHBoxLayout_PmtGainControl->addWidget(m_pLineEdit_PmtGainVoltage);
 	pHBoxLayout_PmtGainControl->addWidget(m_pLabel_PmtGainVoltage);
+#else
+	m_pLineEdit_PmtGainVoltage[0] = new QLineEdit(pGroupBox_NirfAcquisitionControl);
+	m_pLineEdit_PmtGainVoltage[0]->setFixedWidth(35);
+	m_pLineEdit_PmtGainVoltage[0]->setText(QString::number(m_pConfig->pmtGainVoltage[0], 'f', 3));
+	m_pLineEdit_PmtGainVoltage[0]->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_PmtGainVoltage[0]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_pLineEdit_PmtGainVoltage[0]->setEnabled(true);
+	
+	m_pLineEdit_PmtGainVoltage[1] = new QLineEdit(pGroupBox_NirfAcquisitionControl);
+	m_pLineEdit_PmtGainVoltage[1]->setFixedWidth(35);
+	m_pLineEdit_PmtGainVoltage[1]->setText(QString::number(m_pConfig->pmtGainVoltage[1], 'f', 3));
+	m_pLineEdit_PmtGainVoltage[1]->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_PmtGainVoltage[1]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_pLineEdit_PmtGainVoltage[1]->setEnabled(true);
+	
+	pHBoxLayout_PmtGainControl->addWidget(m_pCheckBox_PmtGainControl);
+	pHBoxLayout_PmtGainControl->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::Fixed));
+
+	QHBoxLayout *pHBoxLayout_PmtGainControl1 = new QHBoxLayout;
+	pHBoxLayout_PmtGainControl1->setSpacing(3);
+
+	pHBoxLayout_PmtGainControl1->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::Fixed));
+	pHBoxLayout_PmtGainControl1->addWidget(m_pLineEdit_PmtGainVoltage[0]);
+	pHBoxLayout_PmtGainControl1->addWidget(m_pLineEdit_PmtGainVoltage[1]);
+	pHBoxLayout_PmtGainControl1->addWidget(m_pLabel_PmtGainVoltage);
+#endif
 #endif
 
 	pGridLayout_NirfAcquisitionControl->addWidget(m_pCheckBox_NirfAcquisitionControl, 0, 0);
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	pGridLayout_NirfAcquisitionControl->addItem(pHBoxLayout_PmtGainControl, 1, 0);
+#ifdef TWO_CHANNEL_NIRF
+	pGridLayout_NirfAcquisitionControl->addItem(pHBoxLayout_PmtGainControl1, 2, 0);
+#endif
 #endif
 
 	pGroupBox_NirfAcquisitionControl->setLayout(pGridLayout_NirfAcquisitionControl);
+	pGroupBox_NirfAcquisitionControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
 	m_pVBoxLayout->addWidget(pGroupBox_NirfAcquisitionControl);
 	//m_pVBoxLayout_FlimControl->addItem(pHBoxLayout_PmtGainControl);
 
@@ -392,7 +395,12 @@ void QDeviceControlTab::createNirfAcquisitionControl()
 	//connect(m_pCheckBox_NirfAcquisitionControl, SIGNAL(toggled(bool)), this, SLOT(enableNirfEmissionAcquisition(bool)));
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	connect(m_pCheckBox_PmtGainControl, SIGNAL(toggled(bool)), this, SLOT(enablePmtGainControl(bool)));
+#ifndef TWO_CHANNEL_NIRF
 	connect(m_pLineEdit_PmtGainVoltage, SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage(const QString &)));
+#else
+	connect(m_pLineEdit_PmtGainVoltage[0], SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage1(const QString &)));
+	connect(m_pLineEdit_PmtGainVoltage[1], SIGNAL(textChanged(const QString &)), this, SLOT(changePmtGainVoltage2(const QString &)));
+#endif
 #endif
 }
 #endif
@@ -521,6 +529,7 @@ void QDeviceControlTab::createGalvanoMirrorControl()
     pGridLayout_GalvanoMirrorControl->addWidget(m_pScrollBar_ScanAdjustment, 6, 0, 1, 6);
 
     pGroupBox_GalvanoMirrorControl->setLayout(pGridLayout_GalvanoMirrorControl);
+	pGroupBox_GalvanoMirrorControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
     m_pVBoxLayout->addWidget(pGroupBox_GalvanoMirrorControl);
 
 	// Connect signal and slot
@@ -596,6 +605,7 @@ void QDeviceControlTab::createZaberStageControl()
     pGridLayout_ZaberStageControl->addWidget(m_pPushButton_Stop, 3, 2);
 
     pGroupBox_ZaberStageControl->setLayout(pGridLayout_ZaberStageControl);
+	pGroupBox_ZaberStageControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
     m_pVBoxLayout->addWidget(pGroupBox_ZaberStageControl);
 
 	// Connect signal and slot
@@ -617,10 +627,15 @@ void QDeviceControlTab::createFaulhaberMotorControl()
     m_pCheckBox_FaulhaberMotorControl = new QCheckBox(pGroupBox_FaulhaberMotorControl);
     m_pCheckBox_FaulhaberMotorControl->setText("Enable Faulhaber Motor Control");
 
-    m_pToggleButton_Rotate = new QPushButton(pGroupBox_FaulhaberMotorControl);
-    m_pToggleButton_Rotate->setText("Rotate");
-    m_pToggleButton_Rotate->setCheckable(pGroupBox_FaulhaberMotorControl);
-	m_pToggleButton_Rotate->setDisabled(true);
+    m_pPushButton_Rotate = new QPushButton(pGroupBox_FaulhaberMotorControl);
+	m_pPushButton_Rotate->setText("Rotate");
+	m_pPushButton_Rotate->setFixedWidth(60);
+	m_pPushButton_Rotate->setDisabled(true);
+
+	m_pPushButton_RotateStop = new QPushButton(pGroupBox_FaulhaberMotorControl);
+	m_pPushButton_RotateStop->setText("Stop");
+	m_pPushButton_RotateStop->setFixedWidth(40);
+	m_pPushButton_RotateStop->setDisabled(true);
 
     m_pLineEdit_RPM = new QLineEdit(pGroupBox_FaulhaberMotorControl);
     m_pLineEdit_RPM->setFixedWidth(40);
@@ -633,22 +648,59 @@ void QDeviceControlTab::createFaulhaberMotorControl()
     m_pLabel_RPM->setBuddy(m_pLineEdit_RPM);
 	m_pLabel_RPM->setDisabled(true);
 
-    pGridLayout_FaulhaberMotorControl->addWidget(m_pCheckBox_FaulhaberMotorControl, 0, 0, 1, 4);
+    pGridLayout_FaulhaberMotorControl->addWidget(m_pCheckBox_FaulhaberMotorControl, 0, 0, 1, 5);
     pGridLayout_FaulhaberMotorControl->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
-    pGridLayout_FaulhaberMotorControl->addWidget(m_pToggleButton_Rotate, 1, 1);
-    pGridLayout_FaulhaberMotorControl->addWidget(m_pLineEdit_RPM, 1, 2);
-    pGridLayout_FaulhaberMotorControl->addWidget(m_pLabel_RPM, 1, 3);
+    pGridLayout_FaulhaberMotorControl->addWidget(m_pPushButton_Rotate, 1, 1);
+	pGridLayout_FaulhaberMotorControl->addWidget(m_pPushButton_RotateStop, 1, 2);
+    pGridLayout_FaulhaberMotorControl->addWidget(m_pLineEdit_RPM, 1, 3);
+    pGridLayout_FaulhaberMotorControl->addWidget(m_pLabel_RPM, 1, 4);
 
     pGroupBox_FaulhaberMotorControl->setLayout(pGridLayout_FaulhaberMotorControl);
+	pGroupBox_FaulhaberMotorControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
     m_pVBoxLayout->addWidget(pGroupBox_FaulhaberMotorControl);
 	m_pVBoxLayout->addStretch(1);
 
 	// Connect signal and slot
 	connect(m_pCheckBox_FaulhaberMotorControl, SIGNAL(toggled(bool)), this, SLOT(enableFaulhaberMotorControl(bool)));
-	connect(m_pToggleButton_Rotate, SIGNAL(toggled(bool)), this, SLOT(rotate(bool)));
+	connect(m_pPushButton_Rotate, SIGNAL(clicked(bool)), this, SLOT(rotate()));
+	connect(m_pPushButton_RotateStop, SIGNAL(clicked(bool)), this, SLOT(rotateStop()));
 	connect(m_pLineEdit_RPM, SIGNAL(textChanged(const QString &)), this, SLOT(changeFaulhaberRpm(const QString &)));
 }
 #endif
+
+void QDeviceControlTab::terminateAllDevices()
+{
+#ifdef ECG_TRIGGERING
+#if NI_ENABLE
+	if (m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(false);
+	if (m_pCheckBox_Voltage800Rps->isChecked()) m_pCheckBox_Voltage800Rps->setChecked(false);
+#endif
+#endif
+#ifdef OCT_FLIM
+#if NI_ENABLE
+	if (m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(false);
+	if (m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(false);
+#endif
+	if (m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(false);
+#endif
+#ifdef OCT_NIRF
+#if NI_ENABLE
+	if (m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(false);
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	if (m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(false);
+#endif
+#endif
+#endif
+#ifdef GALVANO_MIRROR
+#if NI_ENABLE
+	if (m_pCheckBox_GalvanoMirrorControl->isChecked()) m_pCheckBox_GalvanoMirrorControl->setChecked(false);
+#endif
+#endif
+#ifdef PULLBACK_DEVICE
+	if (m_pCheckBox_ZaberStageControl->isChecked()) m_pCheckBox_ZaberStageControl->setChecked(false);
+	if (m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(false);
+#endif
+}
 
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
@@ -668,6 +720,52 @@ std::deque<double>* QDeviceControlTab::getRecordedEcg()
 	return &m_pEcgMonitoring->deque_record_ecg;
 }
 #endif        
+#endif
+
+#ifdef OCT_NIRF
+bool QDeviceControlTab::initializeNiDaqAnalogInput()
+{
+#if NI_ENABLE
+	// Create NIRF emission acquisition objects
+#ifdef NI_NIRF_SYNC
+	m_pNirfSyncBoard = new NirfSyncBoard;
+	m_pNirfSyncBoard->value = 0x01; // power(line0) 1, reset(line1) 0
+#endif
+	m_pNirfEmissionTrigger = new NirfEmissionTrigger;
+	m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
+
+	m_pNirfEmission = new NirfEmission;
+	m_pNirfEmission->nAlines = m_pConfig->nAlines;
+
+	m_pMainWnd->m_pStreamTab->setNirfAcquisitionCallback();
+
+	// Initializing
+#ifndef NI_NIRF_SYNC
+	if (!m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
+#else
+	if (!m_pNirfSyncBoard->initialize() || !m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
+#endif
+		return false;
+#endif
+
+	return true;
+}
+bool QDeviceControlTab::startNiDaqAnalogInput()
+{
+#if NI_ENABLE
+	// Open NIRF emission profile dialog
+	m_pMainWnd->m_pStreamTab->makeNirfEmissionProfileDlg();
+
+	// Generate trigger pulse & Start NIRF acquisition
+#ifdef NI_NIRF_SYNC
+	if (m_pNirfSyncBoard) m_pNirfSyncBoard->start();
+#endif
+	if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
+	if (m_pNirfEmission) m_pNirfEmission->start();
+#endif
+
+	return true;
+}
 #endif
 
 #ifdef GALVANO_MIRROR
@@ -718,9 +816,11 @@ void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 			m_pCheckBox_EcgModuleControl->setChecked(false);
 			return;
 		}
+		connect(this, SIGNAL(drawEcg(double, bool)), m_pEcgScope, SLOT(drawData(double, bool)));
 		
 		m_pEcgMonitoring->acquiredData += [&](double& data, bool& is_peak) {
-			m_pEcgScope->drawData(data, is_peak);
+			m_pConfig->ecgHeartRate = float(60.0 / m_pEcgMonitoring->heart_interval * 1000.0);
+			emit drawEcg(data, is_peak);
 		};
 		m_pEcgMonitoring->startRecording += [&]() {
 			std::unique_lock<std::mutex> mlock(m_mtxRpeakDetected);
@@ -741,16 +841,17 @@ void QDeviceControlTab::enableEcgModuleControl(bool toggled)
 		m_pToggledButton_EcgTriggering->setChecked(false);
 
 		// Delete ECG monitoring objects		
-		if (m_pEcgMonitoringTrigger)
-		{
-			m_pEcgMonitoringTrigger->stop();
-			delete m_pEcgMonitoringTrigger;
-		}
 		if (m_pEcgMonitoring)
 		{
 			m_pEcgMonitoring->stop();
 			delete m_pEcgMonitoring;
 		}
+		if (m_pEcgMonitoringTrigger)
+		{
+			m_pEcgMonitoringTrigger->stop();
+			delete m_pEcgMonitoringTrigger;
+		}
+		disconnect(this, SIGNAL(drawEcg(double, bool)), 0, 0);
 
 		// Clear visualization buffer
 		m_pEcgScope->clearDeque();
@@ -881,8 +982,8 @@ void QDeviceControlTab::enablePmtGainControl(bool toggled)
 
 		// Create PMT gain control objects
 		m_pPmtGainControl = new PmtGainControl;
-		m_pPmtGainControl->voltage = m_pLineEdit_PmtGainVoltage->text().toDouble();
-		if (m_pPmtGainControl->voltage > 1.0)
+		m_pPmtGainControl->voltage1 = m_pLineEdit_PmtGainVoltage->text().toDouble();
+		if (m_pPmtGainControl->voltage1 > 1.0)
 		{
 			printf(">1.0V Gain cannot be assigned!\n");
 			m_pCheckBox_PmtGainControl->setChecked(false);
@@ -1089,24 +1190,9 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 		m_pCheckBox_NirfAcquisitionControl->setText("Disable NIRF Acquisition Control");
 		m_pCheckBox_NirfAcquisitionControl->setChecked(true);
 		
-		// Create NIRF emission acquisition objects
-		m_pNirfEmissionTrigger = new NirfEmissionTrigger;
-		m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
-
-		m_pNirfEmission = new NirfEmission;
-		m_pNirfEmission->nAlines = m_pConfig->nAlines;
-
 		// Initializing
-		if (!m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
+		if (!initializeNiDaqAnalogInput())
 			return;
-		m_pMainWnd->m_pStreamTab->setNirfAcquisitionCallback();
-
-		// Open NIRF emission profile dialog
-		m_pMainWnd->m_pStreamTab->makeNirfEmissionProfileDlg();
-		
-		// Generate trigger pulse & Start ECG monitoring
-		m_pNirfEmissionTrigger->start();
-		m_pNirfEmission->start();
 	}
 	else
 	{
@@ -1126,7 +1212,13 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 			m_pNirfEmissionTrigger->stop();
 			delete m_pNirfEmissionTrigger;
 		}
-
+#ifdef NI_NIRF_SYNC
+		if (m_pNirfSyncBoard)
+		{
+			m_pNirfSyncBoard->stop();
+			delete m_pNirfSyncBoard;
+		}
+#endif
 		// Set text
 		m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
 		m_pCheckBox_NirfAcquisitionControl->setChecked(false);
@@ -1144,13 +1236,28 @@ void QDeviceControlTab::enablePmtGainControl(bool toggled)
 		m_pCheckBox_PmtGainControl->setText("Disable PMT Gain Control");
 
 		// Set enabled false for PMT gain control widgets
+#ifndef TWO_CHANNEL_NIRF
 		m_pLineEdit_PmtGainVoltage->setEnabled(false);
+#else
+		m_pLineEdit_PmtGainVoltage[0]->setEnabled(false);
+		m_pLineEdit_PmtGainVoltage[1]->setEnabled(false);
+#endif
 		m_pLabel_PmtGainVoltage->setEnabled(false);
 
 		// Create PMT gain control objects
 		m_pPmtGainControl = new PmtGainControl;
-		m_pPmtGainControl->voltage = m_pLineEdit_PmtGainVoltage->text().toDouble();
-		if (m_pPmtGainControl->voltage > 1.0)
+#ifndef TWO_CHANNEL_NIRF
+		m_pPmtGainControl->voltage1 = m_pLineEdit_PmtGainVoltage->text().toDouble();
+#else
+		m_pPmtGainControl->voltage1 = m_pLineEdit_PmtGainVoltage[0]->text().toDouble();
+		m_pPmtGainControl->voltage2 = m_pLineEdit_PmtGainVoltage[1]->text().toDouble();
+#endif
+
+#ifndef TWO_CHANNEL_NIRF
+		if (m_pPmtGainControl->voltage1 > 1.0)
+#else
+		if ((m_pPmtGainControl->voltage1 > 1.0) || (m_pPmtGainControl->voltage2 > 1.0))
+#endif
 		{
 			printf(">1.0V Gain cannot be assigned!\n");
 			m_pCheckBox_PmtGainControl->setChecked(false);
@@ -1177,7 +1284,12 @@ void QDeviceControlTab::enablePmtGainControl(bool toggled)
 		}
 
 		// Set enabled true for PMT gain control widgets
+#ifndef TWO_CHANNEL_NIRF
 		m_pLineEdit_PmtGainVoltage->setEnabled(true);
+#else
+		m_pLineEdit_PmtGainVoltage[0]->setEnabled(true);
+		m_pLineEdit_PmtGainVoltage[1]->setEnabled(true);
+#endif
 		m_pLabel_PmtGainVoltage->setEnabled(true);
 
 		// Set text
@@ -1186,10 +1298,22 @@ void QDeviceControlTab::enablePmtGainControl(bool toggled)
 	}
 }
 
+#ifndef TWO_CHANNEL_NIRF
 void QDeviceControlTab::changePmtGainVoltage(const QString &str)
 {
 	m_pConfig->pmtGainVoltage = str.toFloat();
 }
+#else
+void QDeviceControlTab::changePmtGainVoltage1(const QString &str)
+{
+	m_pConfig->pmtGainVoltage[0] = str.toFloat();
+}
+
+void QDeviceControlTab::changePmtGainVoltage2(const QString &str)
+{
+	m_pConfig->pmtGainVoltage[1] = str.toFloat();
+}
+#endif
 #endif
 #endif
 
@@ -1479,15 +1603,16 @@ void QDeviceControlTab::enableFaulhaberMotorControl(bool toggled)
 		}
 		
 		// Set enable true for Faulhaber motor control widgets
-		m_pToggleButton_Rotate->setEnabled(true);
+		m_pPushButton_Rotate->setEnabled(true);
+		m_pPushButton_RotateStop->setEnabled(true);
 		m_pLineEdit_RPM->setEnabled(true);
 		m_pLabel_RPM->setEnabled(true);
 	}
 	else
 	{
 		// Set enable false for Faulhaber motor control widgets
-		m_pToggleButton_Rotate->setChecked(false);
-		m_pToggleButton_Rotate->setEnabled(false);
+		m_pPushButton_Rotate->setEnabled(false);
+		m_pPushButton_RotateStop->setEnabled(false);
 		m_pLineEdit_RPM->setEnabled(false);
 		m_pLabel_RPM->setEnabled(false);
 		
@@ -1505,20 +1630,14 @@ void QDeviceControlTab::enableFaulhaberMotorControl(bool toggled)
 	}
 }
 
-void QDeviceControlTab::rotate(bool toggled)
+void QDeviceControlTab::rotate()
 {
-	if (toggled)
-	{
-		m_pFaulhaberMotor->RotateMotor(m_pLineEdit_RPM->text().toInt());
-		m_pLineEdit_RPM->setEnabled(false);
-		m_pToggleButton_Rotate->setText("Stop");
-	}
-	else
-	{
-		m_pFaulhaberMotor->StopMotor();
-		m_pLineEdit_RPM->setEnabled(true);
-		m_pToggleButton_Rotate->setText("Rotate");
-	}
+	m_pFaulhaberMotor->RotateMotor(m_pLineEdit_RPM->text().toInt());
+}
+
+void QDeviceControlTab::rotateStop()
+{
+	m_pFaulhaberMotor->StopMotor();
 }
 
 void QDeviceControlTab::changeFaulhaberRpm(const QString &str)

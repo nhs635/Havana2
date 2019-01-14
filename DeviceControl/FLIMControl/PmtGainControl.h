@@ -11,7 +11,8 @@ public:
 	PmtGainControl();
 	~PmtGainControl();
 
-	double voltage;	
+	double voltage1;
+	double voltage2;
 
 	bool initialize();
 	void start();

@@ -210,6 +210,21 @@ void QScope2::resetAxis(QRange x_range, QRange y_range,
     m_pRenderArea->update();
 }
 
+void QScope2::setVerticalLine(int len, ...)
+{
+	m_pRenderArea->m_vLineLen = len;
+
+	va_list ap;
+	va_start(ap, len);
+	for (int i = 0; i < len; i++)
+	{
+		int n = va_arg(ap, int);
+		m_pRenderArea->m_pVLineInd[i] = n;
+	}
+	va_end(ap);
+}
+
+
 void QScope2::drawData(const float* pData1, const float* pData2)
 {
 	if (m_pRenderArea->m_pData1 != nullptr)
@@ -233,12 +248,19 @@ void QScope2::drawData(const double* pData1_64, const double* pData2_64)
 
 QRenderArea2::QRenderArea2(QWidget *parent) :
 	QWidget(parent), m_pData1(nullptr), m_pData2(nullptr), 
-	m_pData1_64(nullptr), m_pData2_64(nullptr)
+	m_pData1_64(nullptr), m_pData2_64(nullptr), m_vLineLen(0)
 {
     QPalette pal = this->palette();
     pal.setColor(QPalette::Background, QColor(0x282d30));
     setPalette(pal);
     setAutoFillBackground(true);
+
+	m_pVLineInd = new int[10];
+}
+
+QRenderArea2::~QRenderArea2()
+{
+	delete[] m_pVLineInd;
 }
 
 void QRenderArea2::paintEvent(QPaintEvent *)
@@ -317,5 +339,18 @@ void QRenderArea2::paintEvent(QPaintEvent *)
 
 			painter.drawLine(x0, x1);
 		}
+	}
+
+	// Draw vertical lines
+	for (int i = 0; i < m_vLineLen; i++)
+	{
+		QPointF x0, x1;
+		x0.setX((float)(m_pVLineInd[i]) / (float)m_sizeGraph.width() * w);
+		x0.setY((float)0);
+		x1.setX((float)(m_pVLineInd[i]) / (float)m_sizeGraph.width() * w);
+		x1.setY((float)h);
+
+		painter.setPen(QColor(0xff0000));
+		painter.drawLine(x0, x1);
 	}
 }

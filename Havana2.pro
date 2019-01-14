@@ -86,7 +86,8 @@ SOURCES += Havana2/Havana2.cpp \
     Havana2/Dialog/SaveResultDlg.cpp \
     Havana2/Dialog/PulseReviewDlg.cpp \
     Havana2/Dialog/NirfEmissionProfileDlg.cpp \
-    Havana2/Dialog/NirfDistCompDlg.cpp
+    Havana2/Dialog/NirfDistCompDlg.cpp \
+    Havana2/Dialog/NirfCrossTalkCompDlg.cpp
 
 SOURCES += DataProcess/OCTProcess/OCTProcess.cpp \
     DataProcess/FLIMProcess/FLIMProcess.cpp \
@@ -103,6 +104,7 @@ SOURCES += DeviceControl/FLIMControl/PmtGainControl.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoring.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.cpp \
     DeviceControl/ECGMonitoring/Voltage800RPS.cpp \
+    DeviceControl/NirfEmission/NirfSyncBoard.cpp \
     DeviceControl/NirfEmission/NirfEmission.cpp \
     DeviceControl/NirfEmission/NirfEmissionTrigger.cpp \
     DeviceControl/GalvoScan/GalvoScan.cpp \
@@ -129,7 +131,8 @@ HEADERS += Havana2/Configuration.h \
     Havana2/Dialog/SaveResultDlg.h \
     Havana2/Dialog/PulseReviewDlg.h \
     Havana2/Dialog/NirfEmissionProfileDlg.h \
-    Havana2/Dialog/NirfDistCompDlg.h
+    Havana2/Dialog/NirfDistCompDlg.h \
+    Havana2/Dialog/NirfCrossTalkCompDlg.h
 
 HEADERS += DataProcess/OCTProcess/OCTProcess.h \
     DataProcess/FLIMProcess/FLIMProcess.h \
@@ -146,6 +149,7 @@ HEADERS += DeviceControl/FLIMControl/PmtGainControl.h \
     DeviceControl/ECGMonitoring/EcgMonitoring.h \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.h \
     DeviceControl/ECGMonitoring/Voltage800RPS.h \
+    DeviceControl/NirfEmission/NirfSyncBoard.h \
     DeviceControl/NirfEmission/NirfEmission.h \
     DeviceControl/NirfEmission/NirfEmissionTrigger.h \
     DeviceControl/GalvoScan/GalvoScan.h \

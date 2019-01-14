@@ -22,6 +22,9 @@
 #ifdef OCT_NIRF
 #include <Havana2/Dialog/NirfEmissionProfileDlg.h>
 #include <Havana2/Dialog/NirfDistCompDlg.h>
+#ifdef TWO_CHANNEL_NIRF
+#include <Havana2/Dialog/NirfCrossTalkCompDlg.h>
+#endif
 #endif
 
 #include <DataProcess/OCTProcess/OCTProcess.h>
@@ -54,6 +57,12 @@ MainWindow::MainWindow(QWidget *parent) :
 	// Create configuration object
 	m_pConfiguration = new Configuration;
 	m_pConfiguration->getConfigFile("Havana2.ini");
+
+	m_pConfiguration->nScans = N_SCANS;
+	m_pConfiguration->fnScans = m_pConfiguration->nScans * 4;
+	m_pConfiguration->nScansFFT = NEAR_2_POWER((double)m_pConfiguration->nScans);
+	m_pConfiguration->n2ScansFFT = m_pConfiguration->nScansFFT / 2;
+	m_pConfiguration->nFrameSize = m_pConfiguration->nChannels * m_pConfiguration->nScans * m_pConfiguration->nAlines;
 
 	// Set timer for renew configuration 
 	m_pTimer = new QTimer(this);
@@ -148,44 +157,47 @@ void MainWindow::closeEvent(QCloseEvent *e)
 	{
 		e->ignore();
 		QMessageBox::critical(this, "Exit", "Please wait until the saving process is finished.");
+
+		return;
 	}
-	else if (m_pOperationTab->isAcquisitionButtonToggled())
-	{
-		e->ignore();
-		QMessageBox::critical(this, "Exit", "Stop acquisition first!");
-	}	
-	else
-	{
-		if (m_pOperationTab->getDigitizerSetupDlg())
-			m_pOperationTab->getDigitizerSetupDlg()->close();
-		if (m_pStreamTab->getOctCalibDlg())
-			m_pStreamTab->getOctCalibDlg()->close();
-		if (m_pStreamTab->getOctIntensityHistDlg())
-			m_pStreamTab->getOctIntensityHistDlg()->close();
+	if (m_pOperationTab->isAcquisitionButtonToggled())
+		m_pOperationTab->getAcquisitionButton()->setChecked(false);
+	
+	m_pDeviceControlTab->terminateAllDevices();
+
+	if (m_pOperationTab->getDigitizerSetupDlg())
+		m_pOperationTab->getDigitizerSetupDlg()->close();
+	if (m_pStreamTab->getOctCalibDlg())
+		m_pStreamTab->getOctCalibDlg()->close();
+	if (m_pStreamTab->getOctIntensityHistDlg())
+		m_pStreamTab->getOctIntensityHistDlg()->close();
 #ifdef OCT_FLIM
-		if (m_pStreamTab->getFlimCalibDlg())
-			m_pStreamTab->getFlimCalibDlg()->close();
-		if (m_pResultTab->getPulseReviewDlg())
-			m_pResultTab->getPulseReviewDlg()->close();
+	if (m_pStreamTab->getFlimCalibDlg())
+		m_pStreamTab->getFlimCalibDlg()->close();
+	if (m_pResultTab->getPulseReviewDlg())
+		m_pResultTab->getPulseReviewDlg()->close();
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
-		if (m_pStreamTab->getNirfEmissionProfileDlg())
-			m_pStreamTab->getNirfEmissionProfileDlg()->close();
+	if (m_pStreamTab->getNirfEmissionProfileDlg())
+		m_pStreamTab->getNirfEmissionProfileDlg()->close();
 #endif
 #endif
-		if (m_pResultTab->getSaveResultDlg())
-			m_pResultTab->getSaveResultDlg()->close();
-		if (m_pResultTab->getOctIntensityHistDlg())
-			m_pResultTab->getOctIntensityHistDlg()->close();
+	if (m_pResultTab->getSaveResultDlg())
+		m_pResultTab->getSaveResultDlg()->close();
+	if (m_pResultTab->getOctIntensityHistDlg())
+		m_pResultTab->getOctIntensityHistDlg()->close();
 #ifdef OCT_NIRF
-        if (m_pResultTab->getNirfEmissionProfileDlg())
-            m_pResultTab->getNirfEmissionProfileDlg()->close();
-		if (m_pResultTab->getNirfDistCompDlg())
-			m_pResultTab->getNirfDistCompDlg()->close();
+    if (m_pResultTab->getNirfEmissionProfileDlg())
+        m_pResultTab->getNirfEmissionProfileDlg()->close();
+	if (m_pResultTab->getNirfDistCompDlg())
+		m_pResultTab->getNirfDistCompDlg()->close();
+#ifdef TWO_CHANNEL_NIRF
+	if (m_pResultTab->getNirfCrossTalkCompDlg())
+		m_pResultTab->getNirfCrossTalkCompDlg()->close();
 #endif
-
-		e->accept();
-	}
+#endif
+	
+	e->accept();
 }
 
 
@@ -279,6 +291,10 @@ void MainWindow::changedTab(int index)
             m_pResultTab->getNirfEmissionProfileDlg()->close();
         if (m_pResultTab->getNirfDistCompDlg())
             m_pResultTab->getNirfDistCompDlg()->close();
+#ifdef TWO_CHANNEL_NIRF
+		if (m_pResultTab->getNirfCrossTalkCompDlg())
+			m_pResultTab->getNirfCrossTalkCompDlg()->close();
+#endif
 #endif
 
 #ifdef GALVANO_MIRROR

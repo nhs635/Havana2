@@ -181,6 +181,9 @@
     <ClCompile Include="Havana2\Dialog\NirfDistCompDlg.cpp">
       <Filter>Havana2\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfCrossTalkCompDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
@@ -308,6 +311,9 @@
       <Filter>Havana2\Dialog</Filter>
     </QtMoc>
     <QtMoc Include="Havana2\Dialog\NirfDistCompDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\NirfCrossTalkCompDlg.h">
       <Filter>Havana2\Dialog</Filter>
     </QtMoc>
   </ItemGroup>

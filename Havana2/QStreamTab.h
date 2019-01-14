@@ -143,7 +143,11 @@ private slots:
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*);
+#else
+	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 #endif
 	void updateAlinePos(int);
@@ -155,7 +159,12 @@ private slots:
 	void deleteFlimCalibDlg();
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void adjustNirfContrast();
+#else
+	void adjustNirfContrast1();
+	void adjustNirfContrast2();
+#endif
 	void createNirfEmissionProfileDlg();
 	void deleteNirfEmissionProfileDlg();
 #endif
@@ -183,7 +192,11 @@ signals:
 	void paintRectImage(uint8_t*);
 	void paintCircImage(uint8_t*);
 #else
+#ifndef TWO_CHANNEL_NIRF
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*);
+#else
+	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 #endif
 
@@ -261,7 +274,12 @@ public:
 	ImageObject *m_pImgObjLifetime;
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	ImageObject *m_pImgObjNirf;
+#else
+	ImageObject *m_pImgObjNirf1;
+	ImageObject *m_pImgObjNirf2;
+#endif
 #endif
 #endif
 	circularize* m_pCirc;
@@ -320,10 +338,17 @@ private:
 	QPushButton *m_pPushButton_NirfEmissionProfile;
     NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
 
+#ifndef TWO_CHANNEL_NIRF
 	QLabel *m_pLabel_NirfEmission;
 	QLineEdit *m_pLineEdit_NirfEmissionMax;
 	QLineEdit *m_pLineEdit_NirfEmissionMin;
 	QImageView *m_pImageView_NirfEmissionColorbar;
+#else
+	QLabel *m_pLabel_NirfEmission[2];
+	QLineEdit *m_pLineEdit_NirfEmissionMax[2];
+	QLineEdit *m_pLineEdit_NirfEmissionMin[2];
+	QImageView *m_pImageView_NirfEmissionColorbar[2];
+#endif
 #endif
 #endif
 

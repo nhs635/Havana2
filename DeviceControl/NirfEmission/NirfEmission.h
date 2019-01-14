@@ -13,7 +13,6 @@ public:
 	NirfEmission();
 	~NirfEmission();
 	
-	int N;
 	int nCh;
 	int nAlines;		
 	int nAcqs;
@@ -28,6 +27,8 @@ public:
 	callback<void> DidStopData;
 	callback<const char*> SendStatusMessage;
 
+	void dumpError(int res, const char* pPreamble);
+
 private:
 	double max_rate;
 	
@@ -36,7 +37,6 @@ private:
 	const char* alinesTrigger;
 
 	TaskHandle _taskHandle;
-	void dumpError(int res, const char* pPreamble);
 };
 
 #endif // NIRF_EMISSION_H_

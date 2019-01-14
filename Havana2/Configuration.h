@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.4.4"
+#define VERSION						"1.2.5"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -11,7 +11,7 @@
 #define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
+///#define OCT_FLIM
 #define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
@@ -28,7 +28,7 @@
 //#define ECG_TRIGGERING
 #endif
 #else
-//#define PROGRAMMATIC_GAIN_CONTROL
+#define PROGRAMMATIC_GAIN_CONTROL
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
@@ -44,17 +44,19 @@
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #endif
 
+#define N_SCANS						1700
+
 /////////////////////// Device setup ////////////////////////
 #ifdef ECG_TRIGGERING
-#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr1"
+#define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr0"
 #define NI_ECG_TRIGGER_SOURCE		"/Dev1/PFI15"
 #define NI_ECG_CHANNEL				"Dev1/ai4"
-#define ECG_SAMPLING_RATE			1000 // Hz
+#define ECG_SAMPLING_RATE			1000.0 // Hz
 #define N_VIS_SAMPS_ECG				2000 // N_VIS_SAMPS_ECG / ECG_SAMPLING_RATE = time span
-#define ECG_VOLTAGE					1 // peak-to-peak voltage for analog input 
-#define ECG_THRES_VALUE				0.25 // volt
+#define ECG_VOLTAGE					0.10 // peak-to-peak voltage for analog input 
+#define ECG_THRES_VALUE				0.12 // volt
 #define ECG_THRES_TIME				500 // millisecond
-#define ECG_VIEW_RENEWAL_COUNT		20
+#define ECG_VIEW_RENEWAL_COUNT		50
 #define NI_800RPS_CHANNEL			"Dev1/ao1"
 #endif
 
@@ -67,20 +69,30 @@
 #endif
 
 #ifdef OCT_NIRF
+#define ALINE_RATE					51200
+
 #define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI0"
 #ifndef TWO_CHANNEL_NIRF
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai8" // "Dev3/ai0"
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0" // "Dev3/ai7"
 #else
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai8:9" // "Dev3/ai0"
+#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0, Dev1/ai7" // "Dev3/ai0"
 #endif
 #define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI13" // "/Dev3/PFI1"
+#ifdef NI_NIRF_SYNC
+#define NI_NIRF_CTR_EQV_PORT		"/Dev1/port2/line4"
+#endif
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI1"
 
-#define NI_PMT_GAIN_CHANNEL		    "Dev1/ao1"
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+#ifndef TWO_CHANNEL_NIRF
+#define NI_PMT_GAIN_CHANNEL		    "Dev1/ao0" //ch1 -> ao0 / ch2 -> ao1
+#else
+#define NI_PMT_GAIN_CHANNEL		    "Dev1/ao0:1"
+#endif
+#endif
 
 #ifdef NI_NIRF_SYNC
-#define NI_NIRF_SYNC_POWER			"/Dev1/PFI0"
-#define NI_NIRF_SYNC_RESET			"/Dev1/PFI1"
+#define NI_NIRF_SYNC_PORT			"/Dev1/port0/line0:1" // power & reset
 #endif
 #endif
 
@@ -90,13 +102,15 @@
 #endif
 
 #ifdef PULLBACK_DEVICE
-#define ZABER_PORT					"COM7" // mw pdt rj -> com7_MW /com6_YH
-#define ZABER_MAX_MICRO_RESOLUTION  64 // BENCHTOP_MODE ? 128 : 64; 
+#define ZABER_PORT					"COM6"
+#define ZABER_MAX_MICRO_RESOLUTION  64
 #define ZABER_MICRO_RESOLUTION		32 
-#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
 #define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
+#define ZABER_HOME_OFFSET			0.0
 
-#define FAULHABER_PORT				"COM3"
+#define FAULHABER_NEW_CONTROLLER
+#define FAULHABER_PORT				"COM8"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
@@ -106,9 +120,9 @@
 #define PROCESSING_BUFFER_SIZE		20
 
 #ifdef _DEBUG
-#define WRITING_BUFFER_SIZE			50
+#define WRITING_BUFFER_SIZE			200
 #else
-#define WRITING_BUFFER_SIZE	        20
+#define WRITING_BUFFER_SIZE	        2000
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -128,18 +142,27 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				50 
+#define RING_THICKNESS				350 
 #endif
 
-#define CIRC_RADIUS					700 // Only even number
+#define CIRC_RADIUS					1500 // Only even number
+#define SHEATH_RADIUS				185
 #if (CIRC_RADIUS % 2)
 #error("CIRC_RADIUS should be even number.");
 #endif
-#define PROJECTION_OFFSET			150
 #define BALL_SIZE					55
 
 #ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire
+#endif
+
+#ifdef OCT_NIRF
+#define NIRF_COLORTABLE1			5 // hot
+#ifdef TWO_CHANNEL_NIRF
+#define NIRF_COLORTABLE2			18 // cyan
+#endif
+
+//#define ZERO_TBR_DEFINITION
 #endif
 
 #define RENEWAL_COUNT				5
@@ -237,8 +260,15 @@ public:
 		flimLifetimeRange.min = settings.value("flimLifetimeRangeMin").toFloat();
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 		nirfRange.max = settings.value("nirfRangeMax").toFloat();
 		nirfRange.min = settings.value("nirfRangeMin").toFloat();
+#else
+		nirfRange[0].max = settings.value("nirfRange1Max").toFloat();
+		nirfRange[0].min = settings.value("nirfRange1Min").toFloat();
+		nirfRange[1].max = settings.value("nirfRange2Max").toFloat();
+		nirfRange[1].min = settings.value("nirfRange2Min").toFloat();
+#endif
 #endif
 		// NIRF distance compensation
 #ifdef OCT_NIRF
@@ -259,7 +289,12 @@ public:
 		ecgDelayRate = settings.value("ecgDelayRate").toFloat();
 #endif
 #if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
+#ifndef TWO_CHANNEL_NIRF
 		pmtGainVoltage = settings.value("pmtGainVoltage").toFloat();
+#else
+		pmtGainVoltage[0] = settings.value("pmtGainVoltage1").toFloat();
+		pmtGainVoltage[1] = settings.value("pmtGainVoltage2").toFloat();
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 		galvoFastScanVoltage = settings.value("galvoFastScanVoltage").toFloat();
@@ -354,8 +389,15 @@ public:
 		settings.setValue("flimLifetimeRangeMin", QString::number(flimLifetimeRange.min, 'f', 1)); 
 #endif	
 #ifdef OCT_NIRF
-		settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 1));
-		settings.setValue("nirfRangeMin", QString::number(nirfRange.min, 'f', 1));
+#ifndef TWO_CHANNEL_NIRF
+		settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 21));
+		settings.setValue("nirfRangeMin", QString::number(nirfRange.min, 'f', 2));
+#else
+		settings.setValue("nirfRange1Max", QString::number(nirfRange[0].max, 'f', 2));
+		settings.setValue("nirfRange1Min", QString::number(nirfRange[0].min, 'f', 2));
+		settings.setValue("nirfRange2Max", QString::number(nirfRange[1].max, 'f', 2));
+		settings.setValue("nirfRange2Min", QString::number(nirfRange[1].min, 'f', 2));
+#endif
 #endif
 		// NIRF distance compensation
 #ifdef OCT_NIRF
@@ -375,9 +417,15 @@ public:
 		// Device control
 #ifdef ECG_TRIGGERING
 		settings.setValue("ecgDelayRate", QString::number(ecgDelayRate, 'f', 2));
+		settings.setValue("ecgHeartRate", QString::number(ecgHeartRate, 'f', 2));
 #endif
 #if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
+#ifndef TWO_CHANNEL_NIRF
 		settings.setValue("pmtGainVoltage", QString::number(pmtGainVoltage, 'f', 3));
+#else
+		settings.setValue("pmtGainVoltage1", QString::number(pmtGainVoltage[0], 'f', 3));
+		settings.setValue("pmtGainVoltage2", QString::number(pmtGainVoltage[1], 'f', 3));
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 		settings.setValue("galvoFastScanVoltage", QString::number(galvoFastScanVoltage, 'f', 1));
@@ -453,7 +501,11 @@ public:
 	Range<float> flimLifetimeRange;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	Range<float> nirfRange;
+#else
+	Range<float> nirfRange[2];
+#endif
 #endif
 
 	// NIRF ditance compensation
@@ -480,9 +532,14 @@ public:
 	// Device control
 #ifdef ECG_TRIGGERING
 	float ecgDelayRate;
+	float ecgHeartRate;
 #endif
 #if defined(OCT_FLIM) || defined(PROGRAMMATIC_GAIN_CONTROL)
+#ifndef TWO_CHANNEL_NIRF
 	float pmtGainVoltage;
+#else
+	float pmtGainVoltage[2];
+#endif
 #endif
 #ifdef GALVANO_MIRROR
 	float galvoFastScanVoltage;

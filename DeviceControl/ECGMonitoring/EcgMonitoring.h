@@ -21,6 +21,9 @@ public:
 	callback2<double&, bool&> acquiredData;
 	callback<void> startRecording;
 	callback<double> renewHeartRate;
+	callback<const char*> SendStatusMessage;
+
+	void dumpError(int res, const char* pPreamble);
 			
 public:
 	std::deque<double> deque_ecg;
@@ -36,7 +39,6 @@ private:
 	const char* sourceTerminal;
 
 	TaskHandle _taskHandle;	
-	void dumpError(int res, const char* pPreamble);
 };
 
 #endif // ECG_MONITORING_H_

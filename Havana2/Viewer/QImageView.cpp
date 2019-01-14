@@ -7,13 +7,13 @@
 ColorTable::ColorTable()
 {
 	// Color table list	
-	m_cNameVector.push_back("gray");
+	m_cNameVector.push_back("gray"); // 0
 	m_cNameVector.push_back("invgray");
 	m_cNameVector.push_back("sepia");
 	m_cNameVector.push_back("jet");
 	m_cNameVector.push_back("parula");
-	m_cNameVector.push_back("hot");
-	m_cNameVector.push_back("fire");
+	m_cNameVector.push_back("hot"); // 5
+	m_cNameVector.push_back("fire"); // 6
 	m_cNameVector.push_back("hsv");
 	m_cNameVector.push_back("smart");
 	m_cNameVector.push_back("bor");
@@ -24,6 +24,8 @@ ColorTable::ColorTable()
 	m_cNameVector.push_back("lifetime2");
 	m_cNameVector.push_back("vessel");
 	m_cNameVector.push_back("hsv1");
+	m_cNameVector.push_back("magenta"); // 17
+	m_cNameVector.push_back("blue_hot"); // 18
 	// 새로운 파일 이름 추가 하기
 
 	for (int i = 0; i < m_cNameVector.size(); i++)

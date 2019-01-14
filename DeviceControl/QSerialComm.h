@@ -61,13 +61,22 @@ public:
 		m_bIsConnected = false;
 	}
 
-	bool writeSerialPort(char* data)
+	bool writeSerialPort(char* data, qint64 len = 0)
 	{
 		if (m_pSerialPort->isOpen())
 		{
-			qint64 nWrote = m_pSerialPort->write(data);			
-			if (nWrote != 0)
-				return true;
+			if (len == 0)
+			{
+				qint64 nWrote = m_pSerialPort->write(data);
+				if (nWrote != 0)
+					return true;
+			}
+			else
+			{
+				qint64 nWrote = m_pSerialPort->write(data, len);
+				if (nWrote != 0)
+					return true;
+			}
 		}
 		return false;
 	}

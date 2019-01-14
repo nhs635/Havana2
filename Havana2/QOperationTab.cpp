@@ -114,7 +114,13 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 	QStreamTab* pStreamTab = m_pMainWnd->m_pStreamTab;
 	if (toggled) // Start Data Acquisition
 	{
-		if (m_pDataAcquisition->InitializeAcquistion())
+		if ((m_pDataAcquisition->InitializeAcquistion()) 
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+			&& (m_pMainWnd->m_pDeviceControlTab->initializeNiDaqAnalogInput())
+#endif
+#endif
+			)
 		{
 			// Start Thread Process
 			pStreamTab->m_pThreadVisualization->startThreading();
@@ -123,7 +129,7 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 			pStreamTab->m_pThreadDeinterleave->startThreading();
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
-			m_pMainWnd->m_pDeviceControlTab->startNirfAcquisition();
+			m_pMainWnd->m_pDeviceControlTab->startNiDaqAnalogInput();
 #endif
 #endif
 			// Start Data Acquisition

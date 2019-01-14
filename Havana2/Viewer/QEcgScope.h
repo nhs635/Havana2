@@ -8,7 +8,7 @@
 #include "QScope.h"
 
 #include <iostream>
-#include <deque>
+#include "Common/Array.h"
 
 class QRenderAreaEcg;
 
@@ -34,7 +34,7 @@ public:
 	void clearDeque();
 
 public slots:
-    void drawData(float data, bool is_peak = false);
+    void drawData(double data, bool is_peak = false);
 
 private:
     QGridLayout *m_pGridLayout;
@@ -56,8 +56,8 @@ protected:
     void paintEvent(QPaintEvent *);
 
 public:
-    std::deque<float> m_dqData;
-	std::deque<bool> m_dqIsPeak;
+	np::FloatArray m_dqData;
+	np::FloatArray m_dqIsPeak;
 
     QRange m_xRange;
     QRange m_yRange;

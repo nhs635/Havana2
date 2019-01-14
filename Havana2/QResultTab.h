@@ -30,6 +30,9 @@ class PulseReviewDlg;
 #ifdef OCT_NIRF
 class NirfEmissionProfileDlg;
 class NirfDistCompDlg;
+#ifdef TWO_CHANNEL_NIRF
+class NirfCrossTalkCompDlg;
+#endif
 #endif
 
 class OCTProcess;
@@ -59,9 +62,11 @@ public:
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
 #endif
 #ifdef OCT_NIRF
-
     inline NirfEmissionProfileDlg* getNirfEmissionProfileDlg() const { return m_pNirfEmissionProfileDlg; }
 	inline NirfDistCompDlg* getNirfDistCompDlg() const { return m_pNirfDistCompDlg; }
+#ifdef TWO_CHANNEL_NIRF
+	inline NirfCrossTalkCompDlg* getNirfCrossTalkCompDlg() const { return m_pNirfCrossTalkCompDlg; }
+#endif
 #endif
 	inline QRadioButton* getRadioInBuffer() const { return m_pRadioButton_InBuffer; }
 	inline QProgressBar* getProgressBar() const { return m_pProgressBar_PostProcessing; }
@@ -95,10 +100,18 @@ private slots: // widget operation
 	void deletePulseReviewDlg();
 #endif
 #ifdef OCT_NIRF    
+#ifndef TWO_CHANNEL_NIRF
     void createNirfEmissionProfileDlg();
+#else
+	void createNirfEmissionProfileDlg(int);
+#endif
     void deleteNirfEmissionProfileDlg();
 	void createNirfDistCompDlg();
 	void deleteNirfDistCompDlg();
+#ifdef TWO_CHANNEL_NIRF
+	void createNirfCrossTalkCompDlg();
+	void deleteNirfCrossTalkCompDlg();
+#endif
 #endif
 	void enableUserDefinedAlines(bool);
 	void visualizeImage(int);
@@ -106,7 +119,11 @@ private slots: // widget operation
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*);
+#else
+	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 	void visualizeEnFaceMap(bool scaling = true);
 	void measureDistance(bool);
@@ -121,7 +138,12 @@ private slots: // widget operation
 	void changeLifetimeColorTable(int);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void adjustNirfContrast();
+#else
+	void adjustNirfContrast1();
+	void adjustNirfContrast2();
+#endif
 	void adjustNirfOffset(int);
 #endif
 
@@ -140,7 +162,11 @@ signals:
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*);
+#else
+	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+#endif
 #endif
 	void paintRectImage(uint8_t*);
 	void paintCircImage(uint8_t*);
@@ -187,6 +213,7 @@ private:
 private: // main pointer
 	MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
+	Configuration* m_pConfigTemp;
 #ifdef GALVANO_MIRROR
 	QDeviceControlTab* m_pDeviceControlTab;
 #endif
@@ -242,7 +269,12 @@ private:
 	ImageObject *m_pImgObjLifetime;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	ImageObject *m_pImgObjNirf;
+#else
+	ImageObject *m_pImgObjNirf1;
+	ImageObject *m_pImgObjNirf2;
+#endif
 #endif
 
 	np::Uint8Array2 m_visOctProjection;
@@ -320,8 +352,12 @@ private:
 	QPushButton *m_pPushButton_NirfDistanceCompensation;
 	NirfDistCompDlg *m_pNirfDistCompDlg;
 	NirfEmissionProfileDlg *m_pNirfEmissionProfileDlg;
-#endif
 
+#ifdef TWO_CHANNEL_NIRF
+	QPushButton *m_pPushButton_NirfCrossTalkCompensation;
+	NirfCrossTalkCompDlg *m_pNirfCrossTalkCompDlg;
+#endif
+#endif
 	QPushButton *m_pPushButton_OctIntensityHistogram;
 	OctIntensityHistDlg *m_pOctIntensityHistDlg;
 
@@ -388,7 +424,11 @@ private:
     QImageView *m_pImageView_ColorbarLifetimeMap;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	QImageView *m_pImageView_ColorbarNirfMap;
+#else
+	QImageView *m_pImageView_ColorbarNirfMap[2];
+#endif
 #endif
 
     QLineEdit *m_pLineEdit_OctDbMax;
@@ -400,8 +440,13 @@ private:
     QLineEdit *m_pLineEdit_LifetimeMin;
 #endif
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 	QLineEdit *m_pLineEdit_NirfMax;
 	QLineEdit *m_pLineEdit_NirfMin;
+#else
+	QLineEdit *m_pLineEdit_NirfMax[2];
+	QLineEdit *m_pLineEdit_NirfMin[2];
+#endif
 #endif
 
 };

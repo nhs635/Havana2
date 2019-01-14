@@ -27,6 +27,7 @@ public:
 	inline QVBoxLayout* getLayout() const { return m_pVBoxLayout; }
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
 	inline DigitizerSetupDlg* getDigitizerSetupDlg() const { return m_pDigitizerSetupDlg; }
+	inline QPushButton* getAcquisitionButton() const { return m_pToggleButton_Acquisition; }
 	bool isAcquisitionButtonToggled() { return m_pToggleButton_Acquisition->isChecked(); }	
 	bool isSavingButtonToggled() { return m_pToggleButton_Saving->isChecked(); }
 	

@@ -15,10 +15,10 @@
 
 #ifdef OCT_NIRF
 NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
-    QDialog(parent), nirfBg(0), nirfBackgroundLevel(0)
+    QDialog(parent), nirfBg(0), tbrBg(0)
 {
     // Set default size & frame
-    setFixedSize(360, 330);
+    setFixedSize(380, 360);
     setWindowFlags(Qt::Tool);
 	setWindowTitle("NIRF Distance Compensation");
 
@@ -42,6 +42,11 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pToggleButton_Compensation->setText("Compensation On");
 	m_pToggleButton_Compensation->setCheckable(true);
     m_pToggleButton_Compensation->setDisabled(true);
+	
+	m_pToggleButton_TBRMode = new QPushButton(this);
+	m_pToggleButton_TBRMode->setText("TBR Converting On");
+	m_pToggleButton_TBRMode->setCheckable(true);
+	m_pToggleButton_TBRMode->setDisabled(true);
 	
 	// Create widgets for compensation details
 	m_pRenderArea_DistanceDecayCurve = new QRenderArea(this);
@@ -127,20 +132,28 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
     // Create widgets for TBR mode
     m_pCheckBox_Filtering = new QCheckBox(this);
     m_pCheckBox_Filtering->setText("Filtering On");
+	
+	m_pLineEdit_NIRF_Background = new QLineEdit(this);
+	m_pLineEdit_NIRF_Background->setFixedWidth(35);
+	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
+	m_pLineEdit_NIRF_Background->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_NIRF_Background->setDisabled(true);
 
-    m_pCheckBox_TBRMode = new QCheckBox(this);
-    m_pCheckBox_TBRMode->setText("TBR Converting On");
-    m_pCheckBox_TBRMode->setDisabled(true);
+	m_pLabel_NIRF_Background = new QLabel("NIRF Background   ");
+	m_pLabel_NIRF_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+	m_pLabel_NIRF_Background->setBuddy(m_pLineEdit_NIRF_Background);
+	m_pLabel_NIRF_Background->setDisabled(true);
+	
+    m_pLineEdit_TBR_Background = new QLineEdit(this);
+	m_pLineEdit_TBR_Background->setFixedWidth(35);
+	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
+	m_pLineEdit_TBR_Background->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_TBR_Background->setDisabled(true);
 
-    m_pLineEdit_Background_Level = new QLineEdit(this);
-    m_pLineEdit_Background_Level->setFixedWidth(35);
-    m_pLineEdit_Background_Level->setText(QString::number(nirfBackgroundLevel));
-    m_pLineEdit_Background_Level->setAlignment(Qt::AlignCenter);
-
-    m_pLabel_Background_Level =  new QLabel("Background Level   ");
-    m_pLabel_Background_Level->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    m_pLabel_Background_Level->setBuddy(m_pLineEdit_Background_Level);
-    m_pLabel_Background_Level->setDisabled(true);
+    m_pLabel_TBR_Background =  new QLabel("TBR Background   ");
+	m_pLabel_TBR_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+	m_pLabel_TBR_Background->setBuddy(m_pLineEdit_TBR_Background);
+	m_pLabel_TBR_Background->setDisabled(true);
 
 	
     // Initialization
@@ -156,6 +169,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pGridLayout_Buttons->addWidget(m_pPushButton_LoadDistanceMap, 0, 0);
 	pGridLayout_Buttons->addWidget(m_pPushButton_LoadNirfBackground, 0, 1);
 	pGridLayout_Buttons->addWidget(m_pToggleButton_Compensation, 1, 0, 1, 2);
+	pGridLayout_Buttons->addWidget(m_pToggleButton_TBRMode, 2, 0, 1, 2);
 
 	QGridLayout *pGridLayout_CompCurves = new QGridLayout;
 	pGridLayout_CompCurves->setSpacing(2);
@@ -197,10 +211,11 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 
     pHBoxLayout_TBR->addWidget(m_pCheckBox_Filtering);
     pHBoxLayout_TBR->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    pHBoxLayout_TBR->addWidget(m_pCheckBox_TBRMode);
+	pHBoxLayout_TBR->addWidget(m_pLabel_NIRF_Background);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background);
     pHBoxLayout_TBR->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-    pHBoxLayout_TBR->addWidget(m_pLabel_Background_Level);
-    pHBoxLayout_TBR->addWidget(m_pLineEdit_Background_Level);
+    pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
+    pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background);
 
 
 	m_pVBoxLayout = new QVBoxLayout;
@@ -219,6 +234,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pPushButton_LoadDistanceMap, SIGNAL(clicked(bool)), this, SLOT(loadDistanceMap()));
 	connect(m_pPushButton_LoadNirfBackground, SIGNAL(clicked(bool)), this, SLOT(loadNirfBackground()));
     connect(m_pToggleButton_Compensation, SIGNAL(toggled(bool)), this, SLOT(compensation(bool)));
+	connect(m_pToggleButton_TBRMode, SIGNAL(toggled(bool)), this, SLOT(tbrConvering(bool)));
 	connect(m_pLineEdit_CompensationCoeff[0], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff[1], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff[2], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
@@ -229,8 +245,8 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
     connect(m_pSpinBox_LumenContourOffset, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
     connect(m_pSpinBox_OuterSheathPosition, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
     connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
-    connect(m_pCheckBox_TBRMode, SIGNAL(toggled(bool)), this, SLOT(tbrConvering(bool)));
-    connect(m_pLineEdit_Background_Level, SIGNAL(textChanged(const QString &)), this, SLOT(chagneBackgroundLevel(const QString &)));
+	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
+    connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
 }
 
 NirfDistCompDlg::~NirfDistCompDlg()
@@ -277,11 +293,11 @@ void NirfDistCompDlg::loadDistanceMap()
 
 void NirfDistCompDlg::loadNirfBackground()
 {
-    QString distMapName = m_pResultTab->m_path + "/NIRFbg.bin";
+    QString distMapName = m_pResultTab->m_path + "/nirf_bg.bin";
 
     QFile file(distMapName);
     if (false == file.open(QFile::ReadOnly))
-        printf("[ERROR] Invalid external data or there is no such a file (NIRFbg.bin)!\n");
+        printf("[ERROR] Invalid external data or there is no such a file (nirf_bg.bin)!\n");
     else
     {
         np::DoubleArray nirfBgMap((int)file.size() / sizeof(double));
@@ -295,6 +311,9 @@ void NirfDistCompDlg::loadNirfBackground()
 
         // Update widgets states
         m_pPushButton_LoadNirfBackground->setDisabled(true);
+		m_pLabel_NIRF_Background->setEnabled(true);
+		m_pLineEdit_NIRF_Background->setEnabled(true);
+		m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg, 'f', 3));
         if (!m_pPushButton_LoadDistanceMap->isEnabled() && !m_pPushButton_LoadNirfBackground->isEnabled())
             m_pToggleButton_Compensation->setEnabled(true);
     }
@@ -306,18 +325,18 @@ void NirfDistCompDlg::compensation(bool toggled)
     {
         m_pToggleButton_Compensation->setText("Compensation Off");
 
-        m_pCheckBox_TBRMode->setEnabled(true);
-        m_pLabel_Background_Level->setEnabled(true);
-        m_pLineEdit_Background_Level->setEnabled(true);
+        m_pToggleButton_TBRMode->setEnabled(true);
+        m_pLabel_TBR_Background->setEnabled(true);
+        m_pLineEdit_TBR_Background->setEnabled(true);
     }
     else
     {
         m_pToggleButton_Compensation->setText("Compensation On");
 
-        m_pCheckBox_TBRMode->setChecked(false);
-        m_pCheckBox_TBRMode->setDisabled(true);
-        m_pLabel_Background_Level->setDisabled(true);
-        m_pLineEdit_Background_Level->setDisabled(true);
+		m_pToggleButton_TBRMode->setChecked(false);
+		m_pToggleButton_TBRMode->setDisabled(true);
+        m_pLabel_TBR_Background->setDisabled(true);
+        m_pLineEdit_TBR_Background->setDisabled(true);
     }
 
     // Update compensation map
@@ -325,6 +344,19 @@ void NirfDistCompDlg::compensation(bool toggled)
 
     // Invalidate
     m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::tbrConvering(bool toggled)
+{
+	if (toggled)
+		m_pToggleButton_TBRMode->setText("TBR Converting Off");
+	else
+		m_pToggleButton_TBRMode->setText("TBR Converting On");
+
+	tbrBg = m_pLineEdit_TBR_Background->text().toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
 }
 
 void NirfDistCompDlg::changeCompensationCurve()
@@ -430,22 +462,17 @@ void NirfDistCompDlg::filtering(bool toggled)
     m_pResultTab->invalidate();
 }
 
-void NirfDistCompDlg::tbrConvering(bool toggled)
+void NirfDistCompDlg::changeNirfBackground(const QString &str)
 {
-    if (toggled)
-        m_pCheckBox_TBRMode->setText("TBR Converting Off");
-    else
-        m_pCheckBox_TBRMode->setText("TBR Converting On");
+	nirfBg = str.toFloat();
 
-    nirfBackgroundLevel = m_pLineEdit_Background_Level->text().toFloat();
-
-    // Invalidate
-    m_pResultTab->invalidate();
+	// Invalidate
+	m_pResultTab->invalidate();
 }
 
-void NirfDistCompDlg::chagneBackgroundLevel(const QString & str)
+void NirfDistCompDlg::changeTbrBackground(const QString &str)
 {
-    nirfBackgroundLevel = str.toFloat();
+    tbrBg = str.toFloat();
 
     // Invalidate
     m_pResultTab->invalidate();

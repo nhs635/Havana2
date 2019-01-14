@@ -10,6 +10,7 @@
 #endif
 #ifdef PULLBACK_DEVICE
 #include <DeviceControl/ZaberStage/ZaberStage.h>
+#include <DeviceControl/FaulhaberMotor/FaulhaberMotor.h>
 #endif
 
 #include <QtCore/QFile>
@@ -170,9 +171,12 @@ bool MemoryBuffer::startRecording()
 	{
 		m_pDeviceControlTab->getZaberStage()->DidMovedAbsolute += [&]() {
 			// Finish recording when the pullback is finished.
-			m_bIsRecording = false;
-			m_pOperationTab->setRecordingButton(false);
-			m_pDeviceControlTab->getFaulhaberOperationButton()->setChecked(false);
+			if (m_bIsRecording)
+			{
+				m_bIsRecording = false;
+				m_pOperationTab->setRecordingButton(false);
+				m_pDeviceControlTab->getFaulhaberMotor()->StopMotor();
+			}
 		};
 		m_pDeviceControlTab->pullback();
 	}
@@ -388,14 +392,17 @@ void MemoryBuffer::write()
 			buffer = m_queueWritingBuffer.front();
 			m_queueWritingBuffer.pop();
 
-			for (int j = 0; j < 8; j++)
+			if (i > 0)
 			{
-				res = file.write(reinterpret_cast<char*>(buffer + j * samplesToWrite), sizeof(uint16_t) * samplesToWrite);
-				if (!(res == sizeof(uint16_t) * samplesToWrite))
+				for (int j = 0; j < 8; j++)
 				{
-					printf("Error occurred while writing...\n");
-					emit finishedWritingThread(true);
-					return;
+					res = file.write(reinterpret_cast<char*>(buffer + j * samplesToWrite), sizeof(uint16_t) * samplesToWrite);
+					if (!(res == sizeof(uint16_t) * samplesToWrite))
+					{
+						printf("Error occurred while writing...\n");
+						emit finishedWritingThread(true);
+						return;
+					}
 				}
 			}
 			emit wroteSingleFrame(i);
@@ -437,17 +444,18 @@ void MemoryBuffer::write()
 		printf("Error occurred while copying flim_mask data.\n");
 #endif
 #ifdef OCT_NIRF
-	QFile nirfFile(fileTitle + ".nirf");
+	QFile nirfFile(filePath + "/nirf.bin");
 	if (nirfFile.open(QIODevice::WriteOnly))
 	{
 		for (int i = 0; i < m_nRecordedFrames; i++)
 		{
 			buffer_nirf = m_queueWritingBufferNirf.front();
 			m_queueWritingBufferNirf.pop();
+			if (i > 0)
 #ifndef TWO_CHANNEL_NIRF
-			nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * m_pConfig->nAlines);
+				nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * m_pConfig->nAlines);
 #else
-			nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * 2 * m_pConfig->nAlines);
+				nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * 2 * m_pConfig->nAlines);
 #endif
 			m_queueWritingBufferNirf.push(buffer_nirf);
 		}
@@ -464,7 +472,8 @@ void MemoryBuffer::write()
 			if (ecgFile.open(QIODevice::WriteOnly))
 			{
 				for (int i = 0; i < pDequeEcg->size(); i++)
-					ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
+					if (i > 0)
+						ecgFile.write(reinterpret_cast<char*>(&pDequeEcg->at(i)), sizeof(double));
 			}
 			double delay = m_pDeviceControlTab->getEcgDelayRate() * m_pDeviceControlTab->getEcgHeartInterval(); // milliseconds
 			ecgFile.write(reinterpret_cast<char*>(&delay), sizeof(double));
@@ -481,6 +490,7 @@ void MemoryBuffer::write()
 	emit finishedWritingThread(false);
 
 	// Status update
+	m_nRecordedFrames = m_nRecordedFrames - 1;
 	printf("\nData saving thread is finished normally. (Saved frames: %d frames)\n", m_nRecordedFrames);
 	QByteArray temp = m_fileName.toLocal8Bit();
 	char* filename = temp.data();

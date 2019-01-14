@@ -35,6 +35,9 @@ class ElforlightLaser;
 #endif
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
+#ifdef NI_NIRF_SYNC
+class NirfSyncBoard;
+#endif
 class NirfEmissionTrigger;
 class NirfEmission;
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -88,7 +91,7 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif
 #ifdef PULLBACK_DEVICE
 	inline ZaberStage* getZaberStage() const { return m_pZaberStage; }
-	inline QPushButton* getFaulhaberOperationButton() const { return m_pToggleButton_Rotate; }
+	inline FaulhaberMotor* getFaulhaberMotor() const { return m_pFaulhaberMotor; }
 #endif
 
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,6 +117,8 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 
 public: ////////////////////////////////////////////////////////////////////////////////////////////////
+	// Terminating..
+	void terminateAllDevices();
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 	// ECG Module Control
@@ -124,6 +129,10 @@ public: ////////////////////////////////////////////////////////////////////////
 	double getEcgHeartInterval();
 	std::deque<double>* getRecordedEcg();
 #endif	
+#endif
+#ifdef OCT_NIRF
+	bool initializeNiDaqAnalogInput();
+	bool startNiDaqAnalogInput();
 #endif
 #ifdef GALVANO_MIRROR
 	int getScrollBarValue() { return m_pScrollBar_ScanAdjustment->value(); }
@@ -136,6 +145,9 @@ public: ////////////////////////////////////////////////////////////////////////
 	bool isZaberStageEnabled() { return m_pCheckBox_ZaberStageControl->isChecked(); }
 	void pullback() { moveAbsolute(); }
 #endif
+
+signals: ////////////////////////////////////////////////////////////////////////////////////////////////
+	void drawEcg(double, bool);
 
 private slots: //////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ECG_TRIGGERING
@@ -168,7 +180,12 @@ private slots: /////////////////////////////////////////////////////////////////
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	// PMT Gain Control
 	void enablePmtGainControl(bool);
+#ifndef TWO_CHANNEL_NIRF
 	void changePmtGainVoltage(const QString &);
+#else
+	void changePmtGainVoltage1(const QString &);
+	void changePmtGainVoltage2(const QString &);
+#endif
 #endif
 #endif
 #endif
@@ -194,7 +211,8 @@ private slots: /////////////////////////////////////////////////////////////////
 
 	// Faulhaber Motor Control
 	void enableFaulhaberMotorControl(bool);
-	void rotate(bool);
+	void rotate();
+	void rotateStop();
 	void changeFaulhaberRpm(const QString &);
 #endif
 
@@ -222,6 +240,9 @@ private: ///////////////////////////////////////////////////////////////////////
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	// NIRF Emission
+#ifdef NI_NIRF_SYNC
+	NirfSyncBoard* m_pNirfSyncBoard;
+#endif
 	NirfEmissionTrigger* m_pNirfEmissionTrigger;
 	NirfEmission* m_pNirfEmission;
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -303,7 +324,11 @@ private: ///////////////////////////////////////////////////////////////////////
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	// Widgets for FLIM control	// Gain control
 	QCheckBox *m_pCheckBox_PmtGainControl;
+#ifndef TWO_CHANNEL_NIRF
 	QLineEdit *m_pLineEdit_PmtGainVoltage;
+#else
+	QLineEdit *m_pLineEdit_PmtGainVoltage[2];
+#endif
 	QLabel *m_pLabel_PmtGainVoltage;
 #endif
 #endif
@@ -342,7 +367,8 @@ private: ///////////////////////////////////////////////////////////////////////
 
     // Widgets for Faulhaber motor control
     QCheckBox *m_pCheckBox_FaulhaberMotorControl;
-    QPushButton *m_pToggleButton_Rotate;
+    QPushButton *m_pPushButton_Rotate;
+	QPushButton *m_pPushButton_RotateStop;
     QLineEdit *m_pLineEdit_RPM;
     QLabel *m_pLabel_RPM;
 #endif

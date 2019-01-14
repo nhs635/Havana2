@@ -14,10 +14,6 @@ using namespace std;
 NirfEmissionTrigger::NirfEmissionTrigger() :
 	_taskHandle(nullptr),
 	nAlines(1024),
-#ifdef NI_NIRF_SYNC
-	syncPowerTerminal(NI_NIRF_SYNC_POWER),
-	syncResetTerminal(NI_NIRF_SYNC_RESET),
-#endif
 	counterChannel(NI_NIRF_ALINES_COUNTER),
     sourceTerminal(NI_NIRF_TRIGGER_SOURCE)
 {
@@ -37,7 +33,7 @@ bool NirfEmissionTrigger::initialize()
 
 	int lowTicks = nAlines / 2;
 	int highTicks = lowTicks;
-	uint64_t sampsPerChan = nAlines * 10;
+	uint64_t sampsPerChan = nAlines;
 	int res;
 
 	if ((res = DAQmxCreateTask("", &_taskHandle)) != 0)
@@ -45,34 +41,7 @@ bool NirfEmissionTrigger::initialize()
 		dumpError(res, "ERROR: Failed to initialize NI Counter: ");
 		return false;
 	}
-
-#ifdef NI_NIRF_SYNC
-	//if ((res = DAQmxCreateDOChan(_taskHandle, syncResetTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
-	//	return false;
-	//}
-
-	//if ((res = DAQmxCreateDOChan(_taskHandle, syncPowerTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
-	//	return false;
-	//}
-	//
-	//if ((res = DAQmxWriteDigitalScalarU32(_taskHandle, TRUE, DAQmx_Val_WaitInfinitely, 0xFFFF, NULL)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
-	//	return false;
-	//}
-
-	//if ((res = DAQmxCreateDOChan(_taskHandle, syncPowerTerminal, NULL, DAQmx_Val_ChanPerLine)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to initialize NI Digital Output: ");
-	//	return false;
-	//}
-#endif
-
-	if ((res = DAQmxCreateCOPulseChanTicks(_taskHandle, counterChannel, NULL, sourceTerminal, DAQmx_Val_Low, 0, lowTicks, highTicks)) != 0)
+	if ((res = DAQmxCreateCOPulseChanTicks(_taskHandle, counterChannel, NULL, sourceTerminal, DAQmx_Val_High, 0, lowTicks, highTicks)) != 0)
 	{
 		dumpError(res, "ERROR: Failed to initialize NI Counter: ");
 		return false;
@@ -108,6 +77,19 @@ void NirfEmissionTrigger::stop()
 		DAQmxStopTask(_taskHandle);
 		DAQmxClearTask(_taskHandle);
 		_taskHandle = nullptr;
+
+#ifdef NI_NIRF_SYNC
+		int32 written;
+		uInt32 value = 0x00;
+		DAQmxCreateTask("", &_taskHandle);
+		DAQmxCreateDOChan(_taskHandle, NI_NIRF_CTR_EQV_PORT, "", DAQmx_Val_ChanForAllLines);
+		DAQmxStartTask(_taskHandle);
+		DAQmxWriteDigitalU32(_taskHandle, 1, TRUE, 10.0, DAQmx_Val_GroupByChannel, &value, &written, NULL);
+
+		DAQmxStopTask(_taskHandle);
+		DAQmxClearTask(_taskHandle);
+		_taskHandle = nullptr;
+#endif
 	}
 }
 

@@ -24,6 +24,9 @@ public:
 	virtual ~QScope2();
 
 public:
+	inline QRenderArea2* getRender() { return m_pRenderArea; }
+
+public:
 	void setAxis(QRange x_range, QRange y_range,
                  int num_x_ticks = 2, int num_y_ticks = 2,
                  double x_interval = 1, double y_interval = 1, double x_offset = 0, double y_offset = 0,
@@ -31,6 +34,9 @@ public:
     void resetAxis(QRange x_range, QRange y_range,
                    double x_interval = 1, double y_interval = 1, double x_offset = 0, double y_offset = 0,
                    QString x_unit = "", QString y_unit = "");
+
+public:
+	void setVerticalLine(int len, ...);
 
 public slots:
     void drawData(const float* pData1, const float* pData2);
@@ -51,6 +57,7 @@ class QRenderArea2 : public QWidget
 
 public:
     explicit QRenderArea2(QWidget *parent = 0);
+	virtual ~QRenderArea2();
 
 protected:
     void paintEvent(QPaintEvent *);
@@ -65,6 +72,9 @@ public:
     QRange m_xRange;
     QRange m_yRange;
     QSizeF m_sizeGraph;
+
+	int *m_pVLineInd;
+	int m_vLineLen;
 };
 
 

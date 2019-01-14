@@ -326,11 +326,11 @@ void SaveResultDlg::saveCrossSections()
 #else
 		np::Uint8Array2 nirfMap1(roi_nirf.width, roi_nirf.height);
 		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap1_0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap1.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
-			roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+			roi_nirf, m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max);
 
 		np::Uint8Array2 nirfMap2(roi_nirf.width, roi_nirf.height);
 		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap2_0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap2.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
-			roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+			roi_nirf, m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max);
 #endif
 #ifdef GALVANO_MIRROR
             if (m_pConfig->galvoHorizontalShift)
@@ -694,7 +694,7 @@ void SaveResultDlg::saveEnFaceMaps()
                 // NIRF maps ////////////////////////////////////////////////////////////////////////////////
 #ifndef TWO_CHANNEL_NIRF
                 IppiSize roi_nirf = { m_pResultTab->m_nirfMap0.size(0), m_pResultTab->m_nirfMap0.size(1) };
-                ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+                ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
 
                 ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * roi_nirf.width, imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
                 ippiMirror_8u_C1IR(imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, ippAxsHorizontal);
@@ -732,11 +732,11 @@ void SaveResultDlg::saveEnFaceMaps()
                 }
 
                 imgObjNirfMap.qindeximg.copy(0, roi_nirf.height - end, m_pResultTab->m_nirfMap.size(0), end - start + 1).
-                        save(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1), "bmp");
+                        save(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2), "bmp");
 
                 if (m_pResultTab->getNirfDistCompDlg())
                     if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-                        saveCompDetailsLog(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1).replace("bmp", "log"));
+                        saveCompDetailsLog(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2).replace("bmp", "log"));
 #else
 				for (int i = 0; i < 2; i++)
 				{
@@ -744,9 +744,11 @@ void SaveResultDlg::saveEnFaceMaps()
 					auto pNirfMap0 = (i == 0) ? &m_pResultTab->m_nirfMap1_0 : &m_pResultTab->m_nirfMap2_0;
 
 					IppiSize roi_nirf = { pNirfMap0->size(0), pNirfMap0->size(1) };
-					ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(ColorTable::hot));
+					int table = (i == 0) ? NIRF_COLORTABLE1 : NIRF_COLORTABLE2;
+					ImageObject imgObjNirfMap(roi_nirf.width, roi_nirf.height, temp_ctable.m_colorTableVector.at(table));
 
-					ippiScale_32f8u_C1R(pNirfMap0->raw_ptr(), sizeof(float) * roi_nirf.width, imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+					ippiScale_32f8u_C1R(pNirfMap0->raw_ptr(), sizeof(float) * roi_nirf.width, imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, 
+						roi_nirf, m_pConfig->nirfRange[i].min, m_pConfig->nirfRange[i].max);
 					ippiMirror_8u_C1IR(imgObjNirfMap.arr.raw_ptr(), sizeof(uint8_t) * roi_nirf.width, roi_nirf, ippAxsHorizontal);
 #ifdef GALVANO_MIRROR
 					if (m_pConfig->galvoHorizontalShift)
@@ -782,11 +784,11 @@ void SaveResultDlg::saveEnFaceMaps()
 					}
 
 					imgObjNirfMap.qindeximg.copy(0, roi_nirf.height - end, pNirfMap->size(0), end - start + 1).
-						save(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1), "bmp");
+						save(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2), "bmp");
 
 					if (m_pResultTab->getNirfDistCompDlg())
 						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-							saveCompDetailsLog(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1).replace("bmp", "log"));
+							saveCompDetailsLog(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2).replace("bmp", "log"));
 				}
 #endif
             }
@@ -949,9 +951,10 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 #ifdef OCT_NIRF
        // Image objects for NIRF
 #ifndef TWO_CHANNEL_NIRF
-        pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot)));
+        pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
 #else
-		pImgObjVec->push_back(new ImageObject(roi_oct.height, 2 * RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::hot)));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
 #endif
 #endif
 
@@ -1006,7 +1009,14 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 
 			uint8_t* rectNirf2 = &nirfMap2(0, frameCount);
 			for (int j = 0; j < RING_THICKNESS; j++)
-				memcpy(&pImgObjVec->at(1)->arr(0, j + RING_THICKNESS), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
+				memcpy(&pImgObjVec->at(2)->arr(0, j), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
+
+			np::Uint8Array boundary(pImgObjVec->at(1)->arr.size(0));
+			ippsSet_8u(255, boundary.raw_ptr(), pImgObjVec->at(1)->arr.size(0));
+
+			memcpy(&pImgObjVec->at(1)->arr(0, 0), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
+			memcpy(&pImgObjVec->at(1)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
+			memcpy(&pImgObjVec->at(2)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0));
 #endif
         }
 #endif
@@ -1063,6 +1073,9 @@ void SaveResultDlg::converting(CrossSectionCheckList checkList)
         {
             pImgObjVec->at(0)->convertRgb();
             pImgObjVec->at(1)->convertNonScaledRgb(); // nirf
+#ifdef TWO_CHANNEL_NIRF
+			pImgObjVec->at(2)->convertNonScaledRgb(); // nirf
+#endif
         }
 #endif
 		frameCount++;
@@ -1147,7 +1160,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 				if (checkList.bCh[i])
 				{
                     rectPath[i] = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]_ch%3_i[%4 %5]_t[%6 %7]/")
-                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).
+                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
 						.arg(i + 1).arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
 					if (checkList.bRect) QDir().mkdir(rectPath[i]);
@@ -1157,7 +1170,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 		else
 		{
             rectPath[0] = m_pResultTab->m_path + QString("/rect_merged_dB[%1 %2]_ch%3%4%5_i[%6 %7]_t[%8 %9]/")
-                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).
+                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
 				.arg(checkList.bCh[0] ? "1" : "").arg(checkList.bCh[1] ? "2" : "").arg(checkList.bCh[2] ? "3" : "")
 				.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 				.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
@@ -1265,6 +1278,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
     else
     {
         QString nirfName;
+#ifndef TWO_CHANNEL_NIRF
         if (m_pResultTab->getNirfDistCompDlg())
         {
             if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
@@ -1282,7 +1296,28 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             nirfName = QString("/rect_image_dB[%1 %2]_raw_nirf_i[%3 %4]/");
         }
         QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
-                .arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1);
+                .arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
+#else
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+			{
+				if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+					nirfName = QString("/rect_image_dB[%1 %2]_tbr_nirf_i1[%3 %4]_i2[%5 %6]/");
+				else
+					nirfName = QString("/rect_image_dB[%1 %2]_comp_nirf_i1[%3 %4]_i2[%5 %6]/");
+			}
+			else
+				nirfName = QString("/rect_image_dB[%1 %2]_bg_sub_nirf_i1[%3 %4]_i2[%5 %6]/");
+		}
+		else
+		{
+			nirfName = QString("/rect_image_dB[%1 %2]_raw_nirf_i1[%3 %4]_i2[%5 %6]/");
+		}
+		QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+			.arg(m_pConfig->nirfRange[0].min, 2, 'f', 2).arg(m_pConfig->nirfRange[0].max, 2, 'f', 2)
+			.arg(m_pConfig->nirfRange[1].min, 2, 'f', 2).arg(m_pConfig->nirfRange[1].max, 2, 'f', 2);
+#endif
         if (checkList.bRect) QDir().mkdir(rectPath);
 
         int frameCount = 0;
@@ -1301,6 +1336,8 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 #else
 				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * RING_THICKNESS),
+					pImgObjVec->at(2)->qrgbimg.bits(), pImgObjVec->at(2)->qrgbimg.byteCount()); // Nirf
 #endif
 
                 if (checkList.bRect)
@@ -1518,6 +1555,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 #else
 				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
+					pImgObjVec->at(2)->qrgbimg.bits(), pImgObjVec->at(2)->qrgbimg.byteCount()); // Nirf
 #endif
 
 				// Circularize
@@ -1541,6 +1580,9 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList)
 		delete pImgObjVec->at(0);
 #ifdef OCT_NIRF
         delete pImgObjVec->at(1);
+#ifdef TWO_CHANNEL_NIRF
+		delete pImgObjVec->at(2);
+#endif
 #endif
 #endif
 		delete pImgObjVec;
@@ -1681,6 +1723,7 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
     else
     {
         QString nirfName;
+#ifndef TWO_CHANNEL_NIRF
         if (m_pResultTab->getNirfDistCompDlg())
         {
             if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
@@ -1698,7 +1741,28 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
             nirfName = QString("/circ_image_dB[%1 %2]_raw_nirf_i[%3 %4]/");
         }
         QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
-                .arg(m_pConfig->nirfRange.min, 2, 'f', 1).arg(m_pConfig->nirfRange.max, 2, 'f', 1);
+                .arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
+#else
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+			{
+				if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+					nirfName = QString("/circ_image_dB[%1 %2]_tbr_nirf_i1[%3 %4]_i2[%5 %6]/");
+				else
+					nirfName = QString("/circ_image_dB[%1 %2]_comp_nirf_i1[%3 %4]_i2[%5 %6]/");
+			}
+			else
+				nirfName = QString("/circ_image_dB[%1 %2]_bg_sub_nirf_i1[%3 %4]_i2[%5 %6]/");
+		}
+		else
+		{
+			nirfName = QString("/circ_image_dB[%1 %2]_raw_nirf_i1[%3 %4]_i2[%5 %6]/");
+		}
+		QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+			.arg(m_pConfig->nirfRange[0].min, 2, 'f', 2).arg(m_pConfig->nirfRange[0].max, 2, 'f', 2)
+			.arg(m_pConfig->nirfRange[1].min, 2, 'f', 2).arg(m_pConfig->nirfRange[1].max, 2, 'f', 2);
+#endif
         if (checkList.bCirc) QDir().mkdir(circPath);
 
         int frameCount = 0;
@@ -1769,7 +1833,10 @@ void SaveResultDlg::saveCompDetailsLog(const QString savepath)
 #endif
 
     out << QString("@ NIRF Background: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBg));
-    out << QString("@ NIRF Background for TBR: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBackgroundLevel));
+    out << QString("@ NIRF Background for TBR: %1\n\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->tbrBg));
+	
+	out << QString("@ Circ Center: %1\n").arg(QString::number(m_pConfig->circCenter));
+	out << QString("@ Circ Radius: %1\n").arg(QString::number(CIRC_RADIUS));
 
     file.close();
 }

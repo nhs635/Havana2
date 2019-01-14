@@ -22,11 +22,10 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 
 NirfEmission::NirfEmission() :
 	_taskHandle(nullptr),
-	N(1),
 	nCh(1),
 	nAlines(1024),
 	nAcqs(0),
-	max_rate(120000.0),
+	max_rate(ALINE_RATE),
 	data(nullptr),
 	physicalChannel(NI_NIRF_EMISSION_CHANNEL),
 	sampleClockSource(NI_NIRF_TRIGGER_SOURCE),
@@ -56,7 +55,6 @@ bool NirfEmission::initialize()
 	nCh = 2;
 #endif
 	data = new double[nCh * nAlines];
-	N = 32;
 
 	/*********************************************/
 	// Analog Input for NIRF Emission Acquisition
@@ -71,7 +69,7 @@ bool NirfEmission::initialize()
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	if ((res = DAQmxCfgSampClkTiming(_taskHandle, sampleClockSource, max_rate, DAQmx_Val_Rising, DAQmx_Val_ContSamps, N)) != 0)
+	if ((res = DAQmxCfgSampClkTiming(_taskHandle, "", max_rate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, nAlines)) != 0)
 	{
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
@@ -81,7 +79,13 @@ bool NirfEmission::initialize()
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, N, 0, EveryNCallback, this)) != 0)
+	if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
+	{
+		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+		return false;
+	}
+
+	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, nAlines, 0, EveryNCallback, this)) != 0)
 	{
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
@@ -150,24 +154,24 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 {
 	NirfEmission* pNirfEmission = (NirfEmission*)callbackData;
 
-	static int n = 0;
+	//static int n = 0;
 	int32 read;
-	int32 res = DAQmxReadAnalogF64(taskHandle, pNirfEmission->N, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, pNirfEmission->data + n, pNirfEmission->nCh * pNirfEmission->N, &read, NULL);
-	if (res != 0) printf("error\n");
-	
-	n = n + pNirfEmission->nCh * pNirfEmission->N;
-	if (n == pNirfEmission->nCh * pNirfEmission->nAlines)
+	int32 res = DAQmxReadAnalogF64(taskHandle, pNirfEmission->nAlines, 10.0, DAQmx_Val_GroupByScanNumber, pNirfEmission->data, pNirfEmission->nCh * pNirfEmission->nAlines, &read, NULL);
+	if (res != 0)
 	{
-		n = 0;
-		pNirfEmission->nAcqs++;
-		
+		pNirfEmission->dumpError(res, "ERROR: NIRF Acquisition Error: ");
+		return -1;	
+	}
+
+	if (read > 0)
+	{		
 		np::DoubleArray data(pNirfEmission->nCh * pNirfEmission->nAlines);
 #ifndef TWO_CHANNEL_NIRF
 		memcpy(data, pNirfEmission->data, sizeof(double) * pNirfEmission->nAlines);
 #else
 		ippsCplxToReal_64fc((const Ipp64fc*)pNirfEmission->data, data.raw_ptr(), data.raw_ptr() + pNirfEmission->nAlines, pNirfEmission->nAlines);
 #endif
-		pNirfEmission->DidAcquireData(pNirfEmission->nAcqs, data.raw_ptr());
+		pNirfEmission->DidAcquireData(++pNirfEmission->nAcqs, data.raw_ptr());
 
 		endTime = chrono::steady_clock::now();
 		chrono::milliseconds elapsed = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);

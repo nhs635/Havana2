@@ -104,38 +104,30 @@ void QEcgScope::setAxis(QRange x_range, QRange y_range,
     }
 
 	// Allocate data buffer
-	for (int i = 0; i < (int)m_pRenderArea->m_sizeGraph.width(); i++)
-	{
-		m_pRenderArea->m_dqData.push_back(0);
-		m_pRenderArea->m_dqIsPeak.push_back(false);
-	}
+	m_pRenderArea->m_dqData = np::FloatArray((int)m_pRenderArea->m_sizeGraph.width());
+	memset(m_pRenderArea->m_dqData, 0, sizeof(float) * m_pRenderArea->m_dqData.length());
+	m_pRenderArea->m_dqIsPeak = np::FloatArray((int)m_pRenderArea->m_sizeGraph.width());
+	memset(m_pRenderArea->m_dqIsPeak, 0, sizeof(float) * m_pRenderArea->m_dqIsPeak.length());
+
     m_pRenderArea->update();
 }
 
 void QEcgScope::clearDeque()
 {
-	for (int i = 0; i < m_pRenderArea->m_dqData.size(); i++)
-	{
-		m_pRenderArea->m_dqData.pop_front();
-		m_pRenderArea->m_dqData.push_back(0);
-
-		m_pRenderArea->m_dqIsPeak.pop_front();
-		m_pRenderArea->m_dqIsPeak.push_back(false);
-	}
+	memset(m_pRenderArea->m_dqData, 0, sizeof(float) * m_pRenderArea->m_dqData.length());
+	memset(m_pRenderArea->m_dqIsPeak, 0, sizeof(float) * m_pRenderArea->m_dqIsPeak.length());
 }
 
-void QEcgScope::drawData(float data, bool is_peak)
+void QEcgScope::drawData(double data, bool is_peak)
 {
 	static int n = 0;
 
-	if (m_pRenderArea->m_dqData.size() > (int)m_pRenderArea->m_sizeGraph.width())
-		m_pRenderArea->m_dqData.pop_front();
-	m_pRenderArea->m_dqData.push_back(data);
-
-	if (m_pRenderArea->m_dqIsPeak.size() > (int)m_pRenderArea->m_sizeGraph.width())
-		m_pRenderArea->m_dqIsPeak.pop_front();
-	m_pRenderArea->m_dqIsPeak.push_back(is_peak);
+	memcpy(m_pRenderArea->m_dqData, m_pRenderArea->m_dqData + 1, sizeof(float) * (m_pRenderArea->m_dqData.length() - 1));
+	m_pRenderArea->m_dqData[m_pRenderArea->m_dqData.length() - 1] = data;
 	
+	memcpy(m_pRenderArea->m_dqIsPeak, m_pRenderArea->m_dqIsPeak + 1, sizeof(float) * (m_pRenderArea->m_dqIsPeak.length() - 1));
+	m_pRenderArea->m_dqIsPeak[m_pRenderArea->m_dqIsPeak.length() - 1] = is_peak;
+		
 #ifdef ECG_TRIGGERING
 	if (n++ % ECG_VIEW_RENEWAL_COUNT == 0) m_pRenderArea->update();
 #endif
@@ -171,23 +163,23 @@ void QRenderAreaEcg::paintEvent(QPaintEvent *)
         painter.drawLine(0, i * h / 4, w, i * h / 4);
 	
     // Draw graph  
-    painter.setPen(QColor(0xfff65d));	
+    painter.setPen(QColor(0xfff65d));
 	for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
 	{
 		QPointF x0, x1;						
 		x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
-        x0.setY((float)(m_yRange.max - m_dqData.at(i)) * (float)h / (float)(m_yRange.max - m_yRange.min));
+        x0.setY((float)(m_yRange.max - m_dqData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
         x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
-        x1.setY((float)(m_yRange.max - m_dqData.at(i + 1)) * (float)h / (float)(m_yRange.max - m_yRange.min));
+        x1.setY((float)(m_yRange.max - m_dqData[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));
 
 		painter.drawLine(x0, x1);
     }
     
 	// Draw peak position
 	painter.setPen(QColor(0xff0000));
-	for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+	for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max); i++)
 	{
-		if (m_dqIsPeak.at(i))
+		if (m_dqIsPeak[i])
 		{
 			QPointF x0, x1;
 			x0.setX((float)(i) / (float)m_sizeGraph.width() * w); x0.setY(0.0f);

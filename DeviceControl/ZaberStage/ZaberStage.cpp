@@ -165,7 +165,8 @@ void ZaberStage::StopWaitThread()
 
 void ZaberStage::Home()
 {
-	zb_send(port, home);
+	//zb_send(port, home);
+	MoveAbsoulte(0.0);
 	printf("ZABER: Go home!! \n");
 }
 
@@ -179,11 +180,12 @@ void ZaberStage::Stop()
 
 void ZaberStage::MoveAbsoulte(double position)
 {	
-	int cmd_abs_dist = (int)round(1000.0 * position / 
+	double position1 = position + ZABER_HOME_OFFSET;
+	int cmd_abs_dist = (int)round(1000.0 * position1 /
 		(microstep_size * (double)max_micro_resolution / (double)micro_resolution) );
 	SetCommandData(cmd_abs_dist, move_absolute);
 	zb_send(port, move_absolute);
-	printf("ZABER: Move absolute %d (%.1f mm)\n", cmd_abs_dist, position);
+	printf("ZABER: Move absolute %d (%.1f mm)\n", cmd_abs_dist, position1);
 }
 
 

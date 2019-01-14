@@ -30,7 +30,7 @@ bool EcgMonitoringTrigger::initialize()
 {	
 	printf("Initializing NI Counter for triggering of ECG monitoring...\n");
 		
-	int lowTicks = 10000000 / ECG_SAMPLING_RATE;
+	int lowTicks = int(10000000.0 / ECG_SAMPLING_RATE);
 	int highTicks = lowTicks;
 	uint64_t sampsPerChan = 100000;
 	int res;
