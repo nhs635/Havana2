@@ -24,6 +24,7 @@ class QImageView;
 
 class SaveResultDlg;
 class OctIntensityHistDlg;
+class LongitudinalViewDlg;
 #ifdef OCT_FLIM
 class PulseReviewDlg;
 #endif
@@ -56,8 +57,10 @@ protected:
 
 public:
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
+	inline Configuration* getConfigTemp() const { return m_pConfigTemp; }
 	inline SaveResultDlg* getSaveResultDlg() const { return m_pSaveResultDlg; }
 	inline OctIntensityHistDlg* getOctIntensityHistDlg() const { return m_pOctIntensityHistDlg; }
+	inline LongitudinalViewDlg* getLongitudinalViewDlg() const { return m_pLongitudinalViewDlg; }
 #ifdef OCT_FLIM
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
 #endif
@@ -72,10 +75,13 @@ public:
 	inline QProgressBar* getProgressBar() const { return m_pProgressBar_PostProcessing; }
 	inline QImageView* getRectImageView() const { return m_pImageView_RectImage; }
 	inline QImageView* getCircImageView() const { return m_pImageView_CircImage; }
+	inline void setCurrentFrame(int frame) { m_pSlider_SelectFrame->setValue(frame); }
 	inline int getCurrentFrame() const { return m_pSlider_SelectFrame->value(); }
 	inline int getCurrentOctColorTable() const { return m_pComboBox_OctColorTable->currentIndex(); }
+	inline bool getPolishedSurfaceFindingStatus() const { return m_pToggleButton_FindPolishedSurfaces->isChecked(); }
 #ifdef OCT_FLIM
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
+	inline bool isHsvEnhanced() const { return m_pCheckBox_HsvEnhancedMap->isChecked(); }
 #endif
 #ifdef OCT_NIRF
     inline int getCurrentNirfOffset() const { return m_pScrollBar_NirfOffset->value(); }
@@ -95,6 +101,8 @@ private slots: // widget operation
 	void deleteSaveResultDlg();
 	void createOctIntensityHistDlg();
 	void deleteOctIntensityHistDlg();
+	void createLongitudinalViewDlg();
+	void deleteLongitudinalViewDlg();
 #ifdef OCT_FLIM
 	void createPulseReviewDlg();
 	void deletePulseReviewDlg();
@@ -129,6 +137,7 @@ private slots: // widget operation
 	void measureDistance(bool);
 	void showGuideLine(bool);
 	void changeVisImage(bool);
+	void findPolishedSurface(bool);
 	void checkCircCenter(const QString &);
 	void adjustOctContrast();
 #ifdef OCT_FLIM
@@ -144,6 +153,7 @@ private slots: // widget operation
 	void adjustNirfContrast1();
 	void adjustNirfContrast2();
 #endif
+	void adjustNirfOffset(const QString &);
 	void adjustNirfOffset(int);
 #endif
 
@@ -207,7 +217,7 @@ private:
 #endif
 
 private:
-	void getOctProjection(std::vector<np::FloatArray2>& vecImg, np::FloatArray2& octProj, int offset);
+	void getOctProjection(std::vector<np::FloatArray2>& vecImg, np::FloatArray2& octProj);
 
 // Variables ////////////////////////////////////////////
 private: // main pointer
@@ -238,7 +248,7 @@ private: // for threading operation
 public: // for visualization
 	std::vector<np::FloatArray2> m_vectorOctImage;
 	np::FloatArray2 m_octProjection;
-	int m_polishedSurface;
+	np::Array<int> m_polishedSurface;
 #ifdef OCT_FLIM
 	std::vector<np::FloatArray2> m_intensityMap; // (256 x N) x 3
 	std::vector<np::FloatArray2> m_lifetimeMap; // (256 x N) x 3
@@ -261,7 +271,7 @@ public: // for visualization
 	int m_nirfOffset;
 #endif
 
-private:
+public:
 	ImageObject *m_pImgObjRectImage;
 	ImageObject *m_pImgObjCircImage;
 #ifdef OCT_FLIM
@@ -360,9 +370,14 @@ private:
 #endif
 	QPushButton *m_pPushButton_OctIntensityHistogram;
 	OctIntensityHistDlg *m_pOctIntensityHistDlg;
+	
+	QPushButton *m_pPushButton_LongitudinalView;
+	LongitudinalViewDlg *m_pLongitudinalViewDlg;
 
     QCheckBox *m_pCheckBox_ShowGuideLine;
     QCheckBox *m_pCheckBox_CircularizeImage;
+
+	QPushButton *m_pToggleButton_FindPolishedSurfaces;
 
     QLabel *m_pLabel_CircCenter;
     QLineEdit *m_pLineEdit_CircCenter;

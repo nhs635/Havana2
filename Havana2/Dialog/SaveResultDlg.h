@@ -24,10 +24,11 @@ using ImgObjVector = std::vector<ImageObject*>;
 
 struct CrossSectionCheckList
 {
-	bool bRect, bCirc;
-	bool bRectResize, bCircResize;
+	bool bRect, bCirc, bLongi;
+	bool bRectResize, bCircResize, bLongiResize;
 	int nRectWidth, nRectHeight;
 	int nCircDiameter;
+	int nLongiWidth, nLongiHeight;
 #ifdef OCT_FLIM
 	bool bCh[3];
 	bool bMulti;
@@ -71,6 +72,7 @@ private slots:
     void setRange();
 	void enableRectResize(bool);
 	void enableCircResize(bool);
+	void enableLongiResize(bool);
 	void setWidgetsEnabled(bool);
 
 signals:
@@ -97,6 +99,7 @@ private:
 #endif
 	void converting(CrossSectionCheckList checkList);
 	void rectWriting(CrossSectionCheckList checkList);
+	void longitudinal(CrossSectionCheckList checkList);
 	void circularizing(CrossSectionCheckList checkList);
 	void circWriting(CrossSectionCheckList checkList);
 
@@ -113,11 +116,15 @@ private:
 private:
 	int m_nSavedFrames;
 
+public:
+	Qt::TransformationMode m_defaultTransformation;
+
 private: // for threading operation
 #if defined(OCT_FLIM) || defined(OCT_NIRF)
 	Queue<ImgObjVector*> m_syncQueueConverting;
 #endif
 	Queue<ImgObjVector*> m_syncQueueRectWriting;
+	Queue<ImgObjVector*> m_syncQueueLongitudinal;
 	Queue<ImgObjVector*> m_syncQueueCircularizing;
 	Queue<ImgObjVector*> m_syncQueueCircWriting;
 
@@ -131,6 +138,10 @@ private:
 	QCheckBox* m_pCheckBox_CircImage;
 	QCheckBox* m_pCheckBox_ResizeCircImage;
 	QLineEdit* m_pLineEdit_CircDiameter;
+	QCheckBox* m_pCheckBox_LongiImage;
+	QCheckBox* m_pCheckBox_ResizeLongiImage;
+	QLineEdit* m_pLineEdit_LongiWidth;
+	QLineEdit* m_pLineEdit_LongiHeight;
 #ifdef OCT_FLIM
 	QCheckBox* m_pCheckBox_CrossSectionCh1;
 	QCheckBox* m_pCheckBox_CrossSectionCh2;

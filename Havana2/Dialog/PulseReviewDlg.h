@@ -8,9 +8,6 @@
 #include <Havana2/Configuration.h>
 #include <Havana2/Viewer/QScope.h>
 
-#include <Common/array.h>
-#include <Common/callback.h>
-
 class MainWindow;
 class QResultTab;
 class FLIMProcess;
@@ -47,8 +44,7 @@ private:
 	QResultTab* m_pResultTab;
 #ifdef OCT_FLIM
 	FLIMProcess* m_pFLIM;
-#endif
-	
+#endif	
 
 private:
 	// Widgets for pulse view

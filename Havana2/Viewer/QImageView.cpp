@@ -254,7 +254,7 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 QRenderImage::QRenderImage(QWidget *parent) :
 	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000),
 	m_bMeasureDistance(false), m_nClicked(0),
-    m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false)
+    m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false)
 {
 	m_pHLineInd = new int[10];
     m_pVLineInd = new int[10];
@@ -269,7 +269,7 @@ QRenderImage::~QRenderImage()
 void QRenderImage::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
     // Area size
     int w = this->width();
@@ -294,18 +294,38 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		if (!m_bRadial)
 		{
 			p1.setX((double)(m_pVLineInd[i] * w) / (double)m_pImage->width()); p1.setY(0.0);
-			p2.setX((double)(m_pVLineInd[i] * w) / (double)m_pImage->width()); p2.setY((double)h);
+			p2.setX((double)(m_pVLineInd[i] * w) / (double)m_pImage->width()); p2.setY((double)h);			
 		}
 		else
 		{			
 			int circ_x = (double)(w / 2) + (double)(w / 2) * cos((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
 			int circ_y = (double)(h / 2) - (double)(h / 2) * sin((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
 			p1.setX(w / 2); p1.setY(h / 2);
-			p2.setX(circ_x); p2.setY(circ_y);
+			p2.setX(circ_x); p2.setY(circ_y);			
 		}
 
 		painter.setPen(m_colorLine);
 		painter.drawLine(p1, p2);
+
+		if (m_bDiametric)
+		{
+			QPointF p1, p2;
+			if (!m_bRadial)
+			{
+				p1.setX((double)((m_pVLineInd[i] + m_pImage->width() / 2) * w) / (double)m_pImage->width()); p1.setY(0.0);
+				p2.setX((double)((m_pVLineInd[i] + m_pImage->width() / 2) * w) / (double)m_pImage->width()); p2.setY((double)h);
+			}
+			else
+			{
+				int circ_x = (double)(w / 2) + (double)(w / 2) * cos((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
+				int circ_y = (double)(h / 2) - (double)(h / 2) * sin((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
+				p1.setX(w / 2); p1.setY(h / 2);
+				p2.setX(circ_x); p2.setY(circ_y);
+			}
+
+			painter.setPen(m_colorLine);
+			painter.drawLine(p1, p2);
+		}
 	}
 	for (int i = 0; i < m_circLen; i++)
 	{
@@ -353,6 +373,7 @@ void QRenderImage::paintEvent(QPaintEvent *)
 				// Euclidean distance
 				double dist = sqrt((p[0].x() - p[1].x()) * (p[0].x() - p[1].x())
 					+ (p[0].y() - p[1].y()) * (p[0].y() - p[1].y())) * (double)m_pImage->height() / (double)this->height();
+				dist *= PIXEL_SIZE;
 				printf("Measured distance: %.1f\n", dist);
 
 				QFont font; font.setBold(true);
@@ -366,7 +387,6 @@ void QRenderImage::paintEvent(QPaintEvent *)
 void QRenderImage::mousePressEvent(QMouseEvent *e)
 {
 	QPoint p = e->pos();
-
 	if (m_hLineLen == 1)
 	{
 		m_pHLineInd[0] = m_pImage->height() - (int)((double)(p.y() * m_pImage->height()) / (double)this->height());

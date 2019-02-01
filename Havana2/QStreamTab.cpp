@@ -197,7 +197,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
     m_pScope_OctFringe->setMinimumSize(600, 250);
     m_pScope_OctDepthProfile = new QScope({ 0, (double)m_pConfig->n2ScansFFT }, {(double)m_pConfig->octDbRange.min, (double)m_pConfig->octDbRange.max}, 2, 2, 1, 1, 0, 0, "", "dB");
     m_pScope_OctDepthProfile->setMinimumSize(600, 250);
-	m_pScope_OctDepthProfile->setVerticalLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
+	m_pScope_OctDepthProfile->setWindowLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
 	m_pScope_OctDepthProfile->getRender()->update();
 #elif defined (STANDALONE_OCT)
 	m_pScope_OctFringe = new QScope2({ 0, (double)m_pConfig->nScans }, { -POWER_2(15), POWER_2(15) }, 2, 3, 1, voltageCh1 / (double)POWER_2(16), 0, 0, "", "V");
@@ -1895,6 +1895,11 @@ void QStreamTab::checkCircCenter(const QString &str)
 	if (circCenter + CIRC_RADIUS + 1 > m_pConfig->n2ScansFFT)
 	{
 		circCenter = m_pConfig->n2ScansFFT - CIRC_RADIUS - 1;
+		m_pLineEdit_CircCenter->setText(QString::number(circCenter));
+	}
+	if (circCenter < 0)
+	{
+		circCenter = 0;
 		m_pLineEdit_CircCenter->setText(QString::number(circCenter));
 	}
 	m_pConfig->circCenter = circCenter;

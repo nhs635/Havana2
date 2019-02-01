@@ -83,8 +83,10 @@ Havana2.VC*
   (OCT-NIRF distance calibration & minor error modification)
 - Havana2 v1.2.4.3
   (2-Ch NIRF)
+- Havana2 v1.2.5.1
+  (Longitudinal view & minor error correction)
 
 
 To be updated:
 - Synchronized start for galvano mirror
-- OCT-NIRF Synchronization & Fluent Recording & 1170 Alines
+- OCT-NIRF Synchronization & Fluent Recording 

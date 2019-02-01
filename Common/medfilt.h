@@ -1,6 +1,13 @@
 #ifndef _MEDFILT_H_
 #define _MEDFILT_H_
 
+#include "Common/Array.h"
+
+#include <ipps.h>
+#include <ippi.h>
+#include <ippcore.h>
+
+
 class medfilt
 {
 public:

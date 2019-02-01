@@ -81,6 +81,7 @@ SOURCES += Havana2/Havana2.cpp \
     Havana2/Viewer/QImageView.cpp \
     Havana2/Dialog/OctCalibDlg.cpp \
     Havana2/Dialog/OctIntensityHistDlg.cpp \
+    Havana2/Dialog/LongitudinalViewDlg.cpp \
     Havana2/Dialog/FlimCalibDlg.cpp \
     Havana2/Dialog/DigitizerSetupDlg.cpp \
     Havana2/Dialog/SaveResultDlg.cpp \
@@ -126,6 +127,7 @@ HEADERS += Havana2/Configuration.h \
     Havana2/Viewer/QImageView.h \
     Havana2/Dialog/OctCalibDlg.h \
     Havana2/Dialog/OctIntensityHistDlg.h \
+    Havana2/Dialog/LongitudinalViewDlg.h \
     Havana2/Dialog/FlimCalibDlg.h \
     Havana2/Dialog/DigitizerSetupDlg.h \
     Havana2/Dialog/SaveResultDlg.h \

@@ -107,6 +107,7 @@ public:
     int m_hLineLen, m_vLineLen;
     int m_circLen;
 	bool m_bRadial;
+	bool m_bDiametric;
 	int m_rMax;
 	QColor m_colorLine;
 

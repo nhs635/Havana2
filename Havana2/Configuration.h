@@ -1,17 +1,17 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.5"
+#define VERSION						"1.2.5.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define NI_ENABLE					false
+#define NI_ENABLE					true
 
 /////////////////////// System setup ////////////////////////
-///#define OCT_FLIM
+//#define OCT_FLIM
 #define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
@@ -38,13 +38,13 @@
 
 ////////////////////// Digitizer setup //////////////////////
 #if PX14_ENABLE
-#define ADC_RATE					100 // MHz
+#define ADC_RATE					340 // MHz
 
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #endif
 
-#define N_SCANS						1700
+#define N_SCANS						2600
 
 /////////////////////// Device setup ////////////////////////
 #ifdef ECG_TRIGGERING
@@ -142,15 +142,16 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				350 
+#define RING_THICKNESS				150 
 #endif
 
-#define CIRC_RADIUS					1500 // Only even number
+#define CIRC_RADIUS					1200 // Only even number
 #define SHEATH_RADIUS				185
 #if (CIRC_RADIUS % 2)
 #error("CIRC_RADIUS should be even number.");
 #endif
-#define BALL_SIZE					55
+
+#define PIXEL_SIZE					(100.0 / 43.0) // um/px
 
 #ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire
@@ -160,6 +161,8 @@
 #define NIRF_COLORTABLE1			5 // hot
 #ifdef TWO_CHANNEL_NIRF
 #define NIRF_COLORTABLE2			18 // cyan
+
+#define CH_DIVIDING_LINE
 #endif
 
 //#define ZERO_TBR_DEFINITION
@@ -249,6 +252,7 @@ public:
 #endif
 		// Visualization
 		circCenter = settings.value("circCenter").toInt();
+		ballRadius = settings.value("ballRadius").toInt();
 		octColorTable = settings.value("octColorTable").toInt();
 		octDbRange.max = settings.value("octDbRangeMax").toInt();
 		octDbRange.min = settings.value("octDbRangeMin").toInt();
@@ -378,6 +382,7 @@ public:
 #endif
 		// Visualization
 		settings.setValue("circCenter", circCenter);
+		settings.setValue("ballRadius", ballRadius);
 		settings.setValue("octColorTable", octColorTable);
 		settings.setValue("octDbRangeMax", octDbRange.max);
 		settings.setValue("octDbRangeMin", octDbRange.min);
@@ -493,6 +498,7 @@ public:
 
 	// Visualization
 	int circCenter;
+	int ballRadius;
 	int octColorTable;
 	Range<int> octDbRange;
 #ifdef OCT_FLIM

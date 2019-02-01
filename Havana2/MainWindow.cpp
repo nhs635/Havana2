@@ -12,6 +12,7 @@
 #include <Havana2/Dialog/DigitizerSetupDlg.h>
 #include <Havana2/Dialog/OctCalibDlg.h>
 #include <Havana2/Dialog/OctIntensityHistDlg.h>
+#include <Havana2/Dialog/LongitudinalViewDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/FlimCalibDlg.h>
 #endif
@@ -186,6 +187,8 @@ void MainWindow::closeEvent(QCloseEvent *e)
 		m_pResultTab->getSaveResultDlg()->close();
 	if (m_pResultTab->getOctIntensityHistDlg())
 		m_pResultTab->getOctIntensityHistDlg()->close();
+	if (m_pResultTab->getLongitudinalViewDlg())
+		m_pResultTab->getLongitudinalViewDlg()->close();
 #ifdef OCT_NIRF
     if (m_pResultTab->getNirfEmissionProfileDlg())
         m_pResultTab->getNirfEmissionProfileDlg()->close();
