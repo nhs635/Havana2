@@ -957,6 +957,7 @@ void QResultTab::deleteLongitudinalViewDlg()
 
 	m_pImageView_CircImage->setVerticalLine(0);
 	m_pImageView_CircImage->getRender()->update();
+	m_pImageView_CircImage->getRender()->m_bRadial = false;
 	m_pImageView_CircImage->getRender()->m_bDiametric = false;
 
 	m_pLongitudinalViewDlg->deleteLater();
@@ -993,6 +994,7 @@ void QResultTab::deletePulseReviewDlg()
 
 	m_pImageView_CircImage->setVerticalLine(0);
 	m_pImageView_CircImage->getRender()->update();
+	m_pImageView_CircImage->getRender()->m_bRadial = false;
 
 	m_pPulseReviewDlg->deleteLater();
 	m_pPulseReviewDlg = nullptr;
@@ -1054,6 +1056,8 @@ void QResultTab::deleteNirfDistCompDlg()
     m_pImageView_RectImage->setContour(0, nullptr);
     m_pImageView_RectImage->setHorizontalLine(0);
 
+	m_pImageView_CircImage->setContour(0, nullptr);
+
     visualizeEnFaceMap(true);
     visualizeImage(m_pSlider_SelectFrame->value());
 }
@@ -1090,13 +1094,13 @@ void QResultTab::visualizeImage(int frame)
 	{
 		IppiSize roi_oct = { m_pImgObjRectImage->getHeight(), m_pImgObjRectImage->getWidth() };
 
-//#ifdef OCT_NIRF
-//		float* pNirf = &m_nirfMap(0, frame);
-//
-//		float mean, std;
-//		ippsMeanStdDev_32f(pNirf, m_nirfMap.size(0), &mean, &std, ippAlgHintAccurate);
-//		printf("mean: %.4f / std: %.4f\n", mean, std);
-//#endif
+#ifdef OCT_NIRF
+		//float* pNirf = &m_nirfMap(1024, frame);
+
+		//float mean, std;
+		//ippsMeanStdDev_32f(pNirf, m_nirfMap.size(0)/2, &mean, &std, ippAlgHintAccurate);
+		//printf("mean: %.4f / std: %.4f\n", mean, std);
+#endif
 
 		// OCT Visualization
 		np::Uint8Array2 scale_temp(roi_oct.width, roi_oct.height);
@@ -1204,6 +1208,11 @@ void QResultTab::visualizeImage(int frame)
 				ippsAddC_16u_ISfs((Ipp16u)m_pConfig->nirfLumContourOffset, contour.raw_ptr(), contour.length(), 0);
 				m_pImageView_RectImage->setContour(contour.length(), contour.raw_ptr());
 				m_pImageView_RectImage->setHorizontalLine(2, m_pConfig->nirfOuterSheathPos, m_pConfig->nirfOuterSheathPos);
+				
+				int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+					(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 4) + m_polishedSurface(frame) - m_pConfig->ballRadius;				
+				m_pImageView_CircImage->setContour(contour.length(), contour.raw_ptr());
+				m_pImageView_CircImage->getRender()->m_contour_offset = -center;
 			}
         }
 
@@ -1560,6 +1569,8 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 					}
 				}
 #endif
+				QString infoPath = m_path + QString("/dist_comp_info.log");
+				m_pNirfDistCompDlg->setCompInfo(infoPath.toUtf8().constData());
             }
 
 #ifndef TWO_CHANNEL_NIRF
@@ -1858,6 +1869,14 @@ void QResultTab::checkCircCenter(const QString &str)
 		}
 		m_pConfig->ballRadius = ballRadius;
 	}
+	
+#ifdef OCT_NIRF
+	if (m_pCheckBox_CircularizeImage->isChecked())
+		if (m_pNirfDistCompDlg)
+			if (m_pImageView_CircImage->getRender()->m_contour.length() > 0)
+				m_pImageView_CircImage->getRender()->m_contour_offset = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+				(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 4) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+#endif
 
 	getOctProjection(m_vectorOctImage, m_octProjection);
 	visualizeEnFaceMap(true);
@@ -1878,7 +1897,7 @@ void QResultTab::checkCircCenter(const QString &str)
 			polished_surface, center + CIRC_RADIUS, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 4);
 #endif
 		m_pImageView_CircImage->setCircle(2, SHEATH_RADIUS, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);		
-	}
+	}	
 }
 
 void QResultTab::adjustOctContrast()
@@ -2722,6 +2741,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 		m_pPushButton_OctIntensityHistogram->setDisabled(true);
 		m_pPushButton_LongitudinalView->setDisabled(true);
+		m_pToggleButton_FindPolishedSurfaces->setChecked(false);
 		m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);

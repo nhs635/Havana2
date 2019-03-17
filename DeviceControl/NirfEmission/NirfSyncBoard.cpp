@@ -59,7 +59,10 @@ bool NirfSyncBoard::initialize()
 void NirfSyncBoard::start()
 {
 	if (_taskHandle)
+	{
+		printf("NI Digital Output is generating a digital signal...\n");
 		DAQmxStartTask(_taskHandle);
+	}
 }
 
 

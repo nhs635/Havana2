@@ -1,14 +1,14 @@
-#ifndef CONFIGURATION_H
+﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.5.1"
+#define VERSION						"1.2.6"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define NI_ENABLE					true
+#define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
 //#define OCT_FLIM
@@ -28,12 +28,12 @@
 //#define ECG_TRIGGERING
 #endif
 #else
-#define PROGRAMMATIC_GAIN_CONTROL
+//#define PROGRAMMATIC_GAIN_CONTROL
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
 //#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -142,10 +142,10 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				150 
+#define RING_THICKNESS				100 
 #endif
 
-#define CIRC_RADIUS					1200 // Only even number
+#define CIRC_RADIUS					1500 // Only even number
 #define SHEATH_RADIUS				185
 #if (CIRC_RADIUS % 2)
 #error("CIRC_RADIUS should be even number.");
@@ -162,10 +162,10 @@
 #ifdef TWO_CHANNEL_NIRF
 #define NIRF_COLORTABLE2			18 // cyan
 
-#define CH_DIVIDING_LINE
+//#define CH_DIVIDING_LINE
 #endif
 
-//#define ZERO_TBR_DEFINITION
+#define ZERO_TBR_DEFINITION
 #endif
 
 #define RENEWAL_COUNT				5
@@ -213,7 +213,7 @@ public:
 	~Configuration() {}
 
 public:
-	void getConfigFile(QString inipath) // const char* inipath)
+	void getConfigFile(const QString& inipath) // const char* inipath)
 	{
 		QSettings settings(inipath, QSettings::IniFormat);
 		settings.beginGroup("configuration");
@@ -349,7 +349,7 @@ public:
 		settings.endGroup();
 	}
 
-	void setConfigFile(QString inipath)
+	void setConfigFile(const QString& inipath)
 	{
 		QSettings settings(inipath, QSettings::IniFormat);
 		settings.beginGroup("configuration");

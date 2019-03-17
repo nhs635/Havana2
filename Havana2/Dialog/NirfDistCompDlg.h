@@ -27,12 +27,17 @@ public:
 
 // Methods //////////////////////////////////////////////
 private:
+	void closeEvent(QCloseEvent *e);
 	void keyPressEvent(QKeyEvent *e);    
 
 public:
+	inline void setClosed(bool closed) { m_bCanBeClosed = closed; }
     inline bool isCompensating() const { return m_pToggleButton_Compensation->isChecked(); }
     inline bool isTBRMode() const { return m_pToggleButton_TBRMode->isChecked(); }
     inline bool isFiltered() const { return m_pCheckBox_Filtering->isChecked(); }
+	
+public slots:
+	void setWidgetEnabled(bool enabled);
 
 private slots : 
 	void loadDistanceMap();
@@ -45,6 +50,13 @@ private slots :
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
 
+public:
+	void getCompInfo(const QString &);
+	void setCompInfo(const QString &);
+	
+signals:
+	void setWidgets(bool);
+
 private:
     void calculateCompMap();
 
@@ -53,6 +65,9 @@ private:
     MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
     QResultTab* m_pResultTab;
+
+private:
+	bool m_bCanBeClosed;
 	
 private:
 	np::FloatArray distDecayCurve;

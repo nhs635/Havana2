@@ -26,20 +26,21 @@ public:
 
 // Methods //////////////////////////////////////////////
 private:
-	void keyPressEvent(QKeyEvent *e);    
+	void closeEvent(QCloseEvent *e);
+	void keyPressEvent(QKeyEvent *e); 
 
 public:
+	inline void setClosed(bool closed) { m_bCanBeClosed = closed; }
 	inline QImageView* getImageView() const { return m_pImageView_LongitudinalView; }
 	inline int getCurrentAline() const { return m_pSlider_CurrentAline->value(); }
 	inline void setCurrentAline(int aline) { m_pSlider_CurrentAline->setValue(aline); }
-
-public:
-	void setWidgets(bool);
-
+	
 public slots : // widgets
+	void setWidgetEnabled(bool);
 	void drawLongitudinalImage(int);
 
 signals:
+	void setWidgets(bool);
 	void paintLongiImage(uint8_t*);
 
 // Variables ////////////////////////////////////////////
@@ -47,6 +48,9 @@ private:
     MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;
     QResultTab* m_pResultTab;
+
+private:
+	bool m_bCanBeClosed;
 
 public:
 	ImageObject *m_pImgObjOctLongiImage; 
@@ -68,7 +72,6 @@ private:
 	medfilt* m_pMedfilt;
 	
 private:
-	// Widgets for pulse view
 	QImageView *m_pImageView_LongitudinalView;
 	QLabel *m_pLabel_CurrentAline;
 	QSlider *m_pSlider_CurrentAline;

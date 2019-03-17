@@ -111,6 +111,7 @@ public:
 	int m_rMax;
 	QColor m_colorLine;
 
+	int m_contour_offset;
     np::Uint16Array m_contour;
 
 	bool m_bMeasureDistance;

@@ -84,6 +84,7 @@ public:
 	inline bool isHsvEnhanced() const { return m_pCheckBox_HsvEnhancedMap->isChecked(); }
 #endif
 #ifdef OCT_NIRF
+	inline void setNirfOffset(int offset) { m_pScrollBar_NirfOffset->setValue(offset); }
     inline int getCurrentNirfOffset() const { return m_pScrollBar_NirfOffset->value(); }
 #endif
 	inline void setUserDefinedAlines(int nAlines) { m_pLineEdit_UserDefinedAlines->setText(QString::number(nAlines)); }

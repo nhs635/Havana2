@@ -85,6 +85,8 @@ Havana2.VC*
   (2-Ch NIRF)
 - Havana2 v1.2.5.1
   (Longitudinal view & minor error correction)
+- Havana2 v1.2.6
+  (Minor error correction)
 
 
 To be updated:

@@ -4,12 +4,17 @@
 #include <Havana2/MainWindow.h>
 #include <Havana2/QResultTab.h>
 
+#include <ipps.h>
+#include <ippi.h>
+#include <ippcore.h>
+
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
 
 LongitudinalViewDlg::LongitudinalViewDlg(QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent), 
+	m_bCanBeClosed(true),
 	m_pImgObjOctLongiImage(nullptr)
 #ifdef OCT_FLIM
 	, m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
@@ -107,6 +112,7 @@ LongitudinalViewDlg::LongitudinalViewDlg(QWidget *parent) :
 	connect(this, SIGNAL(paintLongiImage(uint8_t*)), m_pImageView_LongitudinalView, SLOT(drawImage(uint8_t*)));
 #endif
 #endif
+	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
 }
 
 LongitudinalViewDlg::~LongitudinalViewDlg()
@@ -115,6 +121,7 @@ LongitudinalViewDlg::~LongitudinalViewDlg()
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
+	if (m_pImgObjHsvEnhanced) delete m_pImgObjHsvEnhanced;
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -128,6 +135,14 @@ LongitudinalViewDlg::~LongitudinalViewDlg()
 	if (m_pMedfilt) delete m_pMedfilt;
 }
 
+void LongitudinalViewDlg::closeEvent(QCloseEvent * e)
+{
+	if (!m_bCanBeClosed)
+		e->ignore();
+	else
+		finished(0);
+}
+
 void LongitudinalViewDlg::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() != Qt::Key_Escape)
@@ -135,7 +150,7 @@ void LongitudinalViewDlg::keyPressEvent(QKeyEvent *e)
 }
 
 
-void LongitudinalViewDlg::setWidgets(bool enabled)
+void LongitudinalViewDlg::setWidgetEnabled(bool enabled)
 {
 	m_pImageView_LongitudinalView->setEnabled(enabled);
 	m_pLabel_CurrentAline->setEnabled(enabled);

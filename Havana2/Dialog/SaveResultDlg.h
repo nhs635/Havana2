@@ -35,6 +35,7 @@ struct CrossSectionCheckList
 #endif
 #ifdef OCT_NIRF
     bool bNirf;
+	bool bNirfRingOnly;
 #endif
 };
 
@@ -65,7 +66,7 @@ public:
 private:
 	void closeEvent(QCloseEvent *e);
 	void keyPressEvent(QKeyEvent *);
-
+	
 private slots:
 	void saveCrossSections();
 	void saveEnFaceMaps();
@@ -99,14 +100,9 @@ private:
 #endif
 	void converting(CrossSectionCheckList checkList);
 	void rectWriting(CrossSectionCheckList checkList);
-	void longitudinal(CrossSectionCheckList checkList);
 	void circularizing(CrossSectionCheckList checkList);
 	void circWriting(CrossSectionCheckList checkList);
-
-#ifdef OCT_NIRF
-    void saveCompDetailsLog(const QString savepath);
-#endif
-
+	
 // Variables ////////////////////////////////////////////
 private:
     MainWindow* m_pMainWnd;
@@ -150,6 +146,7 @@ private:
 #endif
 #ifdef OCT_NIRF
     QCheckBox* m_pCheckBox_CrossSectionNirf;
+	QCheckBox* m_pCheckBox_NirfRingOnly;
 #endif
 
     // Set Range

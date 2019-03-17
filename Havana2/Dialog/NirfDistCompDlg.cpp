@@ -12,10 +12,15 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
+#include <QSettings>
+#include <QDateTime>
+
+#include <fstream>
+
 
 #ifdef OCT_NIRF
 NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
-    QDialog(parent), nirfBg(0), tbrBg(0)
+    QDialog(parent), m_bCanBeClosed(true), nirfBg(0), tbrBg(0)
 {
     // Set default size & frame
     setFixedSize(380, 360);
@@ -28,6 +33,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pConfig = m_pMainWnd->m_pConfiguration;
 
 	// Set compensation data
+	compMap = np::FloatArray2();
     distDecayCurve = np::FloatArray(CIRC_RADIUS);
 	compCurve = np::FloatArray(CIRC_RADIUS);
 	
@@ -161,6 +167,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
     loadNirfBackground();
     changeCompensationCurve();
     changeZeroPointSetting();
+	
 
 	// Create layout
 	QGridLayout *pGridLayout_Buttons = new QGridLayout;
@@ -247,10 +254,23 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
     connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
 	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
     connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
+	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
+
+	// Get Log file
+	std::ifstream ifile((m_pResultTab->m_path + QString("/dist_comp_info.log")).toUtf8().constData());
+	if ((bool)ifile) getCompInfo((m_pResultTab->m_path + QString("/dist_comp_info.log")).toUtf8().constData());
 }
 
 NirfDistCompDlg::~NirfDistCompDlg()
 {
+}
+
+void NirfDistCompDlg::closeEvent(QCloseEvent * e)
+{
+	if (!m_bCanBeClosed)
+		e->ignore();
+	else
+		finished(0);
 }
 
 void NirfDistCompDlg::keyPressEvent(QKeyEvent *e)
@@ -259,6 +279,48 @@ void NirfDistCompDlg::keyPressEvent(QKeyEvent *e)
 		QDialog::keyPressEvent(e);
 }
 
+
+void NirfDistCompDlg::setWidgetEnabled(bool enabled)
+{
+	m_pPushButton_LoadDistanceMap->setEnabled(enabled && !(compMap.raw_ptr()));
+	m_pPushButton_LoadNirfBackground->setEnabled(enabled && !(nirfBg > 0));
+
+	m_pToggleButton_Compensation->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
+	m_pToggleButton_TBRMode->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
+
+	m_pLabel_DistanceDecayCurve->setEnabled(enabled);
+	m_pLabel_CompensationCurve->setEnabled(enabled);
+
+	m_pRenderArea_DistanceDecayCurve->setEnabled(enabled);
+	m_pRenderArea_CompensationCurve->setEnabled(enabled);
+
+	m_pLabel_CompensationCoeff->setEnabled(enabled);
+	for (int i = 0; i < 4; i++)
+		m_pLineEdit_CompensationCoeff[i]->setEnabled(enabled);
+
+	m_pLabel_FactorThreshold->setEnabled(enabled);
+	m_pLineEdit_FactorThreshold->setEnabled(enabled);
+
+	m_pLabel_FactorPropConst->setEnabled(enabled);
+	m_pLineEdit_FactorPropConst->setEnabled(enabled);
+
+	m_pLabel_DistPropConst->setEnabled(enabled);
+	m_pLineEdit_DistPropConst->setEnabled(enabled);
+		
+	m_pLabel_LumenContourOffset->setEnabled(enabled && (compMap.raw_ptr()));
+	m_pSpinBox_LumenContourOffset->setEnabled(enabled && (compMap.raw_ptr()));
+
+	m_pLabel_OuterSheathPosition->setEnabled(enabled && (compMap.raw_ptr()));
+	m_pSpinBox_OuterSheathPosition->setEnabled(enabled && (compMap.raw_ptr()));
+
+	m_pCheckBox_Filtering->setEnabled(enabled);
+
+	m_pLabel_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
+	m_pLineEdit_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
+
+	m_pLabel_TBR_Background->setEnabled(enabled && (nirfBg > 0));
+	m_pLineEdit_TBR_Background->setEnabled(enabled && (nirfBg > 0));
+}
 
 void NirfDistCompDlg::loadDistanceMap()
 {
@@ -476,6 +538,93 @@ void NirfDistCompDlg::changeTbrBackground(const QString &str)
 
     // Invalidate
     m_pResultTab->invalidate();
+}
+
+
+void NirfDistCompDlg::getCompInfo(const QString &infopath)
+{
+	QSettings settings(infopath, QSettings::IniFormat);
+	settings.beginGroup("distance_compensation");
+
+	// Load parameters
+	int nirfOffset = settings.value("nirfOffset").toInt();
+	m_pResultTab->setNirfOffset(nirfOffset);
+
+	m_pConfig->nirfCompCoeffs[0] = settings.value("nirfCompCoeffs_a").toFloat();	
+	m_pConfig->nirfCompCoeffs[1] = settings.value("nirfCompCoeffs_b").toFloat();
+	m_pConfig->nirfCompCoeffs[2] = settings.value("nirfCompCoeffs_c").toFloat();
+	m_pConfig->nirfCompCoeffs[3] = settings.value("nirfCompCoeffs_d").toFloat();
+
+	for (int i = 0 ; i < 4; i++)
+		m_pLineEdit_CompensationCoeff[i]->setText(QString::number(m_pConfig->nirfCompCoeffs[i]));
+
+	m_pConfig->nirfFactorThres = settings.value("nirfFactorThres").toFloat();
+	m_pLineEdit_FactorThreshold->setText(QString::number(m_pConfig->nirfFactorThres));
+
+	m_pConfig->nirfFactorPropConst = settings.value("nirfFactorPropConst").toFloat();
+	m_pLineEdit_FactorPropConst->setText(QString::number(m_pConfig->nirfFactorPropConst));
+
+	m_pConfig->nirfDistPropConst = settings.value("nirfDistPropConst").toFloat();
+	m_pLineEdit_DistPropConst->setText(QString::number(m_pConfig->nirfDistPropConst));
+
+	m_pConfig->nirfLumContourOffset = settings.value("nirfLumContourOffset").toInt();
+	m_pSpinBox_LumenContourOffset->setValue(m_pConfig->nirfLumContourOffset);
+
+	m_pConfig->nirfOuterSheathPos = settings.value("nirfOuterSheathPos").toInt();
+	m_pSpinBox_OuterSheathPosition->setValue(m_pConfig->nirfOuterSheathPos);
+
+	calculateCompMap();
+
+	nirfBg = settings.value("nirfBg").toFloat();;
+	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
+
+	tbrBg = settings.value("tbrBg").toFloat();;
+	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
+
+	m_pCheckBox_Filtering->setChecked(true);
+
+	m_pToggleButton_Compensation->setChecked(true);
+	m_pToggleButton_TBRMode->setChecked(true);
+
+	settings.endGroup();
+}
+
+void NirfDistCompDlg::setCompInfo(const QString &infopath)
+{
+	QSettings settings(infopath, QSettings::IniFormat);
+	settings.beginGroup("distance_compensation");
+
+	// Load parameters
+	QDate date = QDate::currentDate();
+	QTime time = QTime::currentTime();
+	settings.setValue("time", QString("%1-%2-%3 %4-%5-%6")
+		.arg(date.year()).arg(date.month(), 2, 10, (QChar)'0').arg(date.day(), 2, 10, (QChar)'0')
+		.arg(time.hour(), 2, 10, (QChar)'0').arg(time.minute(), 2, 10, (QChar)'0').arg(time.second(), 2, 10, (QChar)'0'));
+
+	settings.setValue("nirfOffset", m_pResultTab->getCurrentNirfOffset());
+	
+	settings.setValue("nirfCompCoeffs_a", QString::number(m_pConfig->nirfCompCoeffs[0], 'f', 10));
+	settings.setValue("nirfCompCoeffs_b", QString::number(m_pConfig->nirfCompCoeffs[1], 'f', 10));
+	settings.setValue("nirfCompCoeffs_c", QString::number(m_pConfig->nirfCompCoeffs[2], 'f', 10));
+	settings.setValue("nirfCompCoeffs_d", QString::number(m_pConfig->nirfCompCoeffs[3], 'f', 10));
+	
+	settings.setValue("nirfFactorThres", QString::number(m_pConfig->nirfFactorThres, 'f', 1));
+	settings.setValue("nirfFactorPropConst", QString::number(m_pConfig->nirfFactorPropConst, 'f', 3));
+	settings.setValue("nirfDistPropConst", QString::number(m_pConfig->nirfDistPropConst, 'f', 3));
+
+	settings.setValue("nirfLumContourOffset", m_pConfig->nirfLumContourOffset);
+	settings.setValue("nirfOuterSheathPos", m_pConfig->nirfOuterSheathPos);
+
+	settings.setValue("nirfBg", QString::number(nirfBg, 'f', 3));
+	settings.setValue("tbrBg", QString::number(tbrBg, 'f', 3));
+
+	if (!m_pResultTab->getPolishedSurfaceFindingStatus())
+		settings.setValue("circCenter", QString::number(m_pConfig->circCenter));
+	else
+		settings.setValue("ballRadius", QString::number(m_pConfig->ballRadius));
+	settings.setValue("circRadius", QString::number(CIRC_RADIUS));
+	
+	settings.endGroup();
 }
 
 #endif

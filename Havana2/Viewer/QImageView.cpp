@@ -253,7 +253,7 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 
 QRenderImage::QRenderImage(QWidget *parent) :
 	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000),
-	m_bMeasureDistance(false), m_nClicked(0),
+	m_bMeasureDistance(false), m_nClicked(0), m_contour_offset(0),
     m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false)
 {
 	m_pHLineInd = new int[10];
@@ -339,16 +339,36 @@ void QRenderImage::paintEvent(QPaintEvent *)
     {
         QPen pen; pen.setColor(Qt::green);
         painter.setPen(pen);
-        for (int i = 0; i < m_contour.length() - 1; i++)
-        {
-            QPointF x0, x1;
-            x0.setX((float)(i) / (float)m_contour.length() * (float)w);
-            x0.setY((float)(m_contour[i]) / (float)m_pImage->height() * (float)h);
-            x1.setX((float)(i + 1) / (float)m_contour.length() * w);
-            x1.setY((float)(m_contour[i + 1]) / (float)m_pImage->height() * (float)h);
+		if (w != h)
+		{
+			for (int i = 0; i < m_contour.length() - 1; i++)
+			{
+				QPointF x0, x1;
+				x0.setX((float)(i) / (float)m_contour.length() * (float)w);
+				x0.setY((float)(m_contour[i]) / (float)m_pImage->height() * (float)h);
+				x1.setX((float)(i + 1) / (float)m_contour.length() * w);
+				x1.setY((float)(m_contour[i + 1]) / (float)m_pImage->height() * (float)h);
 
-            painter.drawLine(x0, x1);
-        }
+				painter.drawLine(x0, x1);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < m_contour.length() - 1; i++)
+			{
+				QPointF x0, x1;
+				float t0 = (float)(i) / (float)m_contour.length() * (float)IPP_2PI;
+				float r0 = (float)(m_contour[i] + m_contour_offset) / (float)m_pImage->height() * (float)h;
+				float t1 = (float)(i + 1) / (float)m_contour.length() * (float)IPP_2PI;
+				float r1 = (float)(m_contour[i + 1] + m_contour_offset) / (float)m_pImage->height() * (float)h;
+				x0.setX(r0 * cosf(t0) + h / 2);
+				x0.setY(r0 * sinf(-t0) + h / 2);
+				x1.setX(r1 * cosf(t1) + h / 2);
+				x1.setY(r1 * sinf(-t1) + h / 2);
+
+				painter.drawLine(x0, x1);
+			}
+		}
     }
 
 	// Measure distance

@@ -16,6 +16,9 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -49,13 +52,13 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     m_pPushButton_SaveCrossSections->setFixedWidth(110);
 	
 	m_pCheckBox_RectImage = new QCheckBox(this);
-	m_pCheckBox_RectImage->setText("Rect Image");
+	m_pCheckBox_RectImage->setText("Rect Image  ");
 	m_pCheckBox_RectImage->setChecked(true);
 	m_pCheckBox_CircImage = new QCheckBox(this);
-	m_pCheckBox_CircImage->setText("Circ Image");
+	m_pCheckBox_CircImage->setText("Circ Image   ");
 	m_pCheckBox_CircImage->setChecked(true);
 	m_pCheckBox_LongiImage = new QCheckBox(this);
-	m_pCheckBox_LongiImage->setText("Longi Image");
+	m_pCheckBox_LongiImage->setText("Longi Image  ");
 	m_pCheckBox_LongiImage->setChecked(false);
 
 	m_pCheckBox_ResizeRectImage = new QCheckBox(this);
@@ -130,7 +133,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     m_pPushButton_SaveEnFaceMaps->setFixedWidth(110);
 
 	m_pCheckBox_RawData = new QCheckBox(this);
-	m_pCheckBox_RawData->setText("Raw Data");
+	m_pCheckBox_RawData->setText("Raw Data   ");
 	m_pCheckBox_RawData->setChecked(false);
 	m_pCheckBox_ScaledImage = new QCheckBox(this);
 	m_pCheckBox_ScaledImage->setText("Scaled Image");
@@ -152,6 +155,10 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     m_pCheckBox_EnFaceNirf = new QCheckBox(this);
     m_pCheckBox_EnFaceNirf->setText("NIRF (Current Setting)");
     m_pCheckBox_EnFaceNirf->setChecked(true);
+
+	m_pCheckBox_NirfRingOnly = new QCheckBox(this);
+	m_pCheckBox_NirfRingOnly->setText("NIRF Ring Only");
+	m_pCheckBox_NirfRingOnly->setChecked(false);
 #endif
 
 	m_pCheckBox_OctMaxProjection = new QCheckBox(this);
@@ -172,34 +179,34 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     pGridLayout->addWidget(m_pPushButton_SaveCrossSections, 0, 0);
 	
 	QHBoxLayout *pHBoxLayout_RectResize = new QHBoxLayout;
+	pHBoxLayout_RectResize->addWidget(m_pCheckBox_RectImage);
 	pHBoxLayout_RectResize->addWidget(m_pCheckBox_ResizeRectImage);
 	pHBoxLayout_RectResize->addWidget(m_pLineEdit_RectWidth);
 	pHBoxLayout_RectResize->addWidget(m_pLineEdit_RectHeight);
     pHBoxLayout_RectResize->addStretch(1);
     //pHBoxLayout_RectResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-    pGridLayout->addWidget(m_pCheckBox_RectImage, 0, 1);
-    pGridLayout->addItem(pHBoxLayout_RectResize, 0, 2, 1, 2);
-    pGridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 4);
+    pGridLayout->addItem(pHBoxLayout_RectResize, 0, 1, 1, 2);
+    pGridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 3);
 
 	QHBoxLayout *pHBoxLayout_CircResize = new QHBoxLayout;
+	pHBoxLayout_CircResize->addWidget(m_pCheckBox_CircImage);
 	pHBoxLayout_CircResize->addWidget(m_pCheckBox_ResizeCircImage);
 	pHBoxLayout_CircResize->addWidget(m_pLineEdit_CircDiameter);
     pHBoxLayout_CircResize->addStretch(1);
     //pHBoxLayout_CircResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-    pGridLayout->addWidget(m_pCheckBox_CircImage, 1, 1);
-    pGridLayout->addItem(pHBoxLayout_CircResize, 1, 2, 1, 2);
+    pGridLayout->addItem(pHBoxLayout_CircResize, 1, 1, 1, 2);
 
 	QHBoxLayout *pHBoxLayout_LongiResize = new QHBoxLayout;
+	pHBoxLayout_LongiResize->addWidget(m_pCheckBox_LongiImage);
 	pHBoxLayout_LongiResize->addWidget(m_pCheckBox_ResizeLongiImage);
 	pHBoxLayout_LongiResize->addWidget(m_pLineEdit_LongiWidth);
 	pHBoxLayout_LongiResize->addWidget(m_pLineEdit_LongiHeight);
 	pHBoxLayout_LongiResize->addStretch(1);
 	//pHBoxLayout_RectResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-	pGridLayout->addWidget(m_pCheckBox_LongiImage, 2, 1);
-	pGridLayout->addItem(pHBoxLayout_LongiResize, 2, 2, 1, 2);
+	pGridLayout->addItem(pHBoxLayout_LongiResize, 2, 1, 1, 2);
 
 #ifdef OCT_FLIM
     pGridLayout->addWidget(m_pCheckBox_CrossSectionCh1, 3, 1);
@@ -209,7 +216,12 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     pGridLayout->addWidget(m_pCheckBox_Multichannel, 4, 1, 1, 3);
 #endif
 #ifdef OCT_NIRF
-    pGridLayout->addWidget(m_pCheckBox_CrossSectionNirf, 3, 1, 1, 2);
+	QHBoxLayout *pHBoxLayout_NirfOption = new QHBoxLayout;
+	pHBoxLayout_NirfOption->addWidget(m_pCheckBox_CrossSectionNirf);
+	pHBoxLayout_NirfOption->addWidget(m_pCheckBox_NirfRingOnly);
+	pHBoxLayout_NirfOption->addStretch(1);
+
+    pGridLayout->addItem(pHBoxLayout_NirfOption, 3, 1, 1, 2);
 #endif
 
     pGridLayout->addItem(pHBoxLayout_Range, 1, 0);
@@ -217,8 +229,12 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 
     pGridLayout->addWidget(m_pPushButton_SaveEnFaceMaps, 5, 0);
 
-    pGridLayout->addWidget(m_pCheckBox_RawData, 5, 1);
-    pGridLayout->addWidget(m_pCheckBox_ScaledImage, 5, 2);
+	QHBoxLayout *pHBoxLayout_DataOption = new QHBoxLayout;
+	pHBoxLayout_DataOption->addWidget(m_pCheckBox_RawData);
+	pHBoxLayout_DataOption->addWidget(m_pCheckBox_ScaledImage);
+	pHBoxLayout_DataOption->addStretch(1);
+
+    pGridLayout->addItem(pHBoxLayout_DataOption, 5, 1, 1, 2);
 
 #ifdef OCT_FLIM
     pGridLayout->addWidget(m_pCheckBox_EnFaceCh1, 6, 1);
@@ -272,7 +288,7 @@ void SaveResultDlg::keyPressEvent(QKeyEvent *e)
 void SaveResultDlg::saveCrossSections()
 {
 	std::thread t1([&]() {
-		
+
 		// Check Status /////////////////////////////////////////////////////////////////////////////
 		CrossSectionCheckList checkList;
 		checkList.bRect = m_pCheckBox_RectImage->isChecked();
@@ -293,9 +309,10 @@ void SaveResultDlg::saveCrossSections()
 		checkList.bMulti = m_pCheckBox_Multichannel->isChecked();
 #endif
 #ifdef OCT_NIRF
-        checkList.bNirf = m_pCheckBox_CrossSectionNirf->isChecked();
+		checkList.bNirf = m_pCheckBox_CrossSectionNirf->isChecked();
+		checkList.bNirfRingOnly = m_pCheckBox_NirfRingOnly->isChecked();
 #endif
-		
+
 #ifdef OCT_FLIM
 		// Median filtering for FLIM maps ///////////////////////////////////////////////////////////
 		IppiSize roi_flimproj = { m_pResultTab->m_intensityMap.at(0).size(0), m_pResultTab->m_intensityMap.at(0).size(1) };
@@ -303,7 +320,7 @@ void SaveResultDlg::saveCrossSections()
 		std::vector<np::Uint8Array2> intensityMap;
 		std::vector<np::Uint8Array2> lifetimeMap;
 		for (int i = 0; i < 3; i++)
-		{			
+		{
 			np::Uint8Array2 intensity = np::Uint8Array2(roi_flimproj.width, roi_flimproj.height);
 			np::Uint8Array2 lifetime = np::Uint8Array2(roi_flimproj.width, roi_flimproj.height);
 
@@ -338,22 +355,22 @@ void SaveResultDlg::saveCrossSections()
 			(*m_pResultTab->m_pMedfiltLifetimeMap)(lifetime.raw_ptr());
 
 			intensityMap.push_back(intensity);
-			lifetimeMap.push_back(lifetime);			
-		}	
+			lifetimeMap.push_back(lifetime);
+		}
 #endif
 
 #ifdef OCT_NIRF
-        // NIRF maps ////////////////////////////////////////////////////////////////////////////////
+		// NIRF maps ////////////////////////////////////////////////////////////////////////////////
 #ifndef TWO_CHANNEL_NIRF
-        IppiSize roi_nirf = { m_pResultTab->m_nirfMap0.size(0), m_pResultTab->m_nirfMap0.size(1) };
+		IppiSize roi_nirf = { m_pResultTab->m_nirfMap0.size(0), m_pResultTab->m_nirfMap0.size(1) };
 #else
 		IppiSize roi_nirf = { m_pResultTab->m_nirfMap1_0.size(0), m_pResultTab->m_nirfMap1_0.size(1) };
 #endif
 
 #ifndef TWO_CHANNEL_NIRF
-        np::Uint8Array2 nirfMap(roi_nirf.width, roi_nirf.height);
-        ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
-            roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
+		np::Uint8Array2 nirfMap(roi_nirf.width, roi_nirf.height);
+		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
+			roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 #else
 		np::Uint8Array2 nirfMap1(roi_nirf.width, roi_nirf.height);
 		ippiScale_32f8u_C1R(m_pResultTab->m_nirfMap1_0.raw_ptr(), sizeof(float) * roi_nirf.width, nirfMap1.raw_ptr(), sizeof(uint8_t) * roi_nirf.width,
@@ -364,23 +381,23 @@ void SaveResultDlg::saveCrossSections()
 			roi_nirf, m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max);
 #endif
 #ifdef GALVANO_MIRROR
-            if (m_pConfig->galvoHorizontalShift)
-            {
-                int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
-                for (int i = 0; i < roi_nirf.height; i++)
-                {
+		if (m_pConfig->galvoHorizontalShift)
+		{
+			int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
+			for (int i = 0; i < roi_nirf.height; i++)
+			{
 #ifndef TWO_CHANNEL_NIRF
-                    uint8_t* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
-                    std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+				uint8_t* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
+				std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
 #else
-					uint8_t* pImg1 = nirfMap1.raw_ptr() + i * roi_nirf.width;
-					std::rotate(pImg1, pImg1 + m_pConfig->galvoHorizontalShift, pImg1 + roi_nirf_width_non4);
+				uint8_t* pImg1 = nirfMap1.raw_ptr() + i * roi_nirf.width;
+				std::rotate(pImg1, pImg1 + m_pConfig->galvoHorizontalShift, pImg1 + roi_nirf_width_non4);
 
-					uint8_t* pImg2 = nirfMap2.raw_ptr() + i * roi_nirf.width;
-					std::rotate(pImg2, pImg2 + m_pConfig->galvoHorizontalShift, pImg2 + roi_nirf_width_non4);
+				uint8_t* pImg2 = nirfMap2.raw_ptr() + i * roi_nirf.width;
+				std::rotate(pImg2, pImg2 + m_pConfig->galvoHorizontalShift, pImg2 + roi_nirf_width_non4);
 #endif
-                }
-            }
+			}
+		}
 #endif
 		if (m_pResultTab->getNirfDistCompDlg())
 		{
@@ -398,7 +415,18 @@ void SaveResultDlg::saveCrossSections()
 		// Set Widgets //////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(false);
 		emit m_pResultTab->setWidgets(false);
-		if (m_pResultTab->getLongitudinalViewDlg()) m_pResultTab->getLongitudinalViewDlg()->setWidgets(false);
+#ifdef OCT_NIRF
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			emit m_pResultTab->getNirfDistCompDlg()->setWidgets(false);
+			m_pResultTab->getNirfDistCompDlg()->setClosed(false);
+		}
+#endif
+		if (m_pResultTab->getLongitudinalViewDlg())
+		{
+			emit m_pResultTab->getLongitudinalViewDlg()->setWidgets(false);
+			m_pResultTab->getLongitudinalViewDlg()->setClosed(false);
+		}
 		m_nSavedFrames = 0;
 
 		// Scaling Images ///////////////////////////////////////////////////////////////////////////
@@ -440,7 +468,18 @@ void SaveResultDlg::saveCrossSections()
 		// Reset Widgets ////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(true);
 		emit m_pResultTab->setWidgets(true);
-		if (m_pResultTab->getLongitudinalViewDlg()) m_pResultTab->getLongitudinalViewDlg()->setWidgets(true);
+#ifdef OCT_NIRF
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			emit m_pResultTab->getNirfDistCompDlg()->setWidgets(true);
+			m_pResultTab->getNirfDistCompDlg()->setClosed(true);
+		}
+#endif
+		if (m_pResultTab->getLongitudinalViewDlg())
+		{
+			emit m_pResultTab->getLongitudinalViewDlg()->setWidgets(true);
+			m_pResultTab->getLongitudinalViewDlg()->setClosed(true);
+		}
 
 #ifdef OCT_FLIM
 		std::vector<np::Uint8Array2> clear_vector1;
@@ -476,6 +515,19 @@ void SaveResultDlg::saveEnFaceMaps()
 
 		// Set Widgets //////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(false);
+		emit m_pResultTab->setWidgets(false);
+#ifdef OCT_NIRF
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			emit m_pResultTab->getNirfDistCompDlg()->setWidgets(false);
+			m_pResultTab->getNirfDistCompDlg()->setClosed(false);
+		}
+#endif
+		if (m_pResultTab->getLongitudinalViewDlg())
+		{
+			emit m_pResultTab->getLongitudinalViewDlg()->setWidgets(false);
+			m_pResultTab->getLongitudinalViewDlg()->setClosed(false);
+		}
 
 		// Create directory for saving en face maps /////////////////////////////////////////////////
 		QString enFacePath = m_pResultTab->m_path + "/en_face/";
@@ -550,9 +602,9 @@ void SaveResultDlg::saveEnFaceMaps()
                     fileNirfMap.close();
                 }                
 
-                if (m_pResultTab->getNirfDistCompDlg())
-                    if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-                        saveCompDetailsLog(nirfName.replace("enface", "log"));
+				if (m_pResultTab->getNirfDistCompDlg())
+					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+						m_pResultTab->getNirfDistCompDlg()->setCompInfo(nirfName.replace("enface", "log"));
 #else
 				QString nirfName[2];
 				for (int i = 0; i < 2; i++)
@@ -604,7 +656,7 @@ void SaveResultDlg::saveEnFaceMaps()
 
 					if (m_pResultTab->getNirfDistCompDlg())
 						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-							saveCompDetailsLog(nirfName[i].replace("enface", "log"));
+							m_pResultTab->getNirfDistCompDlg()->setCompInfo(nirfName[i].replace("enface", "log"));
 				}
 #endif
             }
@@ -769,7 +821,7 @@ void SaveResultDlg::saveEnFaceMaps()
 
                 if (m_pResultTab->getNirfDistCompDlg())
                     if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-                        saveCompDetailsLog(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2).replace("bmp", "log"));
+						m_pResultTab->getNirfDistCompDlg()->setCompInfo(nirfName.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2).replace("bmp", "log"));
 #else
 				for (int i = 0; i < 2; i++)
 				{
@@ -821,7 +873,8 @@ void SaveResultDlg::saveEnFaceMaps()
 
 					if (m_pResultTab->getNirfDistCompDlg())
 						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-							saveCompDetailsLog(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2).replace("bmp", "log"));
+
+							m_pResultTab->getNirfDistCompDlg()->setCompInfo(nirfName.arg(i + 1).arg(start).arg(end).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2).replace("bmp", "log"));
 				}
 #endif
             }
@@ -857,6 +910,19 @@ void SaveResultDlg::saveEnFaceMaps()
 
 		// Reset Widgets ////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(true);
+		emit m_pResultTab->setWidgets(true);
+#ifdef OCT_NIRF
+		if (m_pResultTab->getNirfDistCompDlg())
+		{
+			emit m_pResultTab->getNirfDistCompDlg()->setWidgets(true);
+			m_pResultTab->getNirfDistCompDlg()->setClosed(true);
+		}
+#endif
+		if (m_pResultTab->getLongitudinalViewDlg())
+		{
+			emit m_pResultTab->getLongitudinalViewDlg()->setWidgets(true);
+			m_pResultTab->getLongitudinalViewDlg()->setClosed(true);
+		}
 	});
 
 	t1.detach();
@@ -920,7 +986,7 @@ void SaveResultDlg::setWidgetsEnabled(bool enabled)
 		{
 			m_pLineEdit_LongiWidth->setEnabled(false);
 			m_pLineEdit_LongiHeight->setEnabled(false);
-	}
+		}
 	}	
 
 #ifdef OCT_FLIM
@@ -932,6 +998,7 @@ void SaveResultDlg::setWidgetsEnabled(bool enabled)
 
 #ifdef OCT_NIRF
     m_pCheckBox_CrossSectionNirf->setEnabled(enabled);
+	m_pCheckBox_NirfRingOnly->setEnabled(enabled);
 #endif
 
 	// Set Range
@@ -997,13 +1064,25 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 #endif
 
 #ifdef OCT_NIRF
-       // Image objects for NIRF
+        // Image objects for NIRF
+		if (!checkList.bNirfRingOnly)
+		{
 #ifndef TWO_CHANNEL_NIRF
-        pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
 #else
-		pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
-		pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
 #endif
+		}
+		else
+		{
+#ifndef TWO_CHANNEL_NIRF
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, roi_oct.width, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+#else
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, roi_oct.width, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, roi_oct.width, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
+#endif
+		}
 #endif
 
 		// OCT Visualization
@@ -1044,20 +1123,27 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 #ifdef OCT_NIRF
         // NIRF Visualization
         IppiSize roi_nirf = { roi_oct.height, 1 };
-        if (checkList.bNirf)
-        {
+		if (checkList.bNirf || checkList.bNirfRingOnly)
+		{
 #ifndef TWO_CHANNEL_NIRF
-            uint8_t* rectNirf = &nirfMap(0, frameCount);
-            for (int j = 0; j < RING_THICKNESS; j++)
-                memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf, sizeof(uint8_t) * roi_nirf.width);
+			uint8_t* rectNirf = &nirfMap(0, frameCount);
+			for (int j = 0; j < RING_THICKNESS; j++)
+				memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf, sizeof(uint8_t) * roi_nirf.width);
+
+			if (checkList.bNirfRingOnly)
+			{
+				ippiMirror_8u_C1IR(pImgObjVec->at(1)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0), { pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1) }, ippAxsHorizontal);
+				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - RING_THICKNESS), 0, sizeof(uint8_t) * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+			}
 #else
 			uint8_t* rectNirf1 = &nirfMap1(0, frameCount);
+			uint8_t* rectNirf2 = &nirfMap2(0, frameCount);			
+			int offset = checkList.bNirfRingOnly ? RING_THICKNESS : 0;
 			for (int j = 0; j < RING_THICKNESS; j++)
-				memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
-
-			uint8_t* rectNirf2 = &nirfMap2(0, frameCount);
-			for (int j = 0; j < RING_THICKNESS; j++)
+			{
+				memcpy(&pImgObjVec->at(1)->arr(0, offset + j), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
 				memcpy(&pImgObjVec->at(2)->arr(0, j), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
+			}
 
 #ifdef CH_DIVIDING_LINE
 			np::Uint8Array boundary(pImgObjVec->at(1)->arr.size(0));
@@ -1067,6 +1153,13 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 			memcpy(&pImgObjVec->at(1)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
 			memcpy(&pImgObjVec->at(2)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0));
 #endif
+
+			if (checkList.bNirfRingOnly)
+			{
+				ippiMirror_8u_C1IR(pImgObjVec->at(1)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0), { pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1) }, ippAxsHorizontal);
+				ippiMirror_8u_C1IR(pImgObjVec->at(2)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0), { pImgObjVec->at(2)->arr.size(0), pImgObjVec->at(2)->arr.size(1) }, ippAxsHorizontal);
+				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS), 0, sizeof(uint8_t) * 2 * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+			}
 #endif
         }
 #endif
@@ -1121,11 +1214,14 @@ void SaveResultDlg::converting(CrossSectionCheckList checkList)
 #elif defined(OCT_NIRF)
         if (checkList.bNirf)
         {
-            pImgObjVec->at(0)->convertRgb();
-            pImgObjVec->at(1)->convertNonScaledRgb(); // nirf
+			if (!checkList.bNirfRingOnly)
+			{
+				pImgObjVec->at(0)->convertRgb();
+				pImgObjVec->at(1)->convertNonScaledRgb(); // nirf
 #ifdef TWO_CHANNEL_NIRF
-			pImgObjVec->at(2)->convertNonScaledRgb(); // nirf
+				pImgObjVec->at(2)->convertNonScaledRgb(); // nirf
 #endif
+			}
         }
 #endif
 		frameCount++;
@@ -1150,12 +1246,81 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 	if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
 	{
 #elif defined (OCT_NIRF)
-    if (!checkList.bNirf)
+    if (!checkList.bNirf || checkList.bNirfRingOnly)
     {
 #endif
 		QString rectPath;
-        rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
-		if (checkList.bRect) QDir().mkdir(rectPath);
+
+#ifndef TWO_CHANNEL_NIRF
+		QString rectNirfPath;
+#else
+		QString rectNirfPath[2];
+#endif
+
+#ifndef OCT_NIRF
+		rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+#else
+        rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+		if (checkList.bNirfRingOnly)
+		{
+#ifndef TWO_CHANNEL_NIRF
+			if (m_pResultTab->getNirfDistCompDlg())
+			{
+				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+				{
+					if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+						rectNirfPath = QString("/rect_tbr_nirf_i[%1 %2]/");
+					else
+						rectNirfPath = QString("/rect_comp_nirf_i[%1 %2]/");
+				}
+				else
+					rectNirfPath = QString("/rect_bg_sub_nirf_i[%1 %2]/");
+			}
+			else
+			{
+				rectNirfPath = QString("/rect_raw_nirf_i[%1 %2]/");
+			}
+			rectNirfPath = m_pResultTab->m_path + rectNirfPath.arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
+#else
+			for (int i = 0; i < 2; i++)
+			{
+				if (m_pResultTab->getNirfDistCompDlg())
+				{
+					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+							rectNirfPath[i] = QString("/rect_tbr_nirf_i%1[%2 %3]/");
+						else
+							rectNirfPath[i] = QString("/rect_comp_nirf_i%1[%2 %3]/");
+					}
+					else
+						rectNirfPath[i] = QString("/rect_bg_sub_nirf_i%1[%2 %3]/");
+				}
+				else
+				{
+					rectNirfPath[i] = QString("/rect_raw_nirf_i%1[%2 %3]/");
+				}
+				rectNirfPath[i] = m_pResultTab->m_path + rectNirfPath[i].arg(i + 1).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2);
+			}
+#endif
+		}
+#endif
+
+		if (checkList.bRect)
+		{
+			QDir().mkdir(rectPath);
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				QDir().mkdir(rectNirfPath);
+#else
+				QDir().mkdir(rectNirfPath[0]);
+				QDir().mkdir(rectNirfPath[1]);
+#endif
+			}
+#endif
+		}
 
 		int frameCount = 0;
 		while (frameCount < nTotalFrame)
@@ -1170,14 +1335,25 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                 if (checkList.bRect)
                 {
                     int original_nAlines = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
-
+					
                     if (original_nAlines == pImgObjVec->at(0)->getWidth())
                     {
                         if (!checkList.bRectResize)
                             pImgObjVec->at(0)->qindeximg.save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
-                        else
-                            pImgObjVec->at(0)->qindeximg.scaled(checkList.nRectWidth, checkList.nRectHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
-                                save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						else
+						{
+							cv::Mat src(pImgObjVec->at(0)->getHeight(), pImgObjVec->at(0)->getWidth(), CV_8UC1, pImgObjVec->at(0)->qindeximg.bits());
+							IplImage src_img(src);
+							IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+							cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+							
+							QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+							scaled_img.setColorCount(256);
+							scaled_img.setColorTable(pImgObjVec->at(0)->getColorTable());
+
+							scaled_img.save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						}
                     }
                     else
                     {
@@ -1186,19 +1362,138 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                             pImgObjVec->at(0)->qindeximg.copy(0, 0, original_nAlines, pImgObjVec->at(0)->getHeight()).
                                     save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
                         else
-                            pImgObjVec->at(0)->qindeximg.copy(0, 0, original_nAlines, pImgObjVec->at(0)->getHeight()).
-								scaled(checkList.nRectWidth, checkList.nRectHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
-                                save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						{
+							cv::Mat src(pImgObjVec->at(0)->getHeight(), pImgObjVec->at(0)->getWidth(), CV_8UC1, pImgObjVec->at(0)->qindeximg.bits());
+							cv::Mat src_crop = src(cv::Rect(0, 0, original_nAlines, pImgObjVec->at(0)->getHeight()));
+							IplImage src_img(src_crop);
+							IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+							cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+							QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+							scaled_img.setColorCount(256);
+							scaled_img.setColorTable(pImgObjVec->at(0)->getColorTable());
+
+							scaled_img.save(rectPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						}
                     }
+
+#ifdef OCT_NIRF
+					// NIRF ring here
+					if (checkList.bNirfRingOnly)
+					{
+#ifndef TWO_CHANNEL_NIRF
+						if (original_nAlines == pImgObjVec->at(0)->getWidth())
+						{
+							if (!checkList.bRectResize)
+								pImgObjVec->at(1)->qindeximg.save(rectNirfPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							else
+							{
+								cv::Mat src(pImgObjVec->at(1)->getHeight(), pImgObjVec->at(1)->getWidth(), CV_8UC1, pImgObjVec->at(1)->qindeximg.bits());
+								IplImage src_img(src);
+								IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+								cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+								QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+								scaled_img.setColorCount(256);
+								scaled_img.setColorTable(pImgObjVec->at(1)->getColorTable());
+
+								scaled_img.save(rectNirfPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							}
+						}
+						else
+						{
+							// Cut useless A-lines
+							if (!checkList.bRectResize)
+								pImgObjVec->at(1)->qindeximg.copy(0, 0, original_nAlines, pImgObjVec->at(0)->getHeight()).
+								save(rectNirfPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							else
+							{
+								cv::Mat src(pImgObjVec->at(1)->getHeight(), pImgObjVec->at(1)->getWidth(), CV_8UC1, pImgObjVec->at(1)->qindeximg.bits());
+								cv::Mat src_crop = src(cv::Rect(0, 0, original_nAlines, pImgObjVec->at(1)->getHeight()));
+								IplImage src_img(src_crop);
+								IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+								cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+								QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+								scaled_img.setColorCount(256);
+								scaled_img.setColorTable(pImgObjVec->at(1)->getColorTable());
+
+								scaled_img.save(rectNirfPath + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							}
+						}
+#else
+						for (int i = 1; i <= 2; i++)
+						{
+							if (original_nAlines == pImgObjVec->at(0)->getWidth())
+							{
+								if (!checkList.bRectResize)
+									pImgObjVec->at(i)->qindeximg.save(rectNirfPath[i - 1] + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+								else
+								{
+									cv::Mat src(pImgObjVec->at(i)->getHeight(), pImgObjVec->at(i)->getWidth(), CV_8UC1, pImgObjVec->at(i)->qindeximg.bits());
+									IplImage src_img(src);
+									IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+									cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+									QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+									scaled_img.setColorCount(256);
+									scaled_img.setColorTable(pImgObjVec->at(i)->getColorTable());
+
+									scaled_img.save(rectNirfPath[i - 1] + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+								}
+							}
+							else
+							{
+								// Cut useless A-lines
+								if (!checkList.bRectResize)
+									pImgObjVec->at(i)->qindeximg.copy(0, 0, original_nAlines, pImgObjVec->at(0)->getHeight()).
+									save(rectNirfPath[i - 1] + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+								else
+								{
+									cv::Mat src(pImgObjVec->at(i)->getHeight(), pImgObjVec->at(i)->getWidth(), CV_8UC1, pImgObjVec->at(i)->qindeximg.bits());
+									cv::Mat src_crop = src(cv::Rect(0, 0, original_nAlines, pImgObjVec->at(i)->getHeight()));
+									IplImage src_img(src_crop);
+									IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nRectWidth, checkList.nRectHeight), IPL_DEPTH_8U, 1);
+
+									cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+									QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nRectWidth, checkList.nRectHeight, QImage::Format_Indexed8);
+									scaled_img.setColorCount(256);
+									scaled_img.setColorTable(pImgObjVec->at(i)->getColorTable());
+
+									scaled_img.save(rectNirfPath[i - 1] + QString("rect_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+								}
+							}
+						}
+#endif
+					}
+#endif
                 }
             }
 		
 			frameCount++;
-			emit savedSingleFrame(m_nSavedFrames++);
 
 			// Push the buffers to sync Queues
 			m_syncQueueCircularizing.push(pImgObjVec);
 		}
+
+#ifdef OCT_NIRF
+		if (checkList.bNirfRingOnly)
+			if (checkList.bRect)
+				if (m_pResultTab->getNirfDistCompDlg())
+					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+#ifndef TWO_CHANNEL_NIRF
+						m_pResultTab->getNirfDistCompDlg()->setCompInfo(rectNirfPath + "dist_comp_info.log");
+#else
+						for (int i = 0; i < 2; i++)
+							m_pResultTab->getNirfDistCompDlg()->setCompInfo(rectNirfPath[i] + "dist_comp_info.log");
+#endif
+#endif
+
 #ifdef OCT_FLIM
 	}
 	else
@@ -1318,7 +1613,6 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             }
 
 			frameCount++;
-			emit savedSingleFrame(m_nSavedFrames++);
 
 			// Push the buffers to sync Queues
 			m_syncQueueCircularizing.push(pImgObjVec);
@@ -1419,7 +1713,6 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             }
 
             frameCount++;
-            emit savedSingleFrame(m_nSavedFrames++);
 
             // Push the buffers to sync Queues
             m_syncQueueCircularizing.push(pImgObjVec);
@@ -1428,7 +1721,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 		if (checkList.bRect)
 			if (m_pResultTab->getNirfDistCompDlg())
 				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-					saveCompDetailsLog(rectPath + "dist_comp_details.log");
+					m_pResultTab->getNirfDistCompDlg()->setCompInfo(rectPath + "dist_comp_info.log");
     }
 #endif
 }
@@ -1456,6 +1749,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 	}
 #else
 	ImgObjVector *pImgObjVecLongi = new ImgObjVector;
+#ifndef TWO_CHANNEL_NIRF
+	ImgObjVector *pImgObjVecLongiRing = nullptr;
+#else
+	ImgObjVector *pImgObjVecLongiRing[2] = { nullptr, nullptr };
+#endif
 	if (checkList.bLongi)
 	{
 		for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
@@ -1463,6 +1761,33 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 			pImgObjVecLongi->push_back(pLongiImgObj);
 		}
+
+#ifdef OCT_NIRF
+		if (checkList.bNirfRingOnly)
+		{
+#ifndef TWO_CHANNEL_NIRF
+			pImgObjVecLongiRing = new ImgObjVector;
+			for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
+			{
+				ImageObject *pLongiRingImgObj = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				pImgObjVecLongiRing->push_back(pLongiRingImgObj);
+			}
+#else
+			pImgObjVecLongiRing[0] = new ImgObjVector;
+			pImgObjVecLongiRing[1] = new ImgObjVector;
+			for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
+			{
+				ImageObject *pLongiRingImgObj1 = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				pImgObjVecLongiRing[0]->push_back(pLongiRingImgObj1);
+
+				ImageObject *pLongiRingImgObj2 = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
+				pImgObjVecLongiRing[1]->push_back(pLongiRingImgObj2);
+			}
+#endif
+		}
+#endif
+
+		m_pResultTab->getProgressBar()->setRange(0, (int)m_pResultTab->m_vectorOctImage.size() * 2 + m_pResultTab->m_vectorOctImage.at(0).size(1) / 2 - 1);
 	}
 #endif
 
@@ -1477,20 +1802,67 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
 		{
 #elif defined (OCT_NIRF)
-		if (!checkList.bNirf)
+		if (!checkList.bNirf || checkList.bNirfRingOnly)
 		{
 #endif
 			// ImageObject for circ writing
 			ImageObject *pCircImgObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+#ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
+			ImageObject *pCircNirfObj = nullptr;
+#else
+			ImageObject *pCircNirfObj1 = nullptr;
+			ImageObject *pCircNirfObj2 = nullptr;
+#endif
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				pCircNirfObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+#else
+				pCircNirfObj1 = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				pCircNirfObj2 = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
+#endif
+			}
+#endif
 
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qindeximg.bits(), pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 			int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
 				(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 4) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+			
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+				memset(&rect_temp(0, center + CIRC_RADIUS - 2 * RING_THICKNESS), 0, sizeof(uint8_t) * 2 * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+#endif
 
 			// Circularize
 			if (checkList.bCirc)
 				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qindeximg.bits(), "vertical", center);
+
+#ifdef OCT_NIRF
+			// NIRF ring only here
+#ifndef TWO_CHANNEL_NIRF
+			np::Uint8Array2 rect_nirf_temp;
+#else
+			np::Uint8Array2 rect_nirf_temp1, rect_nirf_temp2;
+#endif
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				rect_nirf_temp = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
+				if (checkList.bCirc)
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp, pCircNirfObj->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS);
+#else
+				rect_nirf_temp1 = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
+				rect_nirf_temp2 = np::Uint8Array2(pImgObjVec->at(2)->qindeximg.bits(), pImgObjVec->at(2)->arr.size(0), pImgObjVec->at(2)->arr.size(1));
+				if (checkList.bCirc)
+				{
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp1, pCircNirfObj1->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS);
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp2, pCircNirfObj2->qindeximg.bits(), "vertical", pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS);
+				}
+#endif
+			}
+#endif
 
 			// Longitudinal
 			if (checkList.bLongi)
@@ -1512,6 +1884,28 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 							pImgObjVecLongi->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 						ippiCopy_8u_C1R(&rect_temp((int)i + n2Alines, center), sizeof(uint8_t) * 2 * n2Alines,
 							pImgObjVecLongi->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+
+#ifdef OCT_NIRF
+						if (checkList.bNirfRingOnly)
+						{
+#ifndef TWO_CHANNEL_NIRF
+							ippiCopy_8u_C1R(&rect_nirf_temp((int)i, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+#else
+							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[0]->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[0]->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+
+							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i, pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[1]->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i + n2Alines, pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[1]->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+#endif
+						}
+#endif
 #endif
 					}
 				});
@@ -1519,6 +1913,17 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 			// Vector pushing back
 			pImgObjVecCirc->push_back(pCircImgObj);
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				pImgObjVecCirc->push_back(pCircNirfObj);
+#else
+				pImgObjVecCirc->push_back(pCircNirfObj1);
+				pImgObjVecCirc->push_back(pCircNirfObj2);
+#endif
+			}
+#endif
 #ifdef OCT_FLIM
 		}
 		else
@@ -1620,7 +2025,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		else
 		{
 			// ImageObject for circ writing
-			ImageObject *pCircImgObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+			ImageObject *pCircImgObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));		
 
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
@@ -1666,8 +2071,9 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			// Vector pushing back
 			pImgObjVecCirc->push_back(pCircImgObj);
 		}
-#endif
+#endif;
 		frameCount++;
+		emit savedSingleFrame(m_nSavedFrames++);
 
 		// Push the buffers to sync Queues
 		m_syncQueueCircWriting.push(pImgObjVecCirc);
@@ -1702,12 +2108,78 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
 		{
 #elif defined (OCT_NIRF)
-		if (!checkList.bNirf)
+		if (!checkList.bNirf || checkList.bNirfRingOnly)
 		{
 #endif
 			QString longiPath;
+
+#ifndef TWO_CHANNEL_NIRF
+			QString longiNirfPath;
+#else
+			QString longiNirfPath[2];
+#endif
+
+#ifndef OCT_NIRF
 			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4]/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+#else
+			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4]%5/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				if (m_pResultTab->getNirfDistCompDlg())
+				{
+					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+							longiNirfPath = QString("/longi_tbr_nirf[%1 %2]_i[%3 %4]/");
+						else
+							longiNirfPath = QString("/longi_comp_nirf[%1 %2]_i[%3 %4]/");
+					}
+					else
+						longiNirfPath = QString("/longi_bg_sub_nirf[%1 %2]_i[%3 %4]/");
+				}
+				else
+				{
+					longiNirfPath = QString("/longi_raw_nirf[%1 %2]_i[%3 %4]/");
+				}
+				longiNirfPath = m_pResultTab->m_path + longiNirfPath.arg(start).arg(end).arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
+#else
+				for (int i = 0; i < 2; i++)
+				{
+					if (m_pResultTab->getNirfDistCompDlg())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+						{
+							if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+								longiNirfPath[i] = QString("/longi_tbr_nirf[%1 %2]_i%3[%4 %5]/");
+							else
+								longiNirfPath[i] = QString("/longi_comp_nirf[%1 %2]_i%3[%4 %5]/");
+						}
+						else
+							longiNirfPath[i] = QString("/longi_bg_sub_nirf[%1 %2]_i%3[%4 %5]/");
+					}
+					else
+					{
+						longiNirfPath[i] = QString("/longi_raw_nirf[%1 %2]_i%3[%4 %5]/");
+					}
+					longiNirfPath[i] = m_pResultTab->m_path + longiNirfPath[i].arg(start).arg(end).arg(i + 1).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2);
+				}
+#endif
+			}
+#endif
+			
 			QDir().mkdir(longiPath);
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				QDir().mkdir(longiNirfPath);
+#else
+				QDir().mkdir(longiNirfPath[0]);
+				QDir().mkdir(longiNirfPath[1]);
+#endif
+			}
+#endif
 
 			int alineCount = 0;
 			while (alineCount < m_pResultTab->m_vectorOctImage.at(0).size(1) / 2)
@@ -1734,12 +2206,96 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					pImgObjVecLongi->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 				else
-					pImgObjVecLongi->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
-						scaled(checkList.nLongiWidth, checkList.nLongiHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
-						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
+				{
+					cv::Mat src(pImgObjVecLongi->at(alineCount)->getHeight(), pImgObjVecLongi->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongi->at(alineCount)->qindeximg.bits());
+					cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+					IplImage src_img(src_crop);
+					IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
+
+					cvResize(&src_img, p_dst_img, CV_INTER_CUBIC);
+
+					QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nLongiWidth, checkList.nLongiHeight, QImage::Format_Indexed8);
+					scaled_img.setColorCount(256);
+					scaled_img.setColorTable(pImgObjVecLongi->at(alineCount)->getColorTable());
+
+					scaled_img.save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
+				}
+
+#ifdef OCT_NIRF
+				// NIRF ring here
+				if (checkList.bNirfRingOnly)
+				{
+#ifndef TWO_CHANNEL_NIRF
+					ippiMirror_8u_C1IR(pImgObjVecLongiRing->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+					if (!checkList.bLongiResize)
+						pImgObjVecLongiRing->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+							save(longiNirfPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
+					else
+					{
+						cv::Mat src(pImgObjVecLongiRing->at(alineCount)->getHeight(), pImgObjVecLongiRing->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongiRing->at(alineCount)->qindeximg.bits());
+						cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+						IplImage src_img(src_crop);
+						IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
+
+						cvResize(&src_img, p_dst_img, CV_INTER_CUBIC);
+
+						QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nLongiWidth, checkList.nLongiHeight, QImage::Format_Indexed8);
+						scaled_img.setColorCount(256);
+						scaled_img.setColorTable(pImgObjVecLongiRing->at(alineCount)->getColorTable());
+
+						scaled_img.save(longiNirfPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
+					}
+#else
+					for (int i = 0; i < 2; i++)
+					{
+						ippiMirror_8u_C1IR(pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+						if (!checkList.bLongiResize)
+							pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+								save(longiNirfPath[i] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
+						else
+						{
+							cv::Mat src(pImgObjVecLongiRing[i]->at(alineCount)->getHeight(), pImgObjVecLongiRing[i]->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.bits());
+							cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+							IplImage src_img(src_crop);
+							IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
+
+							cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+							QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nLongiWidth, checkList.nLongiHeight, QImage::Format_Indexed8);
+							scaled_img.setColorCount(256);
+							scaled_img.setColorTable(pImgObjVecLongiRing[i]->at(alineCount)->getColorTable());
+
+							scaled_img.save(longiNirfPath[i] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");							
+						}
+					}
+#endif
+				}
+#endif
 
 				// Delete ImageObjects
 				delete pImgObjVecLongi->at(alineCount++);
+#ifdef OCT_NIRF
+				if (checkList.bNirfRingOnly)
+				{
+#ifndef TWO_CHANNEL_NIRF
+					delete pImgObjVecLongiRing->at(alineCount - 1);
+#else
+					for (int i = 0; i < 2; i++)
+						delete pImgObjVecLongiRing[i]->at(alineCount - 1);
+#endif
+					if (checkList.bLongi)
+						if (m_pResultTab->getNirfDistCompDlg())
+							if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+#ifndef TWO_CHANNEL_NIRF
+								m_pResultTab->getNirfDistCompDlg()->setCompInfo(longiNirfPath + "dist_comp_info.log");
+#else
+								for (int i = 0; i < 2; i++)
+									m_pResultTab->getNirfDistCompDlg()->setCompInfo(longiNirfPath[i] + "dist_comp_info.log");
+#endif
+				}
+#endif
+
+				emit savedSingleFrame(m_nSavedFrames++);
 #endif
 			}
 #ifdef OCT_FLIM
@@ -1876,12 +2432,14 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 				// Delete ImageObjects
 				delete pImgObjVecLongi->at(alineCount++);
+
+				emit savedSingleFrame(m_nSavedFrames++);
 			}
 
 			if (checkList.bLongi)
 				if (m_pResultTab->getNirfDistCompDlg())
 					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
-						saveCompDetailsLog(longiPath + "dist_comp_details.log");
+						m_pResultTab->getNirfDistCompDlg()->setCompInfo(longiPath + "dist_comp_info.log");
 		}
 #endif
 	}
@@ -1910,12 +2468,81 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 	if (!checkList.bCh[0] && !checkList.bCh[1] && !checkList.bCh[2])
 	{
 #elif defined (OCT_NIRF)
-    if (!checkList.bNirf)
+    if (!checkList.bNirf || checkList.bNirfRingOnly)
     {
 #endif
 		QString circPath;
-        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
-		if (checkList.bCirc) QDir().mkdir(circPath);
+
+#ifndef TWO_CHANNEL_NIRF
+		QString circNirfPath;
+#else
+		QString circNirfPath[2];
+#endif
+
+#ifndef OCT_NIRF
+		circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+#else
+        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+		if (checkList.bNirfRingOnly)
+		{
+#ifndef TWO_CHANNEL_NIRF
+			if (m_pResultTab->getNirfDistCompDlg())
+			{
+				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+				{
+					if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+						circNirfPath = QString("/circ_tbr_nirf_i[%1 %2]/");
+					else
+						circNirfPath = QString("/circ_comp_nirf_i[%1 %2]/");
+				}
+				else
+					circNirfPath = QString("/circ_bg_sub_nirf_i[%1 %2]/");
+			}
+			else
+			{
+				circNirfPath = QString("/circ_raw_nirf_i[%1 %2]/");
+			}
+			circNirfPath = m_pResultTab->m_path + circNirfPath.arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
+#else
+			for (int i = 0; i < 2; i++)
+			{
+				if (m_pResultTab->getNirfDistCompDlg())
+				{
+					if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+					{
+						if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
+							circNirfPath[i] = QString("/circ_tbr_nirf_i%1[%2 %3]/");
+						else
+							circNirfPath[i] = QString("/circ_comp_nirf_i%1[%2 %3]/");
+					}
+					else
+						circNirfPath[i] = QString("/circ_bg_sub_nirf_i%1[%2 %3]/");
+				}
+				else
+				{
+					circNirfPath[i] = QString("/circ_raw_nirf_i%1[%2 %3]/");
+				}
+				circNirfPath[i] = m_pResultTab->m_path + circNirfPath[i].arg(i + 1).arg(m_pConfig->nirfRange[i].min, 2, 'f', 2).arg(m_pConfig->nirfRange[i].max, 2, 'f', 2);
+			}
+#endif
+		}
+#endif
+
+		if (checkList.bCirc)
+		{
+			QDir().mkdir(circPath);
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				QDir().mkdir(circNirfPath);
+#else
+				QDir().mkdir(circNirfPath[0]);
+				QDir().mkdir(circNirfPath[1]);
+#endif
+			}
+#endif
+		}
 
 		int frameCount = 0;
 		while (frameCount < nTotalFrame)
@@ -1931,10 +2558,65 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
                 {
                     if (!checkList.bCircResize)
                         pImgObjVecCirc->at(0)->qindeximg.save(circPath + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
-                    else
-                        pImgObjVecCirc->at(0)->qindeximg.
-							scaled(checkList.nCircDiameter, checkList.nCircDiameter, Qt::IgnoreAspectRatio, m_defaultTransformation).
-                            save(circPath + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+					else
+					{
+						cv::Mat src(pImgObjVecCirc->at(0)->getHeight(), pImgObjVecCirc->at(0)->getWidth(), CV_8UC1, pImgObjVecCirc->at(0)->qindeximg.bits());
+						IplImage src_img(src);
+						IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nCircDiameter, checkList.nCircDiameter), IPL_DEPTH_8U, 1);
+
+						cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+						QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nCircDiameter, checkList.nCircDiameter, QImage::Format_Indexed8);
+						scaled_img.setColorCount(256);
+						scaled_img.setColorTable(pImgObjVecCirc->at(0)->getColorTable());
+
+						scaled_img.save(circPath + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+					}
+
+#ifdef OCT_NIRF
+					// NIRF ring here
+					if (checkList.bNirfRingOnly)
+					{
+#ifndef TWO_CHANNEL_NIRF						
+						if (!checkList.bCircResize)
+							pImgObjVecCirc->at(1)->qindeximg.save(circNirfPath + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						else
+						{
+							cv::Mat src(pImgObjVecCirc->at(1)->getHeight(), pImgObjVecCirc->at(1)->getWidth(), CV_8UC1, pImgObjVecCirc->at(1)->qindeximg.bits());
+							IplImage src_img(src);
+							IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nCircDiameter, checkList.nCircDiameter), IPL_DEPTH_8U, 1);
+
+							cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+							QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nCircDiameter, checkList.nCircDiameter, QImage::Format_Indexed8);
+							scaled_img.setColorCount(256);
+							scaled_img.setColorTable(pImgObjVecCirc->at(1)->getColorTable());
+
+							scaled_img.save(circNirfPath + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+						}
+#else
+						for (int i = 1; i <= 2; i++)
+						{
+							if (!checkList.bCircResize)
+								pImgObjVecCirc->at(i)->qindeximg.save(circNirfPath[i - 1] + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							else
+							{
+								cv::Mat src(pImgObjVecCirc->at(i)->getHeight(), pImgObjVecCirc->at(i)->getWidth(), CV_8UC1, pImgObjVecCirc->at(i)->qindeximg.bits());
+								IplImage src_img(src);
+								IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nCircDiameter, checkList.nCircDiameter), IPL_DEPTH_8U, 1);
+
+								cvResize(&src_img, p_dst_img, CV_INTER_AREA);
+
+								QImage scaled_img((uchar*)p_dst_img->imageData, checkList.nCircDiameter, checkList.nCircDiameter, QImage::Format_Indexed8);
+								scaled_img.setColorCount(256);
+								scaled_img.setColorTable(pImgObjVecCirc->at(i)->getColorTable());
+
+								scaled_img.save(circNirfPath[i - 1] + QString("circ_%1_%2.bmp").arg(folderName).arg(frameCount + 1, 3, 10, (QChar)'0'), "bmp");
+							}
+						}
+#endif
+					}
+#endif
                 }
             }
 		
@@ -1943,7 +2625,27 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 
 			// Delete ImageObjects
 			delete pImgObjVecCirc->at(0);
-			delete pImgObjVecCirc;
+#ifdef OCT_NIRF
+			if (checkList.bNirfRingOnly)
+			{
+#ifndef TWO_CHANNEL_NIRF
+				delete pImgObjVecCirc->at(1);
+#else
+				delete pImgObjVecCirc->at(1);
+				delete pImgObjVecCirc->at(2);
+#endif
+				if (checkList.bCirc)
+					if (m_pResultTab->getNirfDistCompDlg())
+						if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
+#ifndef TWO_CHANNEL_NIRF
+							m_pResultTab->getNirfDistCompDlg()->setCompInfo(circNirfPath + "dist_comp_info.log");
+#else
+							for (int i = 0; i < 2; i++)
+								m_pResultTab->getNirfDistCompDlg()->setCompInfo(circNirfPath[i] + "dist_comp_info.log");
+#endif
+			}
+#endif
+			delete pImgObjVecCirc;				
 		}
 #ifdef OCT_FLIM
 	}
@@ -2094,7 +2796,7 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
             }
 
             frameCount++;
-            emit savedSingleFrame(m_nSavedFrames++);
+			emit savedSingleFrame(m_nSavedFrames++);
 
             // Delete ImageObjects
             delete pImgObjVecCirc->at(0);
@@ -2103,52 +2805,8 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 
 		if (checkList.bCirc)
 			if (m_pResultTab->getNirfDistCompDlg())
-				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())				
-	                saveCompDetailsLog(circPath + "dist_comp_details.log");
+				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())		
+					m_pResultTab->getNirfDistCompDlg()->setCompInfo(circPath + "dist_comp_info.log");
     }
 #endif
 }
-
-#ifdef OCT_NIRF
-void SaveResultDlg::saveCompDetailsLog(const QString savepath)
-{
-    QFile file(savepath);
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-
-    QDate date = QDate::currentDate();
-    QTime time = QTime::currentTime();
-
-    out << QString("@ Created: %1-%2-%3 %4-%5-%6\n\n")
-        .arg(date.year()).arg(date.month(), 2, 10, (QChar)'0').arg(date.day(), 2, 10, (QChar)'0')
-        .arg(time.hour(), 2, 10, (QChar)'0').arg(time.minute(), 2, 10, (QChar)'0').arg(time.second(), 2, 10, (QChar)'0');
-
-    out << QString("@ Compensation Curve: (a*exp(b*x)+c*exp(d*x))/(a+c)\n");
-    out << QString("@ a: %1\n").arg(QString::number(m_pConfig->nirfCompCoeffs[0]));
-    out << QString("@ b: %1\n").arg(QString::number(m_pConfig->nirfCompCoeffs[1]));
-    out << QString("@ c: %1\n").arg(QString::number(m_pConfig->nirfCompCoeffs[2]));
-    out << QString("@ d: %1\n\n").arg(QString::number(m_pConfig->nirfCompCoeffs[3]));
-
-    out << QString("@ Factor Threshold: %1\n").arg(QString::number(m_pConfig->nirfFactorThres));
-    out << QString("@ Factor Proportional Constant: %1\n").arg(QString::number(m_pConfig->nirfFactorPropConst));
-    out << QString("@ Distance Proportional Constant: %1\n\n").arg(QString::number(m_pConfig->nirfDistPropConst));
-
-    out << QString("@ NIRF Offset: %1\n").arg(QString::number(m_pResultTab->getCurrentNirfOffset()));
-    out << QString("@ Lumen Contour Offset: %1\n").arg(QString::number(m_pConfig->nirfLumContourOffset));
-    out << QString("@ Outer Sheath Position: %1\n").arg(QString::number(m_pConfig->nirfOuterSheathPos));
-#ifdef GALVANO_MIRROR
-    out << QString("@ Fast Scan Adjustment: %1\n\n").arg(QString::number(m_pConfig->galvoHorizontalShift));
-#endif
-
-    out << QString("@ NIRF Background: %1\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->nirfBg));
-    out << QString("@ NIRF Background for TBR: %1\n\n").arg(QString::number(m_pResultTab->getNirfDistCompDlg()->tbrBg));
-	
-	if (!m_pResultTab->getPolishedSurfaceFindingStatus())
-		out << QString("@ Circ Center: %1\n").arg(QString::number(m_pConfig->circCenter));
-	else
-		out << QString("@ Ball Radius: %1\n").arg(QString::number(m_pConfig->ballRadius));
-	out << QString("@ Circ Radius: %1\n").arg(QString::number(CIRC_RADIUS));
-
-    file.close();
-}
-#endif
