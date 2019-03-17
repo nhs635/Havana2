@@ -150,22 +150,22 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	ColorTable temp_ctable;
 
 	m_pImgObjRectImage = new ImageObject(m_pConfig->nAlines, m_pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(temp_ctable.gray));
-	m_pImgObjCircImage = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(temp_ctable.gray));
+	m_pImgObjCircImage = new ImageObject(2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, temp_ctable.m_colorTableVector.at(temp_ctable.gray));
 #ifdef OCT_FLIM
-	m_pImgObjIntensity = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
-	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pConfig->flimLifetimeColorTable));
+	m_pImgObjIntensity = new ImageObject(m_pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pConfig->flimLifetimeColorTable));
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
-	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
 #else
-	m_pImgObjNirf1 = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
-	m_pImgObjNirf2 = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE2)));
+	m_pImgObjNirf1 = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+	m_pImgObjNirf2 = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE2)));
 #endif
 #endif
 #endif
 	
-	m_pCirc = new circularize(CIRC_RADIUS, m_pConfig->nAlines, false);
+	m_pCirc = new circularize(m_pConfig->circRadius, m_pConfig->nAlines, false);
 	m_pMedfilt = new medfilt(m_pConfig->nAlines, m_pConfig->n2ScansFFT, 3, 3);
 
 
@@ -254,14 +254,14 @@ QStreamTab::QStreamTab(QWidget *parent) :
     // Create image view
 #ifdef OCT_FLIM
 	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, true);
-	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS, true);
+	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, true);
 #elif defined (STANDALONE_OCT)
 #ifndef OCT_NIRF
 	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT);
-	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS);
+	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius);
 #else
 	m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, true);
-	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * CIRC_RADIUS, 2 * CIRC_RADIUS, true);
+	m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, true);
 #endif
 #endif
 
@@ -366,6 +366,16 @@ void QStreamTab::keyPressEvent(QKeyEvent *e)
 void QStreamTab::setWidgetsText()
 {
 	m_pLineEdit_CircCenter->setText(QString::number(m_pConfig->circCenter));
+
+	if (m_pConfig->circCenter + m_pConfig->circRadius + 1 > m_pConfig->n2ScansFFT)
+		m_pConfig->circRadius = m_pConfig->n2ScansFFT - m_pConfig->circCenter - 1;
+	m_pLineEdit_CircRadius->setText(QString::number(m_pConfig->circRadius));
+
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	if (m_pConfig->ringThickness > m_pConfig->circRadius - 2)
+		m_pConfig->ringThickness = m_pConfig->circRadius - 2;
+	m_pLineEdit_RingThickness->setText(QString::number(m_pConfig->ringThickness));
+#endif
 
 	m_pComboBox_OctColorTable->setCurrentIndex(m_pConfig->octColorTable);
 	m_pLineEdit_OctDbMax->setText(QString::number(m_pConfig->octDbRange.max));
@@ -659,7 +669,29 @@ void QStreamTab::createOctVisualizationOptionTab()
     m_pLineEdit_CircCenter->setText(QString("%1").arg(m_pConfig->circCenter));
 	m_pLineEdit_CircCenter->setAlignment(Qt::AlignCenter);
     m_pLabel_CircCenter = new QLabel("Circ Center", this);
-    m_pLabel_CircCenter->setBuddy(m_pLabel_CircCenter);
+    m_pLabel_CircCenter->setBuddy(m_pLineEdit_CircCenter);
+	
+	if (m_pConfig->circRadius + m_pConfig->circCenter + 1 > m_pConfig->n2ScansFFT)
+	{
+		m_pConfig->circRadius = m_pConfig->n2ScansFFT - m_pConfig->circCenter - 1;
+		m_pConfig->circRadius = (m_pConfig->circRadius % 2) ? m_pConfig->circRadius - 1 : m_pConfig->circRadius;
+	}
+
+	m_pLineEdit_CircRadius = new QLineEdit(this);
+	m_pLineEdit_CircRadius->setFixedWidth(35);
+	m_pLineEdit_CircRadius->setText(QString("%1").arg(m_pConfig->circRadius));
+	m_pLineEdit_CircRadius->setAlignment(Qt::AlignCenter);
+	m_pLabel_CircRadius = new QLabel("Circ Radius", this);
+	m_pLabel_CircRadius->setBuddy(m_pLineEdit_CircRadius);
+
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	m_pLineEdit_RingThickness = new QLineEdit(this);
+	m_pLineEdit_RingThickness->setFixedWidth(35);
+	m_pLineEdit_RingThickness->setText(QString("%1").arg(m_pConfig->ringThickness));
+	m_pLineEdit_RingThickness->setAlignment(Qt::AlignCenter);
+	m_pLabel_RingThickness = new QLabel("Ring Thickness    ", this);
+	m_pLabel_RingThickness->setBuddy(m_pLineEdit_RingThickness);
+#endif
 
     // Create widgets for OCT color table
     m_pComboBox_OctColorTable = new QComboBox(this);
@@ -698,17 +730,33 @@ void QStreamTab::createOctVisualizationOptionTab()
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);	
 	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctIntensityHistogram, 1, 3, 1, 2);
 
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
-	pGridLayout_OctVisualization->addWidget(m_pCheckBox_CircularizeImage, 2, 1);
-	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 2);
+
+	QHBoxLayout *pHBoxLayout_RingThickness = new QHBoxLayout;
+	pHBoxLayout_RingThickness->setSpacing(3);
+	pHBoxLayout_RingThickness->addWidget(m_pLabel_RingThickness);
+	pHBoxLayout_RingThickness->addWidget(m_pLineEdit_RingThickness);
+	pHBoxLayout_RingThickness->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+
+	pGridLayout_OctVisualization->addItem(pHBoxLayout_RingThickness, 2, 1);
+#else
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0, 1, 3);
+#endif
 	pGridLayout_OctVisualization->addWidget(m_pLabel_CircCenter, 2, 3);
 	pGridLayout_OctVisualization->addWidget(m_pLineEdit_CircCenter, 2, 4);
 
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);
-	pGridLayout_OctVisualization->addWidget(m_pCheckBox_ShowBgRemovedSignal, 3, 1);
+	pGridLayout_OctVisualization->addWidget(m_pCheckBox_CircularizeImage, 3, 1);
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 3, 2);
-	pGridLayout_OctVisualization->addWidget(m_pLabel_OctColorTable, 3, 3);
-	pGridLayout_OctVisualization->addWidget(m_pComboBox_OctColorTable, 3, 4);
+	pGridLayout_OctVisualization->addWidget(m_pLabel_CircRadius, 3, 3);
+	pGridLayout_OctVisualization->addWidget(m_pLineEdit_CircRadius, 3, 4);
+
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 4, 0);
+	pGridLayout_OctVisualization->addWidget(m_pCheckBox_ShowBgRemovedSignal, 4, 1);
+	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Fixed), 4, 2);
+	pGridLayout_OctVisualization->addWidget(m_pLabel_OctColorTable, 4, 3);
+	pGridLayout_OctVisualization->addWidget(m_pComboBox_OctColorTable, 4, 4);
 
     QHBoxLayout *pHBoxLayout_OctDbColorbar = new QHBoxLayout;
     pHBoxLayout_OctDbColorbar->setSpacing(3);
@@ -717,7 +765,7 @@ void QStreamTab::createOctVisualizationOptionTab()
     pHBoxLayout_OctDbColorbar->addWidget(m_pImageView_OctDbColorbar);
     pHBoxLayout_OctDbColorbar->addWidget(m_pLineEdit_OctDbMax);
 
-	pGridLayout_OctVisualization->addItem(pHBoxLayout_OctDbColorbar, 4, 0, 1, 5);
+	pGridLayout_OctVisualization->addItem(pHBoxLayout_OctDbColorbar, 5, 0, 1, 5);
 
     m_pGroupBox_OctVisualization->setLayout(pGridLayout_OctVisualization);
 	m_pGroupBox_OctVisualization->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
@@ -726,6 +774,10 @@ void QStreamTab::createOctVisualizationOptionTab()
 	connect(m_pCheckBox_CircularizeImage, SIGNAL(toggled(bool)), this, SLOT(changeVisImage(bool)));
 	connect(m_pCheckBox_ShowBgRemovedSignal, SIGNAL(toggled(bool)), this, SLOT(changeFringeBg(bool)));
 	connect(m_pLineEdit_CircCenter, SIGNAL(textEdited(const QString &)), this, SLOT(checkCircCenter(const QString &)));
+	connect(m_pLineEdit_CircRadius, SIGNAL(textEdited(const QString &)), this, SLOT(checkCircRadius(const QString &)));
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	connect(m_pLineEdit_RingThickness, SIGNAL(textEdited(const QString &)), this, SLOT(checkRingThickness(const QString &)));
+#endif
 	connect(m_pComboBox_OctColorTable, SIGNAL(currentIndexChanged(int)), this, SLOT(changeOctColorTable(int)));
 	connect(m_pLineEdit_OctDbMax, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
 	connect(m_pLineEdit_OctDbMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
@@ -1408,9 +1460,9 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
-	m_visNirf = np::DoubleArray2(1, m_pConfig->nAlines);
+	m_visNirf = np::DoubleArray2(1, nAlines);
 #else
-	m_visNirf = np::DoubleArray2(2, m_pConfig->nAlines);
+	m_visNirf = np::DoubleArray2(2, nAlines);
 #endif
 #endif
 #endif 
@@ -1422,19 +1474,19 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	m_pImgObjRectImage = new ImageObject(nAlines, m_pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
-	m_pImgObjIntensity = new ImageObject(nAlines / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	m_pImgObjIntensity = new ImageObject(nAlines / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
-	m_pImgObjLifetime = new ImageObject(nAlines / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+	m_pImgObjLifetime = new ImageObject(nAlines / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 #elif defined (STANDALONE_OCT)
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
 	if (m_pImgObjNirf) delete m_pImgObjNirf;
-	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+	m_pImgObjNirf = new ImageObject(nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
 #else
 	if (m_pImgObjNirf1) delete m_pImgObjNirf1;
-	m_pImgObjNirf1 = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+	m_pImgObjNirf1 = new ImageObject(nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
 	if (m_pImgObjNirf2) delete m_pImgObjNirf2;
-	m_pImgObjNirf2 = new ImageObject(m_pConfig->nAlines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE2)));
+	m_pImgObjNirf2 = new ImageObject(nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE2)));
 #endif
 #endif
 #endif
@@ -1444,7 +1496,7 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	if (m_pCirc)
 	{
 		delete m_pCirc;
-		m_pCirc = new circularize(CIRC_RADIUS, nAlines, false);
+		m_pCirc = new circularize(m_pConfig->circRadius, nAlines, false);
 	}
 	if (m_pMedfilt)
 	{
@@ -1517,7 +1569,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	uint8_t* rectLifetime = m_pImgObjLifetime->arr.raw_ptr();	
 	ippiScale_32f8u_C1R(scanLifetime, roi_flim.width * sizeof(float), rectLifetime, roi_flim.width * sizeof(uint8_t), roi_flim, m_pConfig->flimLifetimeRange.min, m_pConfig->flimLifetimeRange.max);
 
-	for (int i = 1; i < RING_THICKNESS; i++)
+	for (int i = 1; i < m_pConfig->ringThickness; i++)
 	{
 		memcpy(&m_pImgObjIntensity->arr(0, i), rectIntensity, sizeof(uint8_t) * roi_flim.width);
 		memcpy(&m_pImgObjLifetime->arr(0, i), rectLifetime, sizeof(uint8_t) * roi_flim.width);
@@ -1549,7 +1601,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	uint8_t* rectNirf = m_pImgObjNirf->arr.raw_ptr();	
 	ippiScale_32f8u_C1R(scanNirf, roi_nirf.width * sizeof(double), rectNirf, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange.min, m_pConfig->nirfRange.max);
 	
-	for (int i = 1; i < RING_THICKNESS; i++)
+	for (int i = 1; i < m_pConfig->ringThickness; i++)
 		memcpy(&m_pImgObjNirf->arr(0, i), rectNirf, sizeof(uint8_t) * roi_nirf.width);
 
 	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
@@ -1559,24 +1611,24 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	uint8_t* rectNirf1 = m_pImgObjNirf1->arr.raw_ptr();
 	ippiScale_32f8u_C1R(scanNirf1, roi_nirf.width * sizeof(double), rectNirf1, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max);
 
-	for (int i = 1; i < RING_THICKNESS; i++)
+	for (int i = 1; i < m_pConfig->ringThickness; i++)
 		memcpy(&m_pImgObjNirf1->arr(0, i), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
 	
 	np::Uint8Array boundary(roi_nirf.width);
 	ippsSet_8u(255, boundary.raw_ptr(), roi_nirf.width);
 
 	memcpy(&m_pImgObjNirf1->arr(0, 0), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
-	memcpy(&m_pImgObjNirf1->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
+	memcpy(&m_pImgObjNirf1->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
 
 	np::FloatArray scanNirf2(roi_nirf.width);
 	ippsConvert_64f32f(res3 + roi_nirf.width, scanNirf2, roi_nirf.width);
 	uint8_t* rectNirf2 = m_pImgObjNirf2->arr.raw_ptr();
 	ippiScale_32f8u_C1R(scanNirf2, roi_nirf.width * sizeof(double), rectNirf2, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max);
 
-	for (int i = 1; i < RING_THICKNESS; i++)
+	for (int i = 1; i < m_pConfig->ringThickness; i++)
 		memcpy(&m_pImgObjNirf2->arr(0, i), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
 
-	memcpy(&m_pImgObjNirf2->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
+	memcpy(&m_pImgObjNirf2->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
 	
 	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf1, m_pImgObjNirf2);
 #endif
@@ -1598,8 +1650,8 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	if (!m_pCheckBox_CircularizeImage->isChecked())
 	{
 		// Paste FLIM color ring to RGB rect image
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 2 * RING_THICKNESS - 1), intObj->qrgbimg.bits(), intObj->qrgbimg.byteCount());
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 1 * RING_THICKNESS - 1), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 2 * m_pConfig->ringThickness - 1), intObj->qrgbimg.bits(), intObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 1 * m_pConfig->ringThickness - 1), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
 
 		// Scan adjust
 #ifdef GALVANO_MIRROR
@@ -1617,8 +1669,8 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	else
 	{
 		// Paste FLIM color ring to RGB rect image
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 2 * RING_THICKNESS), intObj->qrgbimg.bits(), intObj->qrgbimg.byteCount());
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 1 * RING_THICKNESS), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - 2 * m_pConfig->ringThickness), intObj->qrgbimg.bits(), intObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - 1 * m_pConfig->ringThickness), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
 
 		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
 		(*m_pCirc)(rect_temp, circObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
@@ -1649,10 +1701,10 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	{
 		// Paste FLIM color ring to RGB rect image
 #ifndef TWO_CHANNEL_NIRF
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - RING_THICKNESS - 1), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - m_pConfig->ringThickness - 1), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
 #else
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 2 * RING_THICKNESS - 1), nirfObj1->qrgbimg.bits(), nirfObj1->qrgbimg.byteCount());
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 1 * RING_THICKNESS - 1), nirfObj2->qrgbimg.bits(), nirfObj2->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 2 * m_pConfig->ringThickness - 1), nirfObj1->qrgbimg.bits(), nirfObj1->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (rectObj->arr.size(1) - 1 * m_pConfig->ringThickness - 1), nirfObj2->qrgbimg.bits(), nirfObj2->qrgbimg.byteCount());
 #endif
 
 		// Scan adjust
@@ -1672,10 +1724,10 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 	{
 		// Paste FLIM color ring to RGB rect image
 #ifndef TWO_CHANNEL_NIRF
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - RING_THICKNESS), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - m_pConfig->ringThickness), nirfObj->qrgbimg.bits(), nirfObj->qrgbimg.byteCount());
 #else
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 2 * RING_THICKNESS), nirfObj1->qrgbimg.bits(), nirfObj1->qrgbimg.byteCount());
-		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + CIRC_RADIUS - 1 * RING_THICKNESS), nirfObj2->qrgbimg.bits(), nirfObj2->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - 2 * m_pConfig->ringThickness), nirfObj1->qrgbimg.bits(), nirfObj1->qrgbimg.byteCount());
+		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - 1 * m_pConfig->ringThickness), nirfObj2->qrgbimg.bits(), nirfObj2->qrgbimg.byteCount());
 #endif
 
 		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
@@ -1727,7 +1779,7 @@ void QStreamTab::changeLifetimeColorTable(int ctable_ind)
 
 	ColorTable temp_ctable;
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
-	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, RING_THICKNESS, temp_ctable.m_colorTableVector.at(ctable_ind));
+	m_pImgObjLifetime = new ImageObject(m_pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ctable_ind));
 
 	if (!m_pOperationTab->isAcquisitionButtonToggled())
 	{
@@ -1892,9 +1944,9 @@ void QStreamTab::changeFringeBg(bool toggled)
 void QStreamTab::checkCircCenter(const QString &str)
 {
 	int circCenter = str.toInt();
-	if (circCenter + CIRC_RADIUS + 1 > m_pConfig->n2ScansFFT)
+	if (circCenter + m_pConfig->circRadius + 1 > m_pConfig->n2ScansFFT)
 	{
-		circCenter = m_pConfig->n2ScansFFT - CIRC_RADIUS - 1;
+		circCenter = m_pConfig->n2ScansFFT - m_pConfig->circRadius - 1;
 		m_pLineEdit_CircCenter->setText(QString::number(circCenter));
 	}
 	if (circCenter < 0)
@@ -1917,6 +1969,133 @@ void QStreamTab::checkCircCenter(const QString &str)
 #endif
 	}
 }
+
+void QStreamTab::checkCircRadius(const QString &str)
+{
+	// Range and value test
+	int circRadius = str.toInt();
+	if (circRadius + m_pConfig->circCenter + 1 > m_pConfig->n2ScansFFT)
+	{
+		circRadius = m_pConfig->n2ScansFFT - m_pConfig->circCenter - 1;
+		circRadius = (circRadius % 2) ? circRadius - 1 : circRadius;
+		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	}
+
+#if (defined(OCT_NIRF) || defined(OCT_FLIM))
+#ifndef TWO_CHANNEL_NIRF
+	if (circRadius < m_pConfig->ringThickness)
+	{
+		circRadius = m_pConfig->ringThickness + 2;
+		circRadius = (circRadius % 2) ? circRadius - 1 : circRadius;
+		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	}
+#else
+	if (circRadius < 2 * m_pConfig->ringThickness)
+	{
+		circRadius = 2 * m_pConfig->ringThickness + 2;
+		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	}
+#endif
+#else
+	if (circRadius < 2)
+	{
+		circRadius = 2;
+		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	}
+#endif
+
+	if (circRadius % 2)
+	{
+		circRadius--;
+		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	}
+	m_pConfig->circRadius = circRadius;
+		
+	// Reset rect image size
+	m_pImageView_CircImage->resetSize(2 * circRadius, 2 * circRadius);
+	
+	// Create image visualization buffers
+	ColorTable temp_ctable;
+
+	if (m_pImgObjCircImage) delete m_pImgObjCircImage;
+	m_pImgObjCircImage = new ImageObject(2 * circRadius, 2 * circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+
+	// Create circ object
+	if (m_pCirc)
+	{
+		delete m_pCirc;
+		m_pCirc = new circularize(circRadius, m_pConfig->nAlines, false);
+	}
+
+	// Renewal
+	if (!m_pOperationTab->isAcquisitionButtonToggled())
+	{
+#ifdef OCT_FLIM
+		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
+#elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
+#endif
+	}
+}
+
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+void QStreamTab::checkRingThickness(const QString &str)
+{
+	// Range and value test
+	int ringThickness = str.toInt();
+	if (ringThickness > m_pConfig->circRadius - 2)
+	{
+		ringThickness = m_pConfig->circRadius - 2;
+		m_pLineEdit_RingThickness->setText(QString::number(ringThickness));
+	}
+	if (ringThickness < 1)
+	{
+		ringThickness = 1;
+		m_pLineEdit_RingThickness->setText(QString::number(ringThickness));
+	}
+	m_pConfig->ringThickness = ringThickness;
+	
+	// Create image visualization buffers
+	ColorTable temp_ctable;
+
+#ifdef OCT_FLIM
+	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
+	m_pImgObjIntensity = new ImageObject(m_pConfig->nAlines / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
+	m_pImgObjLifetime = new ImageObject(m_pConfig->nAlines / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+#elif defined (STANDALONE_OCT)
+#ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
+	if (m_pImgObjNirf) delete m_pImgObjNirf;
+	m_pImgObjNirf = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+#else
+	if (m_pImgObjNirf1) delete m_pImgObjNirf1;
+	m_pImgObjNirf1 = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE1)));
+	if (m_pImgObjNirf2) delete m_pImgObjNirf2;
+	m_pImgObjNirf2 = new ImageObject(m_pConfig->nAlines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ColorTable::colortable(NIRF_COLORTABLE2)));
+#endif
+#endif
+#endif
+		
+	// Renewal
+	if (!m_pOperationTab->isAcquisitionButtonToggled())
+	{
+#ifdef OCT_FLIM
+		visualizeImage(m_visImage.raw_ptr(), m_visIntensity.raw_ptr(), m_visMeanDelay.raw_ptr(), m_visLifetime.raw_ptr());
+#elif defined (STANDALONE_OCT)
+#ifndef OCT_NIRF
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr());
+#else
+		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
+#endif
+#endif
+	}
+}
+#endif
 
 void QStreamTab::changeOctColorTable(int ctable_ind)
 {

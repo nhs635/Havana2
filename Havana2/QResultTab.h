@@ -140,6 +140,10 @@ private slots: // widget operation
 	void changeVisImage(bool);
 	void findPolishedSurface(bool);
 	void checkCircCenter(const QString &);
+	void checkCircRadius(const QString &);
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	void checkRingThickness(const QString &);
+#endif
 	void adjustOctContrast();
 #ifdef OCT_FLIM
 	void changeFlimCh(int);
@@ -382,6 +386,14 @@ private:
 
     QLabel *m_pLabel_CircCenter;
     QLineEdit *m_pLineEdit_CircCenter;
+
+	QLabel *m_pLabel_CircRadius;
+	QLineEdit *m_pLineEdit_CircRadius;
+	
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	QLabel *m_pLabel_RingThickness;
+	QLineEdit *m_pLineEdit_RingThickness;
+#endif
 
     QLabel *m_pLabel_OctColorTable;
     QComboBox *m_pComboBox_OctColorTable;

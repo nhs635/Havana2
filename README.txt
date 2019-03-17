@@ -86,9 +86,4 @@ Havana2.VC*
 - Havana2 v1.2.5.1
   (Longitudinal view & minor error correction)
 - Havana2 v1.2.6
-  (Minor error correction)
-
-
-To be updated:
-- Synchronized start for galvano mirror
-- OCT-NIRF Synchronization & Fluent Recording 
+  (Minor error correction & Sync)

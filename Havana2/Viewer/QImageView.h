@@ -56,6 +56,7 @@ public:
 	void setHorizontalLine(int len, ...);
 	void setVerticalLine(int len, ...);
 	void setCircle(int len, ...);
+	void setHorizontalLineColor(int len, ...);
     void setContour(int len, uint16_t* pContour);
 
 	void setHLineChangeCallback(const std::function<void(int)> &slot);
@@ -110,6 +111,7 @@ public:
 	bool m_bDiametric;
 	int m_rMax;
 	QColor m_colorLine;
+	QColor* m_pColorHLine;
 
 	int m_contour_offset;
     np::Uint16Array m_contour;

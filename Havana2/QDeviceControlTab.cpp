@@ -729,14 +729,15 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 	// Create NIRF emission acquisition objects
 #ifdef NI_NIRF_SYNC
 	m_pNirfSyncBoard = new NirfSyncBoard;
-	m_pNirfSyncBoard->value = 0x01; // power(line0) 1, reset(line1) 0
+	m_pNirfSyncBoard->value = 0x03; // power(line0) 1, reset(line1) 1
 #endif
+
 	m_pNirfEmissionTrigger = new NirfEmissionTrigger;
 	m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
 
 	m_pNirfEmission = new NirfEmission;
 	m_pNirfEmission->nAlines = m_pConfig->nAlines;
-
+	
 	m_pMainWnd->m_pStreamTab->setNirfAcquisitionCallback();
 
 	// Initializing
@@ -760,8 +761,9 @@ bool QDeviceControlTab::startNiDaqAnalogInput()
 #ifdef NI_NIRF_SYNC
 	if (m_pNirfSyncBoard) m_pNirfSyncBoard->start();
 #endif
-	if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
 	if (m_pNirfEmission) m_pNirfEmission->start();
+	Sleep(100);
+	if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
 #endif
 
 	return true;

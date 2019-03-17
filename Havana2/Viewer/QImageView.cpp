@@ -193,6 +193,26 @@ void QImageView::setCircle(int len, ...)
 	va_end(ap);
 }
 
+void QImageView::setHorizontalLineColor(int len, ...)
+{
+	if (len == 0)
+		memset(m_pRenderImage->m_pColorHLine, 0, sizeof(QColor) * 10);
+	else
+	{
+		if (m_pRenderImage->m_hLineLen == len)
+		{
+			va_list ap;
+			va_start(ap, len);
+			for (int i = 0; i < len; i++)
+			{
+				unsigned int n = va_arg(ap, unsigned int);
+				m_pRenderImage->m_pColorHLine[i] = n;
+			}
+			va_end(ap);
+		}
+	}
+}
+
 void QImageView::setContour(int len, uint16_t* pContour)
 {
     m_pRenderImage->m_contour = np::Uint16Array(len);
@@ -252,18 +272,20 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 
 
 QRenderImage::QRenderImage(QWidget *parent) :
-	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000),
+	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000), m_pColorHLine(nullptr),
 	m_bMeasureDistance(false), m_nClicked(0), m_contour_offset(0),
     m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false)
 {
 	m_pHLineInd = new int[10];
     m_pVLineInd = new int[10];
+	m_pColorHLine = new QColor[10];
 }
 
 QRenderImage::~QRenderImage()
 {
-	delete m_pHLineInd;
-    delete m_pVLineInd;
+	delete[] m_pHLineInd;
+    delete[] m_pVLineInd;
+	delete[] m_pColorHLine;
 }
 
 void QRenderImage::paintEvent(QPaintEvent *)
@@ -285,7 +307,7 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		QPointF p1; p1.setX(0.0);       p1.setY((double)(m_pHLineInd[i] * h) / (double)m_pImage->height());
 		QPointF p2; p2.setX((double)w); p2.setY((double)(m_pHLineInd[i] * h) / (double)m_pImage->height());
 
-		painter.setPen(m_colorLine);
+		painter.setPen(m_pColorHLine[i]);
 		painter.drawLine(p1, p2);
 	}
 	for (int i = 0; i < m_vLineLen; i++)

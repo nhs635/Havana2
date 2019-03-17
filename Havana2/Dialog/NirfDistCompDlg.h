@@ -35,6 +35,7 @@ public:
     inline bool isCompensating() const { return m_pToggleButton_Compensation->isChecked(); }
     inline bool isTBRMode() const { return m_pToggleButton_TBRMode->isChecked(); }
     inline bool isFiltered() const { return m_pCheckBox_Filtering->isChecked(); }
+	inline bool isZeroTbr() const { return m_pCheckBox_ZeroTBRDefinition->isChecked(); }
 	
 public slots:
 	void setWidgetEnabled(bool enabled);
@@ -47,6 +48,7 @@ private slots :
 	void changeCompensationCurve();
     void changeZeroPointSetting();
     void filtering(bool);
+	void tbrZeroDefinition(bool);
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
 
@@ -118,6 +120,7 @@ private:
 
     // Widgets for TBR mode
     QCheckBox *m_pCheckBox_Filtering;
+	QCheckBox *m_pCheckBox_ZeroTBRDefinition;
 
 	QLabel *m_pLabel_NIRF_Background;
 	QLineEdit *m_pLineEdit_NIRF_Background;

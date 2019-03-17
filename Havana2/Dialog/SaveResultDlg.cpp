@@ -80,7 +80,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 	m_pLineEdit_RectHeight->setDisabled(true);
 	m_pLineEdit_CircDiameter = new QLineEdit(this);
 	m_pLineEdit_CircDiameter->setFixedWidth(35);
-	m_pLineEdit_CircDiameter->setText(QString::number(2 * CIRC_RADIUS));
+	m_pLineEdit_CircDiameter->setText(QString::number(2 * m_pResultTab->getConfigTemp()->circRadius));
 	m_pLineEdit_CircDiameter->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_CircDiameter->setDisabled(true);
 	m_pLineEdit_LongiWidth = new QLineEdit(this);
@@ -90,7 +90,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 	m_pLineEdit_LongiWidth->setDisabled(true);
 	m_pLineEdit_LongiHeight = new QLineEdit(this);
 	m_pLineEdit_LongiHeight->setFixedWidth(35);
-	m_pLineEdit_LongiHeight->setText(QString::number(2 * CIRC_RADIUS));
+	m_pLineEdit_LongiHeight->setText(QString::number(2 * m_pResultTab->getConfigTemp()->circRadius));
 	m_pLineEdit_LongiHeight->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_LongiHeight->setDisabled(true);
 
@@ -282,6 +282,12 @@ void SaveResultDlg::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() != Qt::Key_Escape)
 		QDialog::keyPressEvent(e);
+}
+
+void SaveResultDlg::setCircRadius(int circ_radius)
+{
+	m_pLineEdit_CircDiameter->setText(QString::number(2 * circ_radius));
+	m_pLineEdit_LongiHeight->setText(QString::number(2 * circ_radius));
 }
 
 
@@ -1053,14 +1059,14 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 
 #ifdef OCT_FLIM
 		// Image objects for Ch1 FLIM
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
 		// Image objects for Ch2 FLIM
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
 		// Image objects for Ch3 FLIM
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
-		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, RING_THICKNESS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE)));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height / 4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentLifetimeColorTable())));
 #endif
 
 #ifdef OCT_NIRF
@@ -1068,10 +1074,10 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 		if (!checkList.bNirfRingOnly)
 		{
 #ifndef TWO_CHANNEL_NIRF
-			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
 #else
-			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
-			pImgObjVec->push_back(new ImageObject(roi_oct.height, RING_THICKNESS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1)));
+			pImgObjVec->push_back(new ImageObject(roi_oct.height, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2)));
 #endif
 		}
 		else
@@ -1112,7 +1118,7 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 			{
 				uint8_t* rectIntensity = &intensityMap.at(i)(0, frameCount);
 				uint8_t* rectLifetime = &lifetimeMap.at(i)(0, frameCount);
-				for (int j = 0; j < RING_THICKNESS; j++)
+				for (int j = 0; j < m_pConfig->ringThickness; j++)
 				{
 					memcpy(&pImgObjVec->at(1 + 2 * i)->arr(0, j), rectIntensity, sizeof(uint8_t) * roi_flim.width);
 					memcpy(&pImgObjVec->at(2 + 2 * i)->arr(0, j), rectLifetime, sizeof(uint8_t) * roi_flim.width);
@@ -1127,19 +1133,19 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 		{
 #ifndef TWO_CHANNEL_NIRF
 			uint8_t* rectNirf = &nirfMap(0, frameCount);
-			for (int j = 0; j < RING_THICKNESS; j++)
+			for (int j = 0; j < m_pConfig->ringThickness; j++)
 				memcpy(&pImgObjVec->at(1)->arr(0, j), rectNirf, sizeof(uint8_t) * roi_nirf.width);
 
 			if (checkList.bNirfRingOnly)
 			{
 				ippiMirror_8u_C1IR(pImgObjVec->at(1)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0), { pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1) }, ippAxsHorizontal);
-				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - RING_THICKNESS), 0, sizeof(uint8_t) * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - m_pConfig->ringThickness), 0, sizeof(uint8_t) * m_pConfig->ringThickness * pImgObjVec->at(0)->arr.size(0));
 			}
 #else
 			uint8_t* rectNirf1 = &nirfMap1(0, frameCount);
 			uint8_t* rectNirf2 = &nirfMap2(0, frameCount);			
-			int offset = checkList.bNirfRingOnly ? RING_THICKNESS : 0;
-			for (int j = 0; j < RING_THICKNESS; j++)
+			int offset = checkList.bNirfRingOnly ? m_pConfig->ringThickness : 0;
+			for (int j = 0; j < m_pConfig->ringThickness; j++)
 			{
 				memcpy(&pImgObjVec->at(1)->arr(0, offset + j), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
 				memcpy(&pImgObjVec->at(2)->arr(0, j), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
@@ -1150,15 +1156,15 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 			ippsSet_8u(255, boundary.raw_ptr(), pImgObjVec->at(1)->arr.size(0));
 
 			memcpy(&pImgObjVec->at(1)->arr(0, 0), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
-			memcpy(&pImgObjVec->at(1)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
-			memcpy(&pImgObjVec->at(2)->arr(0, RING_THICKNESS - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0));
+			memcpy(&pImgObjVec->at(1)->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0));
+			memcpy(&pImgObjVec->at(2)->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0));
 #endif
 
 			if (checkList.bNirfRingOnly)
 			{
 				ippiMirror_8u_C1IR(pImgObjVec->at(1)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(1)->arr.size(0), { pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1) }, ippAxsHorizontal);
 				ippiMirror_8u_C1IR(pImgObjVec->at(2)->arr.raw_ptr(), sizeof(uint8_t) * pImgObjVec->at(2)->arr.size(0), { pImgObjVec->at(2)->arr.size(0), pImgObjVec->at(2)->arr.size(1) }, ippAxsHorizontal);
-				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS), 0, sizeof(uint8_t) * 2 * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+				memset(&pImgObjVec->at(0)->arr(0, pImgObjVec->at(0)->arr.size(1) - 2 * m_pConfig->ringThickness), 0, sizeof(uint8_t) * 2 * m_pConfig->ringThickness * pImgObjVec->at(0)->arr.size(0));
 			}
 #endif
         }
@@ -1539,9 +1545,9 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                         if (checkList.bCh[i])
                         {
                             // Paste FLIM color ring to RGB rect image
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS),
+                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * m_pConfig->ringThickness),
                                 pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * RING_THICKNESS),
+                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * m_pConfig->ringThickness),
                                 pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(2 + 2 * i)->qrgbimg.byteCount()); // Lifetime
 
                             if (checkList.bRect)
@@ -1595,7 +1601,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                             pImgObjVec->at(1 + 2 * i)->qrgbimg = std::move(imgObjHsv.qrgbimg);
 #endif
                             // Paste FLIM color ring to RGB rect image
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - (nCh - n++) * RING_THICKNESS),
+                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - (nCh - n++) * m_pConfig->ringThickness),
                                 pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
                         }
 
@@ -1676,12 +1682,12 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             {
                 // Paste FLIM color ring to RGB rect image
 #ifndef TWO_CHANNEL_NIRF
-                memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * RING_THICKNESS),
+                memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * m_pConfig->ringThickness),
                     pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
 #else
-				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * RING_THICKNESS),
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * m_pConfig->ringThickness),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
-				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * RING_THICKNESS),
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * m_pConfig->ringThickness),
 					pImgObjVec->at(2)->qrgbimg.bits(), pImgObjVec->at(2)->qrgbimg.byteCount()); // Nirf
 #endif
 
@@ -1742,7 +1748,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			pImgObjVecLongi [i] = new ImgObjVector;
 			for (int j = 0; j < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); j++)
 			{
-				ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+				ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 				pImgObjVecLongi[i]->push_back(pLongiImgObj);
 			}
 		}
@@ -1758,7 +1764,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 	{
 		for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
 		{
-			ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+			ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 			pImgObjVecLongi->push_back(pLongiImgObj);
 		}
 
@@ -1769,7 +1775,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			pImgObjVecLongiRing = new ImgObjVector;
 			for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
 			{
-				ImageObject *pLongiRingImgObj = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				ImageObject *pLongiRingImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
 				pImgObjVecLongiRing->push_back(pLongiRingImgObj);
 			}
 #else
@@ -1777,10 +1783,10 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			pImgObjVecLongiRing[1] = new ImgObjVector;
 			for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
 			{
-				ImageObject *pLongiRingImgObj1 = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				ImageObject *pLongiRingImgObj1 = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
 				pImgObjVecLongiRing[0]->push_back(pLongiRingImgObj1);
 
-				ImageObject *pLongiRingImgObj2 = new ImageObject(nTotalFrame4, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
+				ImageObject *pLongiRingImgObj2 = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
 				pImgObjVecLongiRing[1]->push_back(pLongiRingImgObj2);
 			}
 #endif
@@ -1806,7 +1812,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		{
 #endif
 			// ImageObject for circ writing
-			ImageObject *pCircImgObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
 			ImageObject *pCircNirfObj = nullptr;
@@ -1817,10 +1823,10 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			if (checkList.bNirfRingOnly)
 			{
 #ifndef TWO_CHANNEL_NIRF
-				pCircNirfObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				pCircNirfObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
 #else
-				pCircNirfObj1 = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
-				pCircNirfObj2 = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
+				pCircNirfObj1 = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE1));
+				pCircNirfObj2 = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(NIRF_COLORTABLE2));
 #endif
 			}
 #endif
@@ -1832,7 +1838,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			
 #ifdef OCT_NIRF
 			if (checkList.bNirfRingOnly)
-				memset(&rect_temp(0, center + CIRC_RADIUS - 2 * RING_THICKNESS), 0, sizeof(uint8_t) * 2 * RING_THICKNESS * pImgObjVec->at(0)->arr.size(0));
+				memset(&rect_temp(0, center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness), 0, sizeof(uint8_t) * 2 * m_pConfig->ringThickness * pImgObjVec->at(0)->arr.size(0));
 #endif
 
 			// Circularize
@@ -1851,14 +1857,14 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #ifndef TWO_CHANNEL_NIRF
 				rect_nirf_temp = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
 				if (checkList.bCirc)
-					(*m_pResultTab->m_pCirc)(rect_nirf_temp, pCircNirfObj->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS);
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp, pCircNirfObj->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius);
 #else
 				rect_nirf_temp1 = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
 				rect_nirf_temp2 = np::Uint8Array2(pImgObjVec->at(2)->qindeximg.bits(), pImgObjVec->at(2)->arr.size(0), pImgObjVec->at(2)->arr.size(1));
 				if (checkList.bCirc)
 				{
-					(*m_pResultTab->m_pCirc)(rect_nirf_temp1, pCircNirfObj1->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS);
-					(*m_pResultTab->m_pCirc)(rect_nirf_temp2, pCircNirfObj2->qindeximg.bits(), "vertical", pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS);
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp1, pCircNirfObj1->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius);
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp2, pCircNirfObj2->qindeximg.bits(), "vertical", pImgObjVec->at(2)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius);
 				}
 #endif
 			}
@@ -1867,7 +1873,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			// Longitudinal
 			if (checkList.bLongi)
 			{
-				IppiSize roi_longi = { 1, CIRC_RADIUS };
+				IppiSize roi_longi = { 1, m_pResultTab->getConfigTemp()->circRadius };
 				int n2Alines = m_pResultTab->m_vectorOctImage.at(0).size(1) / 2;
 
 				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)n2Alines),
@@ -1878,31 +1884,31 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 						ippiCopy_8u_C1R(&rect_temp((int)i, center), sizeof(uint8_t) * 2 * n2Alines,
 							pImgObjVecLongi[0]->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 						ippiCopy_8u_C1R(&rect_temp((int)i + n2Alines, center), sizeof(uint8_t) * 2 * n2Alines,
-							pImgObjVecLongi[0]->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							pImgObjVecLongi[0]->at((int)i)->qindeximg.bits() + m_pResultTab->getConfigTemp()->circRadius * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 #else
 						ippiCopy_8u_C1R(&rect_temp((int)i, center), sizeof(uint8_t) * 2 * n2Alines,
 							pImgObjVecLongi->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 						ippiCopy_8u_C1R(&rect_temp((int)i + n2Alines, center), sizeof(uint8_t) * 2 * n2Alines,
-							pImgObjVecLongi->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							pImgObjVecLongi->at((int)i)->qindeximg.bits() + m_pResultTab->getConfigTemp()->circRadius * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 
 #ifdef OCT_NIRF
 						if (checkList.bNirfRingOnly)
 						{
 #ifndef TWO_CHANNEL_NIRF
-							ippiCopy_8u_C1R(&rect_nirf_temp((int)i, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+							ippiCopy_8u_C1R(&rect_nirf_temp((int)i, pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
 								pImgObjVecLongiRing->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
-							ippiCopy_8u_C1R(&rect_nirf_temp((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
-								pImgObjVecLongiRing->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing->at((int)i)->qindeximg.bits() + m_pResultTab->getConfigTemp()->circRadius * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 #else
-							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i, pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
 								pImgObjVecLongiRing[0]->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
-							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
-								pImgObjVecLongiRing[0]->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp1((int)i + n2Alines, pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[0]->at((int)i)->qindeximg.bits() + m_pResultTab->getConfigTemp()->circRadius * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 
-							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i, pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
+							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i, pImgObjVec->at(2)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
 								pImgObjVecLongiRing[1]->at((int)i)->qindeximg.bits() + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
-							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i + n2Alines, pImgObjVec->at(2)->arr.size(1) - CIRC_RADIUS), sizeof(uint8_t) * 2 * n2Alines,
-								pImgObjVecLongiRing[1]->at((int)i)->qindeximg.bits() + CIRC_RADIUS * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
+							ippiCopy_8u_C1R(&rect_nirf_temp2((int)i + n2Alines, pImgObjVec->at(2)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius), sizeof(uint8_t) * 2 * n2Alines,
+								pImgObjVecLongiRing[1]->at((int)i)->qindeximg.bits() + m_pResultTab->getConfigTemp()->circRadius * nTotalFrame4 + frameCount, sizeof(uint8_t) * nTotalFrame4, roi_longi);
 #endif
 						}
 #endif
@@ -1934,7 +1940,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				for (int i = 0; i < 3; i++)
 				{
 					// ImageObject for circ writing
-					pCircImgObj[i] = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+					pCircImgObj[i] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 
 					// Buffer & center
 					int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
@@ -1944,9 +1950,9 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					if (checkList.bCh[i] && (checkList.bCirc || checkList.bLongi))
 					{
 						// Paste FLIM color ring to RGB rect image
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness),
 							pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(2 + 2 * i)->qrgbimg.byteCount()); // Lifetime
 
 						// Circularize
@@ -1956,7 +1962,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					// Longitudinal
 					if (checkList.bLongi)
 					{
-						IppiSize roi_longi = { 3, CIRC_RADIUS };
+						IppiSize roi_longi = { 3, m_pResultTab->getConfigTemp()->circRadius };
 						int n2Alines = m_pResultTab->m_vectorOctImage.at(0).size(1) / 2;
 
 						tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)n2Alines),
@@ -1966,7 +1972,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 								ippiCopy_8u_C1R(&rect_temp(3 * (int)j, center), sizeof(uint8_t) * 2 * 3 * n2Alines,
 									pImgObjVecLongi[i]->at((int)j)->qrgbimg.bits() + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 								ippiCopy_8u_C1R(&rect_temp(3 * ((int)j + n2Alines), center), sizeof(uint8_t) * 2 * 3 * n2Alines,
-									pImgObjVecLongi[i]->at((int)j)->qrgbimg.bits() + CIRC_RADIUS * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
+									pImgObjVecLongi[i]->at((int)j)->qrgbimg.bits() + m_pResultTab->getConfigTemp()->circRadius * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 							}
 						});
 					}
@@ -1981,7 +1987,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				int n = 0;
 
 				// ImageObject for circ writing
-				pCircImgObj[0] = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+				pCircImgObj[0] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
 
 				// Buffer & center
 				int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
@@ -1991,7 +1997,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				// Paste FLIM color ring to RGB rect image
 				for (int i = 0; i < 3; i++)
 					if (checkList.bCh[i] && (checkList.bCirc || checkList.bLongi))
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - (nCh - n++) * RING_THICKNESS),
+						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - (nCh - n++) * m_pConfig->ringThickness),
 							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
 
 				// Circularize
@@ -2001,7 +2007,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				// Longitudinal
 				if (checkList.bLongi)
 				{
-					IppiSize roi_longi = { 3, CIRC_RADIUS };
+					IppiSize roi_longi = { 3, m_pResultTab->getConfigTemp()->circRadius };
 					int n2Alines = m_pResultTab->m_vectorOctImage.at(0).size(1) / 2;
 
 					tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)n2Alines),
@@ -2011,7 +2017,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 							ippiCopy_8u_C1R(&rect_temp(3 * (int)j, center), sizeof(uint8_t) * 2 * 3 * n2Alines,
 								pImgObjVecLongi[0]->at((int)j)->qrgbimg.bits() + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 							ippiCopy_8u_C1R(&rect_temp(3 * ((int)j + n2Alines), center), sizeof(uint8_t) * 2 * 3 * n2Alines,
-								pImgObjVecLongi[0]->at((int)j)->qrgbimg.bits() + CIRC_RADIUS * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
+								pImgObjVecLongi[0]->at((int)j)->qrgbimg.bits() + m_pResultTab->getConfigTemp()->circRadius * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 						}
 					});
 				}
@@ -2025,7 +2031,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		else
 		{
 			// ImageObject for circ writing
-			ImageObject *pCircImgObj = new ImageObject(2 * CIRC_RADIUS, 2 * CIRC_RADIUS, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));		
+			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));		
 
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
@@ -2036,12 +2042,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			{
 				// Paste FLIM color ring to RGB rect image
 #ifndef TWO_CHANNEL_NIRF
-				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
 #else
-				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 2 * RING_THICKNESS),
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness),
 					pImgObjVec->at(1)->qrgbimg.bits(), pImgObjVec->at(1)->qrgbimg.byteCount()); // Nirf
-				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + CIRC_RADIUS - 1 * RING_THICKNESS),
+				memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness),
 					pImgObjVec->at(2)->qrgbimg.bits(), pImgObjVec->at(2)->qrgbimg.byteCount()); // Nirf
 #endif
 			}
@@ -2053,7 +2059,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			// Longitudinal
 			if (checkList.bLongi)
 			{
-				IppiSize roi_longi = { 3, CIRC_RADIUS };
+				IppiSize roi_longi = { 3, m_pResultTab->getConfigTemp()->circRadius };
 				int n2Alines = m_pResultTab->m_vectorOctImage.at(0).size(1) / 2;
 
 				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)n2Alines),
@@ -2063,7 +2069,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 						ippiCopy_8u_C1R(&rect_temp(3 * (int)i, center), sizeof(uint8_t) * 2 * 3 * n2Alines,
 							pImgObjVecLongi->at((int)i)->qrgbimg.bits() + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 						ippiCopy_8u_C1R(&rect_temp(3 * ((int)i + n2Alines), center), sizeof(uint8_t) * 2 * 3 * n2Alines,
-							pImgObjVecLongi->at((int)i)->qrgbimg.bits() + CIRC_RADIUS * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
+							pImgObjVecLongi->at((int)i)->qrgbimg.bits() + m_pResultTab->getConfigTemp()->circRadius * 3 * nTotalFrame4 + 3 * frameCount, sizeof(uint8_t) * 3 * nTotalFrame4, roi_longi);
 					}
 				});
 			}
@@ -2186,12 +2192,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			{
 #ifdef OCT_FLIM
 				// Write longi images
-				ippiMirror_8u_C1IR(pImgObjVecLongi[0]->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+				ippiMirror_8u_C1IR(pImgObjVecLongi[0]->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 				if (!checkList.bLongiResize)
-					pImgObjVecLongi[0]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+					pImgObjVecLongi[0]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 				else
-					pImgObjVecLongi[0]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+					pImgObjVecLongi[0]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 						scaled(checkList.nLongiWidth, checkList.nLongiHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 
@@ -2201,14 +2207,14 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				delete pImgObjVecLongi[2]->at(alineCount++);
 #else
 				// Write longi images
-				ippiMirror_8u_C1IR(pImgObjVecLongi->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+				ippiMirror_8u_C1IR(pImgObjVecLongi->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 				if (!checkList.bLongiResize)
-					pImgObjVecLongi->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+					pImgObjVecLongi->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 				else
 				{
 					cv::Mat src(pImgObjVecLongi->at(alineCount)->getHeight(), pImgObjVecLongi->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongi->at(alineCount)->qindeximg.bits());
-					cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+					cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius));
 					IplImage src_img(src_crop);
 					IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
 
@@ -2226,14 +2232,14 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				if (checkList.bNirfRingOnly)
 				{
 #ifndef TWO_CHANNEL_NIRF
-					ippiMirror_8u_C1IR(pImgObjVecLongiRing->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+					ippiMirror_8u_C1IR(pImgObjVecLongiRing->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 					if (!checkList.bLongiResize)
-						pImgObjVecLongiRing->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+						pImgObjVecLongiRing->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 							save(longiNirfPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 					else
 					{
 						cv::Mat src(pImgObjVecLongiRing->at(alineCount)->getHeight(), pImgObjVecLongiRing->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongiRing->at(alineCount)->qindeximg.bits());
-						cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+						cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius));
 						IplImage src_img(src_crop);
 						IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
 
@@ -2248,14 +2254,14 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #else
 					for (int i = 0; i < 2; i++)
 					{
-						ippiMirror_8u_C1IR(pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+						ippiMirror_8u_C1IR(pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.bits(), sizeof(uint8_t) * nTotalFrame4, { nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 						if (!checkList.bLongiResize)
-							pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+							pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 								save(longiNirfPath[i] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 						else
 						{
 							cv::Mat src(pImgObjVecLongiRing[i]->at(alineCount)->getHeight(), pImgObjVecLongiRing[i]->at(alineCount)->getWidth(), CV_8UC1, pImgObjVecLongiRing[i]->at(alineCount)->qindeximg.bits());
-							cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS));
+							cv::Mat src_crop = src(cv::Rect(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius));
 							IplImage src_img(src_crop);
 							IplImage *p_dst_img = cvCreateImage(cv::Size(checkList.nLongiWidth, checkList.nLongiHeight), IPL_DEPTH_8U, 1);
 
@@ -2339,12 +2345,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 							if (checkList.bCh[i])
 							{
 								// Write longi images
-								ippiMirror_8u_C1IR(pImgObjVecLongi[i]->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+								ippiMirror_8u_C1IR(pImgObjVecLongi[i]->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 								if (!checkList.bLongiResize)
-									pImgObjVecLongi[i]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+									pImgObjVecLongi[i]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 										save(longiPath[i] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 								else
-									pImgObjVecLongi[i]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+									pImgObjVecLongi[i]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 										scaled(checkList.nLongiWidth, checkList.nLongiHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
 										save(longiPath[i] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 							}
@@ -2353,12 +2359,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					else
 					{
 						// Write longi images
-						ippiMirror_8u_C1IR(pImgObjVecLongi[0]->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+						ippiMirror_8u_C1IR(pImgObjVecLongi[0]->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 						if (!checkList.bLongiResize)
-							pImgObjVecLongi[0]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+							pImgObjVecLongi[0]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 								save(longiPath[0] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 						else
-							pImgObjVecLongi[0]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+							pImgObjVecLongi[0]->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 								scaled(checkList.nLongiWidth, checkList.nLongiHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
 								save(longiPath[0] + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 					}
@@ -2421,12 +2427,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			while (alineCount < m_pResultTab->m_vectorOctImage.at(0).size(1) / 2)
 			{
 				// Write longi images
-				ippiMirror_8u_C1IR(pImgObjVecLongi->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, CIRC_RADIUS }, ippAxsHorizontal);
+				ippiMirror_8u_C1IR(pImgObjVecLongi->at(alineCount)->qrgbimg.bits(), sizeof(uint8_t) * 3 * nTotalFrame4, { 3 * nTotalFrame4, m_pResultTab->getConfigTemp()->circRadius }, ippAxsHorizontal);
 				if (!checkList.bLongiResize)
-					pImgObjVecLongi->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+					pImgObjVecLongi->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 				else
-					pImgObjVecLongi->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * CIRC_RADIUS).
+					pImgObjVecLongi->at(alineCount)->qrgbimg.copy(start - 1, 0, end - start + 1, 2 * m_pResultTab->getConfigTemp()->circRadius).
 						scaled(checkList.nLongiWidth, checkList.nLongiHeight, Qt::IgnoreAspectRatio, m_defaultTransformation).
 						save(longiPath + QString("longi_%1_%2.bmp").arg(folderName).arg(alineCount + 1, 4, 10, (QChar)'0'), "bmp");
 

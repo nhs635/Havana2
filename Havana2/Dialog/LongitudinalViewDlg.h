@@ -35,6 +35,12 @@ public:
 	inline int getCurrentAline() const { return m_pSlider_CurrentAline->value(); }
 	inline void setCurrentAline(int aline) { m_pSlider_CurrentAline->setValue(aline); }
 	
+public:
+	void setLongiRadius(int circ_radius);
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	void setLongiRingThickness(int ring_thickness);
+#endif
+
 public slots : // widgets
 	void setWidgetEnabled(bool);
 	void drawLongitudinalImage(int);

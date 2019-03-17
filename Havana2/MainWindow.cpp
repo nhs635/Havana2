@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_pConfiguration = new Configuration;
 	m_pConfiguration->getConfigFile("Havana2.ini");
 
-	m_pConfiguration->nScans = N_SCANS;
+	//m_pConfiguration->nScans = N_SCANS;
 	m_pConfiguration->fnScans = m_pConfiguration->nScans * 4;
 	m_pConfiguration->nScansFFT = NEAR_2_POWER((double)m_pConfiguration->nScans);
 	m_pConfiguration->n2ScansFFT = m_pConfiguration->nScansFFT / 2;
@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	// Set timer for renew configuration 
 	m_pTimer = new QTimer(this);
-	m_pTimer->start(5*60*1000); // renew per 5 min
+	m_pTimer->start(5 * 60 * 1000); // renew per 5 min
 	m_pTimerSync = new QTimer(this);
 	m_pTimerSync->start(1000); // renew per 1 sec
 
@@ -285,6 +285,8 @@ void MainWindow::changedTab(int index)
 			m_pResultTab->getSaveResultDlg()->close();
 		if (m_pResultTab->getOctIntensityHistDlg())
 			m_pResultTab->getOctIntensityHistDlg()->close();
+		if (m_pResultTab->getLongitudinalViewDlg())
+			m_pResultTab->getLongitudinalViewDlg()->close();
 #ifdef OCT_FLIM
 		if (m_pResultTab->getPulseReviewDlg())
 			m_pResultTab->getPulseReviewDlg()->close();

@@ -67,6 +67,9 @@ private:
 	void closeEvent(QCloseEvent *e);
 	void keyPressEvent(QKeyEvent *);
 	
+public:
+	void setCircRadius(int circ_radius);
+
 private slots:
 	void saveCrossSections();
 	void saveEnFaceMaps();

@@ -71,8 +71,6 @@ void NirfSyncBoard::stop()
 	if (_taskHandle)
 	{
 		int32 written;
-		value = 0x03;
-		DAQmxWriteDigitalU32(_taskHandle, 1, TRUE, 10.0, DAQmx_Val_GroupByChannel, (const uInt32*)&value, &written, NULL);
 		value = 0x00;
 		DAQmxWriteDigitalU32(_taskHandle, 1, TRUE, 10.0, DAQmx_Val_GroupByChannel, (const uInt32*)&value, &written, NULL);
 

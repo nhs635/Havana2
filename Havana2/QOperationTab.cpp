@@ -127,14 +127,15 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 			pStreamTab->m_pThreadCh1Process->startThreading();
 			pStreamTab->m_pThreadCh2Process->startThreading();
 			pStreamTab->m_pThreadDeinterleave->startThreading();
-#ifdef STANDALONE_OCT
-#ifdef OCT_NIRF
-			m_pMainWnd->m_pDeviceControlTab->startNiDaqAnalogInput();
-#endif
-#endif
+
 			// Start Data Acquisition
 			if (m_pDataAcquisition->StartAcquisition())
 			{
+#ifdef STANDALONE_OCT
+#ifdef OCT_NIRF
+				m_pMainWnd->m_pDeviceControlTab->startNiDaqAnalogInput();
+#endif
+#endif
 				m_pToggleButton_Acquisition->setText("Stop &Acquisition");								
 
 				m_pToggleButton_Acquisition->setDisabled(true);

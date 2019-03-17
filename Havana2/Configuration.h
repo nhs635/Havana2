@@ -44,8 +44,6 @@
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #endif
 
-#define N_SCANS						2600
-
 /////////////////////// Device setup ////////////////////////
 #ifdef ECG_TRIGGERING
 #define NI_ECG_TRIGGER_CHANNEL		"Dev1/ctr0"
@@ -141,15 +139,8 @@
 #ifdef OCT_FLIM
 #define N_VIS_SAMPS_FLIM			200
 #endif
-#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
-#define RING_THICKNESS				100 
-#endif
 
-#define CIRC_RADIUS					1500 // Only even number
 #define SHEATH_RADIUS				185
-#if (CIRC_RADIUS % 2)
-#error("CIRC_RADIUS should be even number.");
-#endif
 
 #define PIXEL_SIZE					(100.0 / 43.0) // um/px
 
@@ -165,7 +156,6 @@
 //#define CH_DIVIDING_LINE
 #endif
 
-#define ZERO_TBR_DEFINITION
 #endif
 
 #define RENEWAL_COUNT				5
@@ -253,6 +243,10 @@ public:
 		// Visualization
 		circCenter = settings.value("circCenter").toInt();
 		ballRadius = settings.value("ballRadius").toInt();
+		circRadius = settings.value("circRadius").toInt();
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+		ringThickness = settings.value("ringThickness").toInt();
+#endif
 		octColorTable = settings.value("octColorTable").toInt();
 		octDbRange.max = settings.value("octDbRangeMax").toInt();
 		octDbRange.min = settings.value("octDbRangeMin").toInt();
@@ -383,6 +377,10 @@ public:
 		// Visualization
 		settings.setValue("circCenter", circCenter);
 		settings.setValue("ballRadius", ballRadius);
+		settings.setValue("circRadius", circRadius);
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+		settings.setValue("ringThickness", ringThickness);
+#endif
 		settings.setValue("octColorTable", octColorTable);
 		settings.setValue("octDbRangeMax", octDbRange.max);
 		settings.setValue("octDbRangeMin", octDbRange.min);
@@ -499,6 +497,10 @@ public:
 	// Visualization
 	int circCenter;
 	int ballRadius;
+	int circRadius;
+#if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
+	int ringThickness;
+#endif
 	int octColorTable;
 	Range<int> octDbRange;
 #ifdef OCT_FLIM
