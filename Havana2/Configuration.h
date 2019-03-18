@@ -120,7 +120,7 @@
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			200
 #else
-#define WRITING_BUFFER_SIZE	        2000
+#define WRITING_BUFFER_SIZE	        1000
 #endif
 
 //////////////////////// OCT system /////////////////////////
