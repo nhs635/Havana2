@@ -1830,7 +1830,6 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #endif
 			}
 #endif
-
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qindeximg.bits(), pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 			int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
@@ -1838,7 +1837,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			
 #ifdef OCT_NIRF
 			if (checkList.bNirfRingOnly)
+#ifndef TWO_CHANNEL_NIRF
+				memset(&rect_temp(0, center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness), 0, sizeof(uint8_t) * 1 * m_pConfig->ringThickness * pImgObjVec->at(0)->arr.size(0));
+#else
 				memset(&rect_temp(0, center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness), 0, sizeof(uint8_t) * 2 * m_pConfig->ringThickness * pImgObjVec->at(0)->arr.size(0));
+#endif
 #endif
 
 			// Circularize

@@ -141,6 +141,7 @@ private slots: // widget operation
 	void findPolishedSurface(bool);
 	void checkCircCenter(const QString &);
 	void checkCircRadius(const QString &);
+	void checkSheathRadius(const QString &);
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 	void checkRingThickness(const QString &);
 #endif
@@ -389,6 +390,9 @@ private:
 
 	QLabel *m_pLabel_CircRadius;
 	QLineEdit *m_pLineEdit_CircRadius;
+
+	QLabel *m_pLabel_SheathRadius;
+	QLineEdit *m_pLineEdit_SheathRadius;
 	
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 	QLabel *m_pLabel_RingThickness;

@@ -12,10 +12,10 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 
+#include <QFileInfo>
 #include <QSettings>
 #include <QDateTime>
 
-#include <fstream>
 
 
 #ifdef OCT_NIRF
@@ -270,8 +270,8 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
 
 	// Get Log file
-	std::ifstream ifile((m_pResultTab->m_path + QString("/dist_comp_info.log")).toUtf8().constData());
-	if ((bool)ifile) getCompInfo((m_pResultTab->m_path + QString("/dist_comp_info.log")).toUtf8().constData());
+	QString infopath = m_pResultTab->m_path + QString("/dist_comp_info.log");
+	if (QFileInfo::exists(infopath)) getCompInfo(infopath);
 }
 
 NirfDistCompDlg::~NirfDistCompDlg()
@@ -333,6 +333,8 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 
 	m_pLabel_TBR_Background->setEnabled(enabled && (nirfBg > 0));
 	m_pLineEdit_TBR_Background->setEnabled(enabled && (nirfBg > 0));
+
+	//zero tbr ฐüทร...
 }
 
 void NirfDistCompDlg::loadDistanceMap()

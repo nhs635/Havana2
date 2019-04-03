@@ -28,7 +28,7 @@
 //#define ECG_TRIGGERING
 #endif
 #else
-//#define PROGRAMMATIC_GAIN_CONTROL
+#define PROGRAMMATIC_GAIN_CONTROL
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
@@ -140,9 +140,7 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 
-#define SHEATH_RADIUS				185
-
-#define PIXEL_SIZE					(100.0 / 43.0) // um/px
+#define PIXEL_SIZE					1 // (100.0 / 43.0) // um/px
 
 #ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire
@@ -244,6 +242,7 @@ public:
 		circCenter = settings.value("circCenter").toInt();
 		ballRadius = settings.value("ballRadius").toInt();
 		circRadius = settings.value("circRadius").toInt();
+		sheathRadius = settings.value("sheathRadius").toInt();
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 		ringThickness = settings.value("ringThickness").toInt();
 #endif
@@ -378,6 +377,7 @@ public:
 		settings.setValue("circCenter", circCenter);
 		settings.setValue("ballRadius", ballRadius);
 		settings.setValue("circRadius", circRadius);
+		settings.setValue("sheathRadius", sheathRadius);
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 		settings.setValue("ringThickness", ringThickness);
 #endif
@@ -498,6 +498,7 @@ public:
 	int circCenter;
 	int ballRadius;
 	int circRadius;
+	int sheathRadius;
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 	int ringThickness;
 #endif
