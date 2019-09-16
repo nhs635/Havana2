@@ -1755,10 +1755,12 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 	}
 #else
 	ImgObjVector *pImgObjVecLongi = new ImgObjVector;
+#ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
 	ImgObjVector *pImgObjVecLongiRing = nullptr;
 #else
 	ImgObjVector *pImgObjVecLongiRing[2] = { nullptr, nullptr };
+#endif
 #endif
 	if (checkList.bLongi)
 	{
@@ -2489,7 +2491,7 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 #endif
 
 #ifndef OCT_NIRF
-		circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
 #else
         circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
 		if (checkList.bNirfRingOnly)

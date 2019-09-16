@@ -87,3 +87,5 @@ Havana2.VC*
   (Longitudinal view & minor error correction)
 - Havana2 v1.2.6
   (Minor error correction & Sync)
+- Havana2 v1.2.6.1
+  (Cross-talk compensation & Minor error correction)

@@ -75,6 +75,10 @@ public:
 	inline QProgressBar* getProgressBar() const { return m_pProgressBar_PostProcessing; }
 	inline QImageView* getRectImageView() const { return m_pImageView_RectImage; }
 	inline QImageView* getCircImageView() const { return m_pImageView_CircImage; }
+#ifdef TWO_CHANNEL_NIRF
+	inline QImageView* getNirfMap1View() const { return m_pImageView_NirfMap1; }
+	inline QImageView* getNirfMap2View() const { return m_pImageView_NirfMap2; }
+#endif
 	inline void setCurrentFrame(int frame) { m_pSlider_SelectFrame->setValue(frame); }
 	inline int getCurrentFrame() const { return m_pSlider_SelectFrame->value(); }
 	inline int getCurrentOctColorTable() const { return m_pComboBox_OctColorTable->currentIndex(); }
@@ -270,9 +274,11 @@ public: // for visualization
 	np::FloatArray m_nirfSignal1;
 	np::FloatArray2 m_nirfMap1;
 	np::FloatArray2 m_nirfMap1_0;
+	np::FloatArray2 m_nirfMap1_Raw;
 	np::FloatArray m_nirfSignal2;
 	np::FloatArray2 m_nirfMap2;
 	np::FloatArray2 m_nirfMap2_0;
+	np::FloatArray2 m_nirfMap2_Raw;
 #endif
 	int m_nirfOffset;
 #endif

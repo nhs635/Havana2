@@ -252,6 +252,12 @@ void QImageView::setDoubleClickedMouseCallback(const std::function<void(void)> &
 	m_pRenderImage->DidDoubleClickedMouse += slot;
 }
 
+void QImageView::setReleasedMouseCallback(const std::function<void(QRect)>& slot)
+{
+	m_pRenderImage->DidReleasedMouse.clear();
+	m_pRenderImage->DidReleasedMouse += slot;
+}
+
 void QImageView::drawImage(uint8_t* pImage)
 {
 	memcpy(m_pRenderImage->m_pImage->bits(), pImage, m_pRenderImage->m_pImage->byteCount());	
@@ -273,7 +279,7 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 
 QRenderImage::QRenderImage(QWidget *parent) :
 	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000), m_pColorHLine(nullptr),
-	m_bMeasureDistance(false), m_nClicked(0), m_contour_offset(0),
+	m_bRectDrawing(false), m_bMeasureDistance(false), m_nClicked(0), m_contour_offset(0),
     m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false)
 {
 	m_pHLineInd = new int[10];
@@ -393,6 +399,17 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		}
     }
 
+	// Draw rectangle
+	if (m_bRectDrawing)
+	{
+		if (m_nClicked == 1)
+		{
+			QPen pen; pen.setColor(Qt::green); pen.setWidth(1);
+			painter.setPen(pen);
+			painter.drawRect(m_point[0][0], m_point[0][1], m_point[1][0] - m_point[0][0], m_point[1][1] - m_point[0][1]);
+		}
+	}
+
 	// Measure distance
 	if (m_bMeasureDistance)
 	{
@@ -429,33 +446,47 @@ void QRenderImage::paintEvent(QPaintEvent *)
 void QRenderImage::mousePressEvent(QMouseEvent *e)
 {
 	QPoint p = e->pos();
-	if (m_hLineLen == 1)
+	if (!m_bRectDrawing)
 	{
-		m_pHLineInd[0] = m_pImage->height() - (int)((double)(p.y() * m_pImage->height()) / (double)this->height());
-		DidChangedHLine(m_pHLineInd[0]);
+		if (m_hLineLen == 1)
+		{
+			m_pHLineInd[0] = m_pImage->height() - (int)((double)(p.y() * m_pImage->height()) / (double)this->height());
+			DidChangedHLine(m_pHLineInd[0]);
+		}
+		if (m_vLineLen == 1)
+		{
+			if (!m_bRadial)
+			{
+				m_pVLineInd[0] = (int)((double)(p.x() * m_pImage->width()) / (double)this->width());
+				DidChangedVLine(m_pVLineInd[0]);
+			}
+			else
+			{
+				double angle = atan2((double)height() / 2.0 - (double)p.y(), (double)p.x() - (double)width() / 2.0);
+				if (angle < 0) angle += IPP_2PI;
+				m_pVLineInd[0] = (int)(angle / IPP_2PI * m_rMax);
+				DidChangedRLine(m_pVLineInd[0]);
+			}
+		}
+
+		if (m_bMeasureDistance)
+		{
+			if (m_nClicked == 2) m_nClicked = 0;
+
+			m_point[m_nClicked][0] = p.x(); // (int)((double)(p.x() * m_pImage->height())) / (double)this->height();
+			m_point[m_nClicked++][1] = p.y(); // (int)((double)(p.y() * m_pImage->height())) / (double)this->height();
+
+			update();
+		}
 	}
-	if (m_vLineLen == 1)
+	else
 	{
-		if (!m_bRadial)
-		{
-			m_pVLineInd[0] = (int)((double)(p.x() * m_pImage->width()) / (double)this->width());
-			DidChangedVLine(m_pVLineInd[0]);
-		}
-		else
-		{
-			double angle = atan2((double)height() / 2.0 - (double)p.y(), (double)p.x() - (double)width() / 2.0);
-			if (angle < 0) angle += IPP_2PI;
-			m_pVLineInd[0] = (int)(angle / IPP_2PI * m_rMax);
-			DidChangedRLine(m_pVLineInd[0]);
-		}
-	}
+		m_nClicked = 0;
 
-	if (m_bMeasureDistance)
-	{		
-		if (m_nClicked == 2) m_nClicked = 0;
-
-		m_point[m_nClicked][0] = p.x(); // (int)((double)(p.x() * m_pImage->height())) / (double)this->height();
-		m_point[m_nClicked++][1] = p.y(); // (int)((double)(p.y() * m_pImage->height())) / (double)this->height();
+		m_point[m_nClicked][0] = p.x();
+		m_point[m_nClicked++][1] = p.y();
+		m_point[m_nClicked][0] = p.x();
+		m_point[m_nClicked][1] = p.y();
 
 		update();
 	}
@@ -463,7 +494,8 @@ void QRenderImage::mousePressEvent(QMouseEvent *e)
 
 void QRenderImage::mouseDoubleClickEvent(QMouseEvent *)
 {
-	DidDoubleClickedMouse();
+	m_nClicked = 0;
+	if (!m_bRectDrawing) DidDoubleClickedMouse();
 }
 
 void QRenderImage::mouseMoveEvent(QMouseEvent *e)
@@ -472,11 +504,51 @@ void QRenderImage::mouseMoveEvent(QMouseEvent *e)
 
 	if (QRect(0, 0, this->width(), this->height()).contains(p))
 	{
-		QPoint p1;
-		p1.setX((int)((double)(p.x() * m_pImage->width()) / (double)this->width()));
-		p1.setY((int)((double)(p.y() * m_pImage->height()) / (double)this->height()));
+		if (!m_bRectDrawing)
+		{
+			QPoint p1;
+			p1.setX((int)((double)(p.x() * m_pImage->width()) / (double)this->width()));
+			p1.setY((int)((double)(p.y() * m_pImage->height()) / (double)this->height()));
 
-		DidMovedMouse(p1);
+			DidMovedMouse(p1);
+		}
+		else
+		{
+			if (m_nClicked == 1)
+			{
+				m_point[m_nClicked][0] = p.x();
+				m_point[m_nClicked][1] = p.y();
+
+				update();
+			}
+		}
+	}
+}
+
+void QRenderImage::mouseReleaseEvent(QMouseEvent *e)
+{
+	QPoint p = e->pos();
+
+	if (QRect(0, 0, this->width(), this->height()).contains(p))
+	{
+		if (m_bRectDrawing)
+		{
+			m_point[m_nClicked][0] = p.x();
+			m_point[m_nClicked++][1] = p.y();
+
+			update();
+
+			if (!((m_point[0][0] == m_point[1][0]) && (m_point[0][1] == m_point[1][1])))
+				DidReleasedMouse(QRect((int)((double)(m_point[0][0] * m_pImage->width()) / (double)this->width()),
+									   (int)((double)(m_point[0][1] * m_pImage->height()) / (double)this->height()),
+					(int)((double)((m_point[1][0] - m_point[0][0]) * m_pImage->width()) / (double)this->width()),
+					(int)((double)((m_point[1][1] - m_point[0][1]) * m_pImage->height()) / (double)this->height())));
+		}
+	}
+	else
+	{
+		m_nClicked++;
+		update();
 	}
 }
 

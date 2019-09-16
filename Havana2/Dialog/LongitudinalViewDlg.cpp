@@ -225,6 +225,8 @@ void LongitudinalViewDlg::setLongiRingThickness(int ring_thickness)
 #endif
 
 	drawLongitudinalImage(getCurrentAline());
+
+	(void)ring_thickness;
 }
 #endif
 

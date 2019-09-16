@@ -1150,6 +1150,9 @@ void QResultTab::createNirfCrossTalkCompDlg()
 		m_pNirfCrossTalkCompDlg = new NirfCrossTalkCompDlg(this);
 		connect(m_pNirfCrossTalkCompDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfCrossTalkCompDlg()));
 		m_pNirfCrossTalkCompDlg->show();
+
+		visualizeEnFaceMap(true);
+		visualizeImage(m_pSlider_SelectFrame->value());
 	}
 	m_pNirfCrossTalkCompDlg->raise();
 	m_pNirfCrossTalkCompDlg->activateWindow();
@@ -1159,6 +1162,9 @@ void QResultTab::deleteNirfCrossTalkCompDlg()
 {
 	m_pNirfCrossTalkCompDlg->deleteLater();
 	m_pNirfCrossTalkCompDlg = nullptr;
+
+	visualizeEnFaceMap(true);
+	visualizeImage(m_pSlider_SelectFrame->value());
 }
 #endif
 #endif
@@ -1270,7 +1276,7 @@ void QResultTab::visualizeImage(int frame)
 			m_pNirfEmissionProfileDlg->getScope()->drawData(nirf_emssion1.raw_ptr(), nirf_emssion2.raw_ptr());
 #endif
         }
-
+		
         if (m_pNirfDistCompDlg)
         {
 #ifndef TWO_CHANNEL_NIRF
@@ -1611,6 +1617,40 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 			m_nirfMap2_0 = np::FloatArray2(roi_proj.width, roi_proj.height);
 			memset(m_nirfMap2_0.raw_ptr(), 0, sizeof(float) * m_nirfMap2_0.length());
 			ippiCopy_32f_C1R(m_nirfMap2.raw_ptr(), sizeof(float) * m_nirfMap2.size(0), m_nirfMap2_0.raw_ptr(), sizeof(float) * m_nirfMap2_0.size(0), roi_proj);
+#endif
+
+#ifdef OCT_NIRF
+#ifdef TWO_CHANNEL_NIRF
+			// 2 Ch NIRF Cross-Talk Compensation
+			if (m_pNirfCrossTalkCompDlg)
+			{
+				m_nirfMap1_Raw = np::FloatArray2(roi_proj.width, roi_proj.height);
+				memcpy(m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_0.raw_ptr(), sizeof(float) * m_nirfMap1_Raw.length());
+
+				m_nirfMap2_Raw = np::FloatArray2(roi_proj.width, roi_proj.height);
+				memcpy(m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_0.raw_ptr(), sizeof(float) * m_nirfMap2_Raw.length());
+
+				ippsSubC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg1, m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_Raw.length());
+				ippsDivC_32f_I(m_pNirfCrossTalkCompDlg->gainValue1, m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_Raw.length());
+
+				ippsSubC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg2, m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_Raw.length());
+				ippsDivC_32f_I(m_pNirfCrossTalkCompDlg->gainValue2, m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_Raw.length());
+
+				if (m_pNirfCrossTalkCompDlg->compensationMode == RATIO_BASED)
+				{
+					np::FloatArray2 nirfMap1_Ratio(roi_proj.width, roi_proj.height);
+					ippsMulC_32f(m_nirfMap1_Raw.raw_ptr(), m_pNirfCrossTalkCompDlg->ratio, nirfMap1_Ratio.raw_ptr(), m_nirfMap1_Raw.length());
+					ippsSub_32f(nirfMap1_Ratio.raw_ptr(), m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+				}
+				else if (m_pNirfCrossTalkCompDlg->compensationMode == SPECTRUM_BASED)
+				{
+					memcpy(m_nirfMap2_0.raw_ptr(), m_nirfMap2_Raw.raw_ptr(), sizeof(float) * m_nirfMap2_0.length());
+				}
+
+				ippsMulC_32f_I(m_pNirfCrossTalkCompDlg->gainValue2, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+				ippsAddC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg2, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+			}
+#endif
 #endif
 
 			// Scaling NIRF map
@@ -2062,7 +2102,7 @@ void QResultTab::checkCircRadius(const QString &str)
 	if (m_pCirc)
 	{
 		delete m_pCirc;
-		m_pCirc = new circularize(circRadius, m_pConfig->nAlines, false);
+		m_pCirc = new circularize(circRadius, m_pConfigTemp->nAlines, false);
 	}
 
 	// Set Dialog
@@ -3433,7 +3473,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #ifdef OCT_NIRF
     if (m_pMedfiltNirf) delete m_pMedfiltNirf;
     if (m_pCheckBox_SingleFrame->isChecked() == false)
-        m_pMedfiltNirf = new medfilt(pConfig->nAlines4, pConfig->nFrames, 7, 3);
+        m_pMedfiltNirf = new medfilt(pConfig->nAlines4, pConfig->nFrames, 7, 3); // 7 3
     else
         m_pMedfiltNirf = new medfilt(pConfig->nAlines4, pConfig->nFrames, 7, 1);
 #endif

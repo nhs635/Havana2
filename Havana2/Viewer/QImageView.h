@@ -66,6 +66,7 @@ public:
 public:
 	void setMovedMouseCallback(const std::function<void(QPoint&)> &slot);
 	void setDoubleClickedMouseCallback(const std::function<void(void)> &slot);
+	void setReleasedMouseCallback(const std::function<void(QRect)> &slot);
 
 public slots:
 	void drawImage(uint8_t* pImage);
@@ -100,6 +101,7 @@ protected:
 	void mousePressEvent(QMouseEvent *);
 	void mouseDoubleClickEvent(QMouseEvent *);
 	void mouseMoveEvent(QMouseEvent *);
+	void mouseReleaseEvent(QMouseEvent *);
 
 public:
     QImage *m_pImage;
@@ -116,6 +118,7 @@ public:
 	int m_contour_offset;
     np::Uint16Array m_contour;
 
+	bool m_bRectDrawing;
 	bool m_bMeasureDistance;
 	int m_nClicked;
 	int m_point[2][2];
@@ -125,6 +128,7 @@ public:
 	callback<int> DidChangedRLine;
 	callback<void> DidDoubleClickedMouse;
 	callback<QPoint&> DidMovedMouse;
+	callback<QRect> DidReleasedMouse;
 };
 
 

@@ -188,6 +188,7 @@ void FaulhaberMotor::StopMotor()
 	DisableMotor();
 }
 
+#ifdef FAULHABER_NEW_CONTROLLER
 uint8_t FaulhaberMotor::CalcCRCByte(uint8_t u8Byte, uint8_t u8CRC)
 {
 	u8CRC = u8CRC ^ u8Byte;
@@ -201,5 +202,6 @@ uint8_t FaulhaberMotor::CalcCRCByte(uint8_t u8Byte, uint8_t u8CRC)
 
 	return u8CRC;
 }
+#endif
 
 #endif

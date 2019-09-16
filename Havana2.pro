@@ -57,10 +57,12 @@ win32 {
             $$PWD/lib/intel64_win/ipps.lib \
             $$PWD/lib/intel64_win/ippvm.lib
     debug {
-        LIBS += $$PWD/lib/intel64_win/vc14/tbb_debug.lib
+        LIBS += $$PWD/lib/intel64_win/vc14/tbb_debug.lib \
+                $$PWD/lib/opencv_world320d.lib
     }
     release {
-        LIBS += $$PWD/lib/intel64_win/vc14/tbb.lib
+        LIBS += $$PWD/lib/intel64_win/vc14/tbb.lib \
+                $$PWD/lib/opencv_world320.lib
     }
     LIBS += $$PWD/lib/intel64_win/mkl_core.lib \
             $$PWD/lib/intel64_win/mkl_tbb_thread.lib \

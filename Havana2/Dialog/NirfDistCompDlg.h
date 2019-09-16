@@ -40,7 +40,7 @@ public:
 public slots:
 	void setWidgetEnabled(bool enabled);
 
-private slots : 
+private slots: 
 	void loadDistanceMap();
 	void loadNirfBackground();
     void compensation(bool);

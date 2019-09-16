@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6"
+#define VERSION						"1.2.6.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -11,8 +11,8 @@
 #define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
-#define STANDALONE_OCT
+#define OCT_FLIM
+//#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
@@ -32,7 +32,7 @@
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
-//#define GALVANO_MIRROR
+#define GALVANO_MIRROR
 //#define PULLBACK_DEVICE
 
 
@@ -267,6 +267,12 @@ public:
 		nirfRange[1].min = settings.value("nirfRange2Min").toFloat();
 #endif
 #endif
+		// 2 Ch NIRF cross-talk compensation
+#ifdef OCT_NIRF
+#ifdef TWO_CHANNEL_NIRF
+		nirfCrossTalkRatio = settings.value("nirfCrossTalkRatio").toFloat();
+#endif
+#endif
 		// NIRF distance compensation
 #ifdef OCT_NIRF
 		nirfCompCoeffs[0] = settings.value("nirfCompCoeffs_a").toFloat();
@@ -402,6 +408,12 @@ public:
 		settings.setValue("nirfRange2Min", QString::number(nirfRange[1].min, 'f', 2));
 #endif
 #endif
+		// 2 Ch NIRF cross-talk compensation
+#ifdef OCT_NIRF
+#ifdef TWO_CHANNEL_NIRF
+		settings.setValue("nirfCrossTalkRatio", QString::number(nirfCrossTalkRatio, 'f', 4));
+#endif
+#endif
 		// NIRF distance compensation
 #ifdef OCT_NIRF
 		settings.setValue("nirfCompCoeffs_a", QString::number(nirfCompCoeffs[0], 'f', 10));
@@ -517,6 +529,14 @@ public:
 #endif
 #endif
 
+#ifdef OCT_NIRF
+#ifdef TWO_CHANNEL_NIRF
+	// 2 Ch NIRF cross-talk compensation
+	float nirfCrossTalkRatio;
+#endif
+#endif
+
+#ifdef OCT_NIRF
 	// NIRF ditance compensation
 	float nirfCompCoeffs[4];
 	float nirfFactorThres;
@@ -524,6 +544,7 @@ public:
 	float nirfDistPropConst;
 	int nirfLumContourOffset;
 	int nirfOuterSheathPos;
+#endif
 
 	// System type
 	QString systemType;
