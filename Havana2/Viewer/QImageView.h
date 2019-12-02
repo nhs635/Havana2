@@ -35,7 +35,7 @@ private:
     explicit QImageView(QWidget *parent = 0); // Disabling default constructor
 
 public:
-    explicit QImageView(ColorTable::colortable ctable, int width, int height, bool rgb = false, QWidget *parent = 0);
+    explicit QImageView(ColorTable::colortable ctable, int width, int height, float gamma = 1.0f, bool rgb = false, QWidget *parent = 0);
     virtual ~QImageView();
 
 public:
@@ -46,7 +46,7 @@ protected:
 
 public:
 	void resetSize(int width, int height);
-    void resetColormap(ColorTable::colortable ctable);
+    void resetColormap(ColorTable::colortable ctable, float gamma = 1.0f);
 	void setSquare(bool square) { m_bSquareConstraint = square; }
 #ifdef OCT_FLIM
     void setRgbEnable(bool rgb) { m_bRgbUsed = rgb; }
@@ -58,15 +58,15 @@ public:
 	void setCircle(int len, ...);
 	void setHorizontalLineColor(int len, ...);
     void setContour(int len, uint16_t* pContour);
+	void setMagnDefault();
 
 	void setHLineChangeCallback(const std::function<void(int)> &slot);
 	void setVLineChangeCallback(const std::function<void(int)> &slot);
 	void setRLineChangeCallback(const std::function<void(int)> &slot);
-
-public:
 	void setMovedMouseCallback(const std::function<void(QPoint&)> &slot);
 	void setDoubleClickedMouseCallback(const std::function<void(void)> &slot);
 	void setReleasedMouseCallback(const std::function<void(QRect)> &slot);
+	void setWheelMouseCallback(const std::function<void(void)> &slot);
 
 public slots:
 	void drawImage(uint8_t* pImage);
@@ -102,7 +102,8 @@ protected:
 	void mouseDoubleClickEvent(QMouseEvent *);
 	void mouseMoveEvent(QMouseEvent *);
 	void mouseReleaseEvent(QMouseEvent *);
-
+	void wheelEvent(QWheelEvent *);
+	
 public:
     QImage *m_pImage;
 
@@ -111,6 +112,9 @@ public:
     int m_circLen;
 	bool m_bRadial;
 	bool m_bDiametric;
+	bool m_bCanBeMagnified;
+	QRect m_rectMagnified;
+	float m_fMagnLevel;
 	int m_rMax;
 	QColor m_colorLine;
 	QColor* m_pColorHLine;
@@ -129,6 +133,7 @@ public:
 	callback<void> DidDoubleClickedMouse;
 	callback<QPoint&> DidMovedMouse;
 	callback<QRect> DidReleasedMouse;
+	callback<void> DidWheelMouse;
 };
 
 

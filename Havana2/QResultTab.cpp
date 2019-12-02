@@ -99,7 +99,7 @@ QResultTab::QResultTab(QWidget *parent) :
 	bool rgb_used = true;
 #endif
 #endif
-    m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, rgb_used);
+    m_pImageView_RectImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, m_pConfig->n2ScansFFT, m_pConfig->octDbGamma, rgb_used);
     m_pImageView_RectImage->setMinimumSize(600, 600);
 	m_pImageView_RectImage->setDisabled(true);
 	m_pImageView_RectImage->setMovedMouseCallback([&](QPoint& p) { m_pMainWnd->m_pStatusLabel_ImagePos->setText(QString("(%1, %2)").arg(p.x(), 4).arg(p.y(), 4)); });
@@ -107,8 +107,9 @@ QResultTab::QResultTab(QWidget *parent) :
 	m_pImageView_RectImage->setDoubleClickedMouseCallback([&]() { createPulseReviewDlg(); });
 #endif
 	m_pImageView_RectImage->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	m_pImageView_RectImage->getRender()->m_bCanBeMagnified = true;
 
-    m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, rgb_used);
+    m_pImageView_CircImage = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, m_pConfig->octDbGamma, rgb_used);
     m_pImageView_CircImage->setMinimumSize(600, 600);
 	m_pImageView_CircImage->setDisabled(true);
 	m_pImageView_CircImage->setMovedMouseCallback([&](QPoint& p) { m_pMainWnd->m_pStatusLabel_ImagePos->setText(QString("(%1, %2)").arg(p.x(), 4).arg(p.y(), 4)); });
@@ -117,6 +118,7 @@ QResultTab::QResultTab(QWidget *parent) :
 #endif
 	m_pImageView_CircImage->setSquare(true);
 	m_pImageView_CircImage->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	m_pImageView_CircImage->getRender()->m_bCanBeMagnified = true;
 	m_pImageView_CircImage->setVisible(false);
 
 	QLabel *pNullLabel = new QLabel("", this);
@@ -126,8 +128,8 @@ QResultTab::QResultTab(QWidget *parent) :
 
 	// Create image view buffers
 	ColorTable temp_ctable;
-	m_pImgObjRectImage = new ImageObject(m_pConfig->nAlines4, m_pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
-    m_pImgObjCircImage = new ImageObject(2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
+	m_pImgObjRectImage = new ImageObject(m_pConfig->nAlines4, m_pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable), m_pConfig->octDbGamma);
+    m_pImgObjCircImage = new ImageObject(2 * m_pConfig->circRadius, 2 * m_pConfig->circRadius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable), m_pConfig->octDbGamma);
 
     // Set layout for left panel
 	pVBoxLayout_ImageView->addWidget(m_pImageView_RectImage);
@@ -683,7 +685,7 @@ void QResultTab::createEnFaceMapTab()
         color[i] = 255 - i / 4;
 
     // Create widgets for OCT projection map
-    m_pImageView_OctProjection = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, 1);
+    m_pImageView_OctProjection = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pConfig->nAlines, 1, m_pConfig->octDbGamma);
 #ifdef OCT_NIRF
 	m_pImageView_OctProjection->setMinimumHeight(150);
 #endif
@@ -701,13 +703,23 @@ void QResultTab::createEnFaceMapTab()
     m_pLineEdit_OctDbMin->setFixedWidth(30);
 	m_pLineEdit_OctDbMin->setDisabled(true);
 
-    m_pImageView_ColorbarOctProjection = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 4, 256);
+	m_pLabel_OctDbGamma = new QLabel(this);
+	m_pLabel_OctDbGamma->setText(QChar(0xb3, 0x03));
+	m_pLabel_OctDbGamma->setDisabled(true);
+	m_pLineEdit_OctDbGamma = new QLineEdit(this);
+	m_pLineEdit_OctDbGamma->setText(QString::number(m_pConfig->octDbGamma, 'f', 2));
+	m_pLineEdit_OctDbGamma->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_OctDbGamma->setFixedWidth(30);
+	m_pLineEdit_OctDbGamma->setDisabled(true);
+
+    m_pImageView_ColorbarOctProjection = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), 4, 256, m_pConfig->octDbGamma);
 	m_pImageView_ColorbarOctProjection->getRender()->setFixedWidth(15);
     m_pImageView_ColorbarOctProjection->drawImage(color);
     m_pImageView_ColorbarOctProjection->setFixedWidth(30);
 
     m_pLabel_OctProjection = new QLabel(this);
     m_pLabel_OctProjection->setText("OCT Maximum Projection Map");
+	m_pLabel_OctProjection->setDisabled(true);
 
 #ifdef OCT_FLIM
     // Create widgets for FLIM intensity map
@@ -726,7 +738,7 @@ void QResultTab::createEnFaceMapTab()
     m_pLineEdit_IntensityMin->setFixedWidth(30);
 	m_pLineEdit_IntensityMin->setDisabled(true);
 
-    m_pImageView_ColorbarIntensityMap = new QImageView(ColorTable::colortable(INTENSITY_COLORTABLE), 4, 256, false);
+    m_pImageView_ColorbarIntensityMap = new QImageView(ColorTable::colortable(INTENSITY_COLORTABLE), 4, 256);
 	m_pImageView_ColorbarIntensityMap->getRender()->setFixedWidth(15);
     m_pImageView_ColorbarIntensityMap->drawImage(color);
     m_pImageView_ColorbarIntensityMap->setFixedWidth(30);
@@ -736,7 +748,7 @@ void QResultTab::createEnFaceMapTab()
 
     // Create widgets for FLIM lifetime map
 	ColorTable temp_ctable;
-    m_pImageView_LifetimeMap = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), m_pConfig->n4Alines, 1, true);
+    m_pImageView_LifetimeMap = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), m_pConfig->n4Alines, 1, 1.0f, true);
 	m_pImageView_LifetimeMap->setHLineChangeCallback([&](int frame) { m_pSlider_SelectFrame->setValue(frame); });
 	m_pImageView_LifetimeMap->getRender()->m_colorLine = 0xffffff;
 
@@ -751,7 +763,7 @@ void QResultTab::createEnFaceMapTab()
     m_pLineEdit_LifetimeMin->setFixedWidth(30);
 	m_pLineEdit_LifetimeMin->setDisabled(true);
 
-    m_pImageView_ColorbarLifetimeMap = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), 4, 256, false);
+    m_pImageView_ColorbarLifetimeMap = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), 4, 256);
 	m_pImageView_ColorbarLifetimeMap->getRender()->setFixedWidth(15);
     m_pImageView_ColorbarLifetimeMap->drawImage(color);
     m_pImageView_ColorbarLifetimeMap->setFixedWidth(30);
@@ -794,7 +806,7 @@ void QResultTab::createEnFaceMapTab()
 	m_pLineEdit_NirfMin->setFixedWidth(30);
 	m_pLineEdit_NirfMin->setDisabled(true);
 
-	m_pImageView_ColorbarNirfMap = new QImageView(ColorTable::colortable(NIRF_COLORTABLE1), 4, 256, false);
+	m_pImageView_ColorbarNirfMap = new QImageView(ColorTable::colortable(NIRF_COLORTABLE1), 4, 256);
 	m_pImageView_ColorbarNirfMap->getRender()->setFixedWidth(15);
 	m_pImageView_ColorbarNirfMap->drawImage(color);
 	m_pImageView_ColorbarNirfMap->setFixedWidth(30);
@@ -813,12 +825,12 @@ void QResultTab::createEnFaceMapTab()
 		m_pLineEdit_NirfMin[i]->setDisabled(true);
 	}
 	
-	m_pImageView_ColorbarNirfMap[0] = new QImageView(ColorTable::colortable(NIRF_COLORTABLE1), 4, 256, false);
+	m_pImageView_ColorbarNirfMap[0] = new QImageView(ColorTable::colortable(NIRF_COLORTABLE1), 4, 256);
 	m_pImageView_ColorbarNirfMap[0]->getRender()->setFixedWidth(15);
 	m_pImageView_ColorbarNirfMap[0]->drawImage(color);
 	m_pImageView_ColorbarNirfMap[0]->setFixedWidth(30);
 
-	m_pImageView_ColorbarNirfMap[1] = new QImageView(ColorTable::colortable(NIRF_COLORTABLE2), 4, 256, false);
+	m_pImageView_ColorbarNirfMap[1] = new QImageView(ColorTable::colortable(NIRF_COLORTABLE2), 4, 256);
 	m_pImageView_ColorbarNirfMap[1]->getRender()->setFixedWidth(15);
 	m_pImageView_ColorbarNirfMap[1]->drawImage(color);
 	m_pImageView_ColorbarNirfMap[1]->setFixedWidth(30);
@@ -827,12 +839,15 @@ void QResultTab::createEnFaceMapTab()
 #ifndef TWO_CHANNEL_NIRF
 	m_pLabel_NirfMap = new QLabel(this);
 	m_pLabel_NirfMap->setText("NIRF Map");
+	m_pLabel_NirfMap->setDisabled(true);
 #else
 	m_pLabel_NirfMap1 = new QLabel(this);
 	m_pLabel_NirfMap1->setText("NIRF Map Ch1");
+	m_pLabel_NirfMap1->setDisabled(true);
 
 	m_pLabel_NirfMap2 = new QLabel(this);
 	m_pLabel_NirfMap2->setText("NIRF Map Ch2");
+	m_pLabel_NirfMap2->setDisabled(true);
 #endif
 #endif
 
@@ -844,6 +859,14 @@ void QResultTab::createEnFaceMapTab()
 	pVBoxLayout_Colorbar1->setSpacing(0);
     pVBoxLayout_Colorbar1->addWidget(m_pLineEdit_OctDbMax);
     pVBoxLayout_Colorbar1->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
+	QVBoxLayout *pVBoxLayout_Gamma = new QVBoxLayout;
+	pVBoxLayout_Gamma->setSpacing(0);
+	pVBoxLayout_Gamma->addWidget(m_pLabel_OctDbGamma);
+	pVBoxLayout_Gamma->addWidget(m_pLineEdit_OctDbGamma);
+
+	pVBoxLayout_Colorbar1->addItem(pVBoxLayout_Gamma);
+	pVBoxLayout_Colorbar1->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
     pVBoxLayout_Colorbar1->addWidget(m_pLineEdit_OctDbMin);
     pGridLayout_EnFace->addItem(pVBoxLayout_Colorbar1, 1, 2);
 
@@ -927,6 +950,7 @@ void QResultTab::createEnFaceMapTab()
 
 	connect(m_pLineEdit_OctDbMax, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
 	connect(m_pLineEdit_OctDbMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
+	connect(m_pLineEdit_OctDbGamma, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
 #ifdef OCT_FLIM
 	connect(m_pLineEdit_IntensityMax, SIGNAL(textEdited(const QString &)), this, SLOT(adjustFlimContrast()));
 	connect(m_pLineEdit_IntensityMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustFlimContrast()));
@@ -1026,6 +1050,12 @@ void QResultTab::createLongitudinalViewDlg()
 	m_pLongitudinalViewDlg->activateWindow();
 
 	m_pLongitudinalViewDlg->drawLongitudinalImage(0);
+
+	m_pImageView_RectImage->setDoubleClickedMouseCallback([&]() {});
+	m_pImageView_CircImage->setDoubleClickedMouseCallback([&]() {});
+
+	m_pToggleButton_MeasureDistance->setChecked(false);
+	m_pToggleButton_MeasureDistance->setDisabled(true);
 }
 
 void QResultTab::deleteLongitudinalViewDlg()
@@ -1041,6 +1071,13 @@ void QResultTab::deleteLongitudinalViewDlg()
 
 	m_pLongitudinalViewDlg->deleteLater();
 	m_pLongitudinalViewDlg = nullptr;
+
+#ifdef OCT_FLIM
+	m_pImageView_RectImage->setDoubleClickedMouseCallback([&]() { createPulseReviewDlg(); });
+	m_pImageView_CircImage->setDoubleClickedMouseCallback([&]() { createPulseReviewDlg(); });
+#endif
+
+	m_pToggleButton_MeasureDistance->setEnabled(true);
 }
 
 #ifdef OCT_FLIM
@@ -1064,6 +1101,10 @@ void QResultTab::createPulseReviewDlg()
 	}
 	m_pPulseReviewDlg->raise();
 	m_pPulseReviewDlg->activateWindow();
+
+	m_pPushButton_LongitudinalView->setDisabled(true);
+	m_pToggleButton_MeasureDistance->setChecked(false);
+	m_pToggleButton_MeasureDistance->setDisabled(true);
 }
 
 void QResultTab::deletePulseReviewDlg()
@@ -1077,6 +1118,9 @@ void QResultTab::deletePulseReviewDlg()
 
 	m_pPulseReviewDlg->deleteLater();
 	m_pPulseReviewDlg = nullptr;
+
+	m_pPushButton_LongitudinalView->setEnabled(true);
+	m_pToggleButton_MeasureDistance->setEnabled(true);
 }
 #endif
 
@@ -2096,7 +2140,7 @@ void QResultTab::checkCircRadius(const QString &str)
 	ColorTable temp_ctable;
 
 	if (m_pImgObjCircImage) delete m_pImgObjCircImage;
-	m_pImgObjCircImage = new ImageObject(2 * circRadius, 2 * circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+	m_pImgObjCircImage = new ImageObject(2 * circRadius, 2 * circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()), m_pConfig->octDbGamma);
 
 	// Create circ object
 	if (m_pCirc)
@@ -2230,20 +2274,21 @@ void QResultTab::adjustOctContrast()
 {
 	int min_dB = m_pLineEdit_OctDbMin->text().toInt();
 	int max_dB = m_pLineEdit_OctDbMax->text().toInt();
+	float gamma = m_pLineEdit_OctDbGamma->text().toFloat();
 	int ctable_ind = m_pComboBox_OctColorTable->currentIndex();
 
 	m_pConfig->octDbRange.min = min_dB;
 	m_pConfig->octDbRange.max = max_dB;
-	
+	m_pConfig->octDbGamma = gamma;
 	m_pConfig->octColorTable = ctable_ind;
 
-	m_pImageView_RectImage->resetColormap(ColorTable::colortable(ctable_ind));
-	m_pImageView_CircImage->resetColormap(ColorTable::colortable(ctable_ind));
-	m_pImageView_OctProjection->resetColormap(ColorTable::colortable(ctable_ind));	
-	m_pImageView_ColorbarOctProjection->resetColormap(ColorTable::colortable(ctable_ind));
+	m_pImageView_RectImage->resetColormap(ColorTable::colortable(ctable_ind), gamma);
+	m_pImageView_CircImage->resetColormap(ColorTable::colortable(ctable_ind), gamma);
+	m_pImageView_OctProjection->resetColormap(ColorTable::colortable(ctable_ind), gamma);
+	m_pImageView_ColorbarOctProjection->resetColormap(ColorTable::colortable(ctable_ind), gamma);
 
 	if (m_pLongitudinalViewDlg)
-		m_pLongitudinalViewDlg->getImageView()->resetColormap(ColorTable::colortable(ctable_ind));
+		m_pLongitudinalViewDlg->getImageView()->resetColormap(ColorTable::colortable(ctable_ind), gamma);
 
 	ColorTable temp_ctable;
 
@@ -2253,7 +2298,7 @@ void QResultTab::adjustOctContrast()
         rect_width4 = m_pImgObjRectImage->getWidth();
         delete m_pImgObjRectImage;
     }
-    m_pImgObjRectImage = new ImageObject(rect_width4, m_pImageView_RectImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
+    m_pImgObjRectImage = new ImageObject(rect_width4, m_pImageView_RectImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind), gamma);
 
     int circ_width4 = 0;
     if (m_pImgObjCircImage)
@@ -2261,13 +2306,14 @@ void QResultTab::adjustOctContrast()
         circ_width4 = m_pImgObjCircImage->getWidth();
         delete m_pImgObjCircImage;
     }
-    m_pImgObjCircImage = new ImageObject(circ_width4, m_pImageView_CircImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind));
+    m_pImgObjCircImage = new ImageObject(circ_width4, m_pImageView_CircImage->getRender()->m_pImage->height(), temp_ctable.m_colorTableVector.at(ctable_ind), gamma);
 	
 	if (m_pLongitudinalViewDlg)
 	{
 		if (m_pLongitudinalViewDlg->m_pImgObjOctLongiImage)
 			delete m_pLongitudinalViewDlg->m_pImgObjOctLongiImage;
-		m_pLongitudinalViewDlg->m_pImgObjOctLongiImage = new ImageObject(((m_pConfigTemp->nFrames + 3) >> 2) << 2, 2 * m_pConfigTemp->circRadius, temp_ctable.m_colorTableVector.at(ctable_ind));
+		m_pLongitudinalViewDlg->m_pImgObjOctLongiImage = new ImageObject(((m_pConfigTemp->nFrames + 3) >> 2) << 2, 2 * m_pConfigTemp->circRadius, 
+			temp_ctable.m_colorTableVector.at(ctable_ind), gamma);
 	}
 
 	visualizeEnFaceMap(true);
@@ -2873,6 +2919,11 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
         m_pImageView_RectImage->setUpdatesEnabled(true);
 		m_pImageView_CircImage->setEnabled(true);
         m_pImageView_CircImage->setUpdatesEnabled(true);
+		if (enabled)
+		{
+			m_pImageView_RectImage->setMagnDefault();
+			m_pImageView_CircImage->setMagnDefault();
+		}
 
         m_pImageView_RectImage->resetSize(pConfig->nAlines, pConfig->n2ScansFFT);
 		m_pImageView_CircImage->resetSize(2 * m_pConfigTemp->circRadius, 2 * m_pConfigTemp->circRadius);
@@ -2985,9 +3036,11 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 			m_pScrollBar_NirfOffset->setEnabled(true);
 		}
 #endif
-
+		m_pLabel_OctProjection->setEnabled(true);
 		m_pLineEdit_OctDbMax->setEnabled(true);
 		m_pLineEdit_OctDbMin->setEnabled(true);
+		m_pLabel_OctDbGamma->setEnabled(true);
+		m_pLineEdit_OctDbGamma->setEnabled(true);
 #ifdef OCT_FLIM
 		m_pLineEdit_IntensityMax->setEnabled(true);
 		m_pLineEdit_IntensityMin->setEnabled(true);
@@ -2996,11 +3049,14 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
+		m_pLabel_NirfMap->setEnabled(true);
 		m_pLineEdit_NirfMax->setEnabled(true);
 		m_pLineEdit_NirfMin->setEnabled(true);
 #else
+		m_pLabel_NirfMap1->setEnabled(true);
 		m_pLineEdit_NirfMax[0]->setEnabled(true);
 		m_pLineEdit_NirfMin[0]->setEnabled(true);
+		m_pLabel_NirfMap2->setEnabled(true);
 		m_pLineEdit_NirfMax[1]->setEnabled(true);
 		m_pLineEdit_NirfMin[1]->setEnabled(true);
 #endif
@@ -3115,9 +3171,11 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		//m_pScrollBar_NirfOffset->setValue(0);
 		m_pScrollBar_NirfOffset->setDisabled(true);
 #endif
-
+		m_pLabel_OctProjection->setDisabled(true);
 		m_pLineEdit_OctDbMax->setDisabled(true);
 		m_pLineEdit_OctDbMin->setDisabled(true);
+		m_pLabel_OctDbGamma->setDisabled(true);
+		m_pLineEdit_OctDbGamma->setDisabled(true);
 #ifdef OCT_FLIM
 		m_pLineEdit_IntensityMax->setDisabled(true);
 		m_pLineEdit_IntensityMin->setDisabled(true);
@@ -3126,11 +3184,14 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
+		m_pLabel_NirfMap->setDisabled(true);
 		m_pLineEdit_NirfMax->setDisabled(true);
 		m_pLineEdit_NirfMin->setDisabled(true);
 #else
+		m_pLabel_NirfMap1->setDisabled(true);
 		m_pLineEdit_NirfMax[0]->setDisabled(true);
 		m_pLineEdit_NirfMin[0]->setDisabled(true);
+		m_pLabel_NirfMap2->setDisabled(true);
 		m_pLineEdit_NirfMax[1]->setDisabled(true);
 		m_pLineEdit_NirfMin[1]->setDisabled(true);
 #endif
@@ -3150,6 +3211,11 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		// Reset visualization widgets
 		m_pImageView_RectImage->setEnabled(true);
 		m_pImageView_CircImage->setEnabled(true);
+		if (enabled)
+		{
+			m_pImageView_RectImage->setMagnDefault();
+			m_pImageView_CircImage->setMagnDefault();	
+		}
 
 		// Reset widgets
 		m_pImageView_OctProjection->setEnabled(true);
@@ -3234,9 +3300,11 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		}
 #endif
 #endif
-
+		m_pLabel_OctProjection->setEnabled(true);
 		m_pLineEdit_OctDbMax->setEnabled(true);
 		m_pLineEdit_OctDbMin->setEnabled(true);
+		m_pLabel_OctDbGamma->setEnabled(true);
+		m_pLineEdit_OctDbGamma->setEnabled(true);
 #ifdef OCT_FLIM
 		m_pLineEdit_IntensityMax->setEnabled(true);
 		m_pLineEdit_IntensityMin->setEnabled(true);
@@ -3245,11 +3313,14 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
+		m_pLabel_NirfMap->setEnabled(true);
 		m_pLineEdit_NirfMax->setEnabled(true);
 		m_pLineEdit_NirfMin->setEnabled(true);
 #else
+		m_pLabel_NirfMap1->setEnabled(true);
 		m_pLineEdit_NirfMax[0]->setEnabled(true);
 		m_pLineEdit_NirfMin[0]->setEnabled(true);
+		m_pLabel_NirfMap2->setEnabled(true);
 		m_pLineEdit_NirfMax[1]->setEnabled(true);
 		m_pLineEdit_NirfMin[1]->setEnabled(true);
 #endif
@@ -3332,9 +3403,11 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLineEdit_NirfOffset->setDisabled(true);
 		m_pScrollBar_NirfOffset->setDisabled(true);
 #endif
-
+		m_pLabel_OctProjection->setDisabled(true);
 		m_pLineEdit_OctDbMax->setDisabled(true);
 		m_pLineEdit_OctDbMin->setDisabled(true);
+		m_pLabel_OctDbGamma->setDisabled(true);
+		m_pLineEdit_OctDbGamma->setDisabled(true);
 #ifdef OCT_FLIM
 		m_pLineEdit_IntensityMax->setDisabled(true);
 		m_pLineEdit_IntensityMin->setDisabled(true);
@@ -3343,11 +3416,14 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
+		m_pLabel_NirfMap->setDisabled(true);
 		m_pLineEdit_NirfMax->setDisabled(true);
 		m_pLineEdit_NirfMin->setDisabled(true);
 #else
+		m_pLabel_NirfMap1->setDisabled(true);
 		m_pLineEdit_NirfMax[0]->setDisabled(true);
 		m_pLineEdit_NirfMin[0]->setDisabled(true);
+		m_pLabel_NirfMap2->setDisabled(true);
 		m_pLineEdit_NirfMax[1]->setDisabled(true);
 		m_pLineEdit_NirfMin[1]->setDisabled(true);
 #endif
@@ -3407,9 +3483,9 @@ void QResultTab::setObjects(Configuration* pConfig)
 	ColorTable temp_ctable;
 
 	if (m_pImgObjRectImage) delete m_pImgObjRectImage;
-    m_pImgObjRectImage = new ImageObject(pConfig->nAlines4, pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+    m_pImgObjRectImage = new ImageObject(pConfig->nAlines4, pConfig->n2ScansFFT, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()), m_pConfig->octDbGamma);
 	if (m_pImgObjCircImage) delete m_pImgObjCircImage;
-    m_pImgObjCircImage = new ImageObject(2 * m_pConfigTemp->circRadius, 2 * m_pConfigTemp->circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()));
+    m_pImgObjCircImage = new ImageObject(2 * m_pConfigTemp->circRadius, 2 * m_pConfigTemp->circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()), m_pConfig->octDbGamma);
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
 	m_pImgObjIntensity = new ImageObject(pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
@@ -3744,9 +3820,9 @@ void QResultTab::octProcessing1(OCTProcess* pOCT, Configuration* pConfig)
 					(*pOCT)(m_vectorOctImage.at(frameCount), fringe_data);
 					if (pConfig->erasmus)
 					{
-						IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
-						if (!pConfig->oldUhs)
-							ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
+						//IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
+						//if (!pConfig->oldUhs)
+							//ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
 					}
 					emit processedSingleFrame(frameCount);
 #endif

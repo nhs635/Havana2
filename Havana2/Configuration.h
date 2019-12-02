@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.1"
+#define VERSION						"1.2.6.2"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -11,8 +11,8 @@
 #define NI_ENABLE					false
 
 /////////////////////// System setup ////////////////////////
-#define OCT_FLIM
-//#define STANDALONE_OCT
+//#define OCT_FLIM
+#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
@@ -32,8 +32,8 @@
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
-#define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+//#define GALVANO_MIRROR
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -187,7 +187,7 @@ enum voltage_range
 class Configuration
 {
 public:
-	explicit Configuration() : nChannels(0), systemType(""), erasmus(false)		
+	explicit Configuration() : nChannels(0), systemType(""), erasmus(false), octDbGamma(1.0f)
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	, nirf(false)
@@ -249,6 +249,7 @@ public:
 		octColorTable = settings.value("octColorTable").toInt();
 		octDbRange.max = settings.value("octDbRangeMax").toInt();
 		octDbRange.min = settings.value("octDbRangeMin").toInt();
+		octDbGamma = settings.value("octDbGamma").toFloat();
 #ifdef OCT_FLIM
 		flimLifetimeColorTable = settings.value("flimLifetimeColorTable").toInt();
 		flimIntensityRange.max = settings.value("flimIntensityRangeMax").toFloat();
@@ -390,6 +391,7 @@ public:
 		settings.setValue("octColorTable", octColorTable);
 		settings.setValue("octDbRangeMax", octDbRange.max);
 		settings.setValue("octDbRangeMin", octDbRange.min);
+		settings.setValue("octDbGamma", QString::number(octDbGamma, 'f', 2));
 #ifdef OCT_FLIM
 		settings.setValue("flimLifetimeColorTable", flimLifetimeColorTable);
 		settings.setValue("flimIntensityRangeMax", QString::number(flimIntensityRange.max, 'f', 1)); 
@@ -516,6 +518,7 @@ public:
 #endif
 	int octColorTable;
 	Range<int> octDbRange;
+	float octDbGamma;
 #ifdef OCT_FLIM
 	int flimLifetimeColorTable;
 	Range<float> flimIntensityRange;

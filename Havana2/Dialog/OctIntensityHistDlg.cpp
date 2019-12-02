@@ -83,7 +83,7 @@ void OctIntensityHistDlg::createHistogram(int _nAlines)
 
 	m_pHistogram = new Histogram(n_bins, _nAlines * m_pConfig->n2ScansFFT);
 	
-	m_pColorbar = new QImageView(ColorTable::colortable::gray, 256, 1, false);
+	m_pColorbar = new QImageView(ColorTable::colortable::gray, 256, 1, m_pConfig->octDbGamma);
 	m_pColorbar->drawImage(color);
 	m_pColorbar->getRender()->setFixedSize(350, 10);
 

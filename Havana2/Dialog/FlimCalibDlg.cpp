@@ -241,7 +241,7 @@ void FlimCalibDlg::createHistogram()
 
 	m_pHistogramIntensity = new Histogram(n_bins, m_pConfig->n4Alines);
 	
-	m_pColorbar_FluIntensity = new QImageView(ColorTable::colortable(INTENSITY_COLORTABLE), 256, 1, false);
+	m_pColorbar_FluIntensity = new QImageView(ColorTable::colortable(INTENSITY_COLORTABLE), 256, 1);
 	m_pColorbar_FluIntensity->drawImage(color);
 	m_pColorbar_FluIntensity->getRender()->setFixedSize(250, 10);
 
@@ -274,7 +274,7 @@ void FlimCalibDlg::createHistogram()
 
 	m_pHistogramLifetime = new Histogram(n_bins, m_pConfig->n4Alines);
 
-	m_pColorbar_FluLifetime = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), 256, 1, false);
+	m_pColorbar_FluLifetime = new QImageView(ColorTable::colortable(m_pConfig->flimLifetimeColorTable), 256, 1);
 	m_pColorbar_FluLifetime->drawImage(color);
 	m_pColorbar_FluLifetime->getRender()->setFixedSize(250, 10);
 

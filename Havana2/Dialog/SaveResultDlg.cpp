@@ -904,7 +904,7 @@ void SaveResultDlg::saveEnFaceMaps()
 				}
 #endif
                 imgObjOctMaxProj.qindeximg.copy(0, roi_proj.height - end, m_pResultTab->getRectImageView()->getRender()->m_pImage->width(), end - start + 1).
-                        save(enFacePath + QString("oct_max_projection_range[%1 %2]_dB[%3 %4].bmp").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max), "bmp");
+                        save(enFacePath + QString("oct_max_projection_range[%1 %2]_dB[%3 %4 g%5].bmp").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2), "bmp");
 			}
 		}
 
@@ -1055,7 +1055,7 @@ void SaveResultDlg::scaling(std::vector<np::FloatArray2>& vectorOctImage, np::Ui
 		ImgObjVector* pImgObjVec = new ImgObjVector;
 
 		// Image objects for OCT Images
-		pImgObjVec->push_back(new ImageObject(roi_oct.height, roi_oct.width, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable())));
+		pImgObjVec->push_back(new ImageObject(roi_oct.height, roi_oct.width, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma));
 
 #ifdef OCT_FLIM
 		// Image objects for Ch1 FLIM
@@ -1264,9 +1264,9 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 #endif
 
 #ifndef OCT_NIRF
-		rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+		rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%d]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2);
 #else
-        rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+        rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%3]%4/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
 		if (checkList.bNirfRingOnly)
 		{
 #ifndef TWO_CHANNEL_NIRF
@@ -1511,8 +1511,8 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 			{
 				if (checkList.bCh[i])
 				{
-                    rectPath[i] = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2]_ch%3_i[%4 %5]_t[%6 %7]/")
-                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+                    rectPath[i] = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%3]_ch%4_i[%5 %6]_t[%7 %8]/")
+                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 						.arg(i + 1).arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
 					if (checkList.bRect) QDir().mkdir(rectPath[i]);
@@ -1521,8 +1521,8 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 		}
 		else
 		{
-            rectPath[0] = m_pResultTab->m_path + QString("/rect_merged_dB[%1 %2]_ch%3%4%5_i[%6 %7]_t[%8 %9]/")
-                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+            rectPath[0] = m_pResultTab->m_path + QString("/rect_merged_dB[%1 %2 g%3]_ch%4%5%6_i[%7 %8]_t[%9 %10]/")
+                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 				.arg(checkList.bCh[0] ? "1" : "").arg(checkList.bCh[1] ? "2" : "").arg(checkList.bCh[2] ? "3" : "")
 				.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 				.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
@@ -1635,18 +1635,18 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
             if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
             {
                 if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-                    nirfName = QString("/rect_image_dB[%1 %2]_tbr_nirf_i[%3 %4]/");
+                    nirfName = QString("/rect_image_dB[%1 %2 g%3]_tbr_nirf_i[%4 %5]/");
                 else
-                    nirfName = QString("/rect_image_dB[%1 %2]_comp_nirf_i[%3 %4]/");
+                    nirfName = QString("/rect_image_dB[%1 %2 g%3]_comp_nirf_i[%4 %5]/");
             }
             else
-                nirfName = QString("/rect_image_dB[%1 %2]_bg_sub_nirf_i[%3 %4]/");
+                nirfName = QString("/rect_image_dB[%1 %2 g%3]_bg_sub_nirf_i[%4 %5]/");
         }
         else
         {
-            nirfName = QString("/rect_image_dB[%1 %2]_raw_nirf_i[%3 %4]/");
+            nirfName = QString("/rect_image_dB[%1 %2 g%3]_raw_nirf_i[%4 %5]/");
         }
-        QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+        QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
                 .arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
 #else
 		if (m_pResultTab->getNirfDistCompDlg())
@@ -1654,18 +1654,18 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 			if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
 			{
 				if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-					nirfName = QString("/rect_image_dB[%1 %2]_tbr_nirf_i1[%3 %4]_i2[%5 %6]/");
+					nirfName = QString("/rect_image_dB[%1 %2 g%3]_tbr_nirf_i1[%4 %5]_i2[%6 %7]/");
 				else
-					nirfName = QString("/rect_image_dB[%1 %2]_comp_nirf_i1[%3 %4]_i2[%5 %6]/");
+					nirfName = QString("/rect_image_dB[%1 %2 g%3]_comp_nirf_i1[%4 %5]_i2[%6 %7]/");
 			}
 			else
-				nirfName = QString("/rect_image_dB[%1 %2]_bg_sub_nirf_i1[%3 %4]_i2[%5 %6]/");
+				nirfName = QString("/rect_image_dB[%1 %2 g%3]_bg_sub_nirf_i1[%4 %5]_i2[%6 %7]/");
 		}
 		else
 		{
-			nirfName = QString("/rect_image_dB[%1 %2]_raw_nirf_i1[%3 %4]_i2[%5 %6]/");
+			nirfName = QString("/rect_image_dB[%1 %2 g%3]_raw_nirf_i1[%4 %5]_i2[%6 %7]/");
 		}
-		QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+		QString rectPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 			.arg(m_pConfig->nirfRange[0].min, 2, 'f', 2).arg(m_pConfig->nirfRange[0].max, 2, 'f', 2)
 			.arg(m_pConfig->nirfRange[1].min, 2, 'f', 2).arg(m_pConfig->nirfRange[1].max, 2, 'f', 2);
 #endif
@@ -1748,7 +1748,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			pImgObjVecLongi [i] = new ImgObjVector;
 			for (int j = 0; j < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); j++)
 			{
-				ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+				ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 				pImgObjVecLongi[i]->push_back(pLongiImgObj);
 			}
 		}
@@ -1766,7 +1766,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 	{
 		for (int i = 0; i < (int)(m_pResultTab->m_vectorOctImage.at(0).size(1) / 2); i++)
 		{
-			ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+			ImageObject *pLongiImgObj = new ImageObject(nTotalFrame4, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 			pImgObjVecLongi->push_back(pLongiImgObj);
 		}
 
@@ -1814,7 +1814,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		{
 #endif
 			// ImageObject for circ writing
-			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
 			ImageObject *pCircNirfObj = nullptr;
@@ -1945,7 +1945,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				for (int i = 0; i < 3; i++)
 				{
 					// ImageObject for circ writing
-					pCircImgObj[i] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+					pCircImgObj[i] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 
 					// Buffer & center
 					int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
@@ -1992,7 +1992,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				int n = 0;
 
 				// ImageObject for circ writing
-				pCircImgObj[0] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));
+				pCircImgObj[0] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 
 				// Buffer & center
 				int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
@@ -2036,7 +2036,7 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 		else
 		{
 			// ImageObject for circ writing
-			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()));		
+			ImageObject *pCircImgObj = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
@@ -2131,9 +2131,9 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #endif
 
 #ifndef OCT_NIRF
-			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4]/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4 g%5]/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2);
 #else
-			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4]%5/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+			longiPath = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4 g%5]%6/").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
 			if (checkList.bNirfRingOnly)
 			{
 #ifndef TWO_CHANNEL_NIRF
@@ -2320,8 +2320,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				{
 					if (checkList.bCh[i])
 					{
-						longiPath[i] = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4]_ch%5_i[%6 %7]_t[%8 %9]/")
-							.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+						longiPath[i] = m_pResultTab->m_path + QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_ch%6_i[%7 %8]_t[%9 %10]/")
+							.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 							.arg(i + 1).arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 							.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
 						if (checkList.bLongi) QDir().mkdir(longiPath[i]);
@@ -2330,8 +2330,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 			}
 			else
 			{
-				longiPath[0] = m_pResultTab->m_path + QString("/longi_merged[%1 %2]_dB[%3 %4]_ch%5%6%7_i[%8 %9]_t[%10 %11]/")
-					.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+				longiPath[0] = m_pResultTab->m_path + QString("/longi_merged[%1 %2]_dB[%3 %4 g%5]_ch%6%7%8_i[%9 %10]_t[%11 %12]/")
+					.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 					.arg(checkList.bCh[0] ? "1" : "").arg(checkList.bCh[1] ? "2" : "").arg(checkList.bCh[2] ? "3" : "")
 					.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 					.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
@@ -2392,18 +2392,18 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
 				{
 					if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_tbr_nirf_i[%5 %6]/");
+						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_tbr_nirf_i[%6 %7]/");
 					else
-						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_comp_nirf_i[%5 %6]/");
+						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_comp_nirf_i[%6 %7]/");
 				}
 				else
-					nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_bg_sub_nirf_i[%5 %6]/");
+					nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_bg_sub_nirf_i[%6 %7]/");
 			}
 			else
 			{
-				nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_raw_nirf_i[%5 %6]/");
+				nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_raw_nirf_i[%6 %7]/");
 			}
-			QString longiPath = m_pResultTab->m_path + nirfName.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+			QString longiPath = m_pResultTab->m_path + nirfName.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 				.arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
 #else
 			if (m_pResultTab->getNirfDistCompDlg())
@@ -2411,18 +2411,18 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
 				{
 					if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_tbr_nirf_i1[%5 %6]_i2[%7 %8]/");
+						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_tbr_nirf_i1[%6 %7]_i2[%8 %9]/");
 					else
-						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_comp_nirf_i1[%5 %6]_i2[%7 %8]/");
+						nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_comp_nirf_i1[%6 %7]_i2[%8 %9]/");
 				}
 				else
-					nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_bg_sub_nirf_i1[%5 %6]_i2[%7 %8]/");
+					nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_bg_sub_nirf_i1[%6 %7]_i2[%8 %9]/");
 			}
 			else
 			{
-				nirfName = QString("/longi_image[%1 %2]_dB[%3 %4]_raw_nirf_i1[%5 %6]_i2[%7 %8]/");
+				nirfName = QString("/longi_image[%1 %2]_dB[%3 %4 g%5]_raw_nirf_i1[%6 %7]_i2[%8 %9]/");
 			}
-			QString longiPath = m_pResultTab->m_path + nirfName.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+			QString longiPath = m_pResultTab->m_path + nirfName.arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 				.arg(m_pConfig->nirfRange[0].min, 2, 'f', 2).arg(m_pConfig->nirfRange[0].max, 2, 'f', 2)
 				.arg(m_pConfig->nirfRange[1].min, 2, 'f', 2).arg(m_pConfig->nirfRange[1].max, 2, 'f', 2);
 #endif
@@ -2491,9 +2491,9 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 #endif
 
 #ifndef OCT_NIRF
-        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max);
+        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2 g%3]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2);
 #else
-        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]%3/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
+        circPath = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2 g%3]%4/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
 		if (checkList.bNirfRingOnly)
 		{
 #ifndef TWO_CHANNEL_NIRF
@@ -2669,8 +2669,8 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 			{
 				if (checkList.bCh[i])
 				{
-                    circPath[i] = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2]_ch%3_i[%4 %5]_t[%6 %7]/")
-                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+                    circPath[i] = m_pResultTab->m_path + QString("/circ_image_dB[%1 %2 g%3]_ch%4_i[%5 %6]_t[%7 %8]/")
+                        .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 						.arg(i + 1).arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
 					if (checkList.bCirc) QDir().mkdir(circPath[i]);
@@ -2679,8 +2679,8 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 		}
 		else
 		{
-            circPath[0] = m_pResultTab->m_path + QString("/circ_merged_dB[%1 %2]_ch%3%4%5_i[%6 %7]_t[%8 %9]/")
-                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+            circPath[0] = m_pResultTab->m_path + QString("/circ_merged_dB[%1 %2 g%3]_ch%4%5%6_i[%7 %8]_t[%9 %10]/")
+                .arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 				.arg(checkList.bCh[0] ? "1" : "").arg(checkList.bCh[1] ? "2" : "").arg(checkList.bCh[2] ? "3" : "")
 				.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 				.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1);
@@ -2750,18 +2750,18 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
             if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
             {
                 if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-                    nirfName = QString("/circ_image_dB[%1 %2]_tbr_nirf_i[%3 %4]/");
+                    nirfName = QString("/circ_image_dB[%1 %2 g%3]_tbr_nirf_i[%4 %5]/");
                 else
-                    nirfName = QString("/circ_image_dB[%1 %2]_comp_nirf_i[%3 %4]/");
+                    nirfName = QString("/circ_image_dB[%1 %2 g%3]_comp_nirf_i[%4 %5]/");
             }
             else
-                nirfName = QString("/circ_image_dB[%1 %2]_bg_sub_nirf_i[%3 %4]/");
+                nirfName = QString("/circ_image_dB[%1 %2 g%3]_bg_sub_nirf_i[%4 %5]/");
         }
         else
         {
-            nirfName = QString("/circ_image_dB[%1 %2]_raw_nirf_i[%3 %4]/");
+            nirfName = QString("/circ_image_dB[%1 %2 g%3]_raw_nirf_i[%4 %5]/");
         }
-        QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+        QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
                 .arg(m_pConfig->nirfRange.min, 2, 'f', 2).arg(m_pConfig->nirfRange.max, 2, 'f', 2);
 #else
 		if (m_pResultTab->getNirfDistCompDlg())
@@ -2769,18 +2769,18 @@ void SaveResultDlg::circWriting(CrossSectionCheckList checkList)
 			if (m_pResultTab->getNirfDistCompDlg()->isCompensating())
 			{
 				if (m_pResultTab->getNirfDistCompDlg()->isTBRMode())
-					nirfName = QString("/circ_image_dB[%1 %2]_tbr_nirf_i1[%3 %4]_i2[%5 %6]/");
+					nirfName = QString("/circ_image_dB[%1 %2 g%3]_tbr_nirf_i1[%4 %5]_i2[%6 %7]/");
 				else
-					nirfName = QString("/circ_image_dB[%1 %2]_comp_nirf_i1[%3 %4]_i2[%5 %6]/");
+					nirfName = QString("/circ_image_dB[%1 %2 g%3]_comp_nirf_i1[%4 %5]_i2[%6 %7]/");
 			}
 			else
-				nirfName = QString("/circ_image_dB[%1 %2]_bg_sub_nirf_i1[%3 %4]_i2[%5 %6]/");
+				nirfName = QString("/circ_image_dB[%1 %2 g%3]_bg_sub_nirf_i1[%4 %5]_i2[%6 %7]/");
 		}
 		else
 		{
-			nirfName = QString("/circ_image_dB[%1 %2]_raw_nirf_i1[%3 %4]_i2[%5 %6]/");
+			nirfName = QString("/circ_image_dB[%1 %2 g%3]_raw_nirf_i1[%4 %5]_i2[%6 %7]/");
 		}
-		QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max)
+		QString circPath = m_pResultTab->m_path + nirfName.arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2)
 			.arg(m_pConfig->nirfRange[0].min, 2, 'f', 2).arg(m_pConfig->nirfRange[0].max, 2, 'f', 2)
 			.arg(m_pConfig->nirfRange[1].min, 2, 'f', 2).arg(m_pConfig->nirfRange[1].max, 2, 'f', 2);
 #endif

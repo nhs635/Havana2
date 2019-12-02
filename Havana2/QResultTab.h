@@ -471,6 +471,8 @@ private:
 
     QLineEdit *m_pLineEdit_OctDbMax;
     QLineEdit *m_pLineEdit_OctDbMin;
+	QLabel *m_pLabel_OctDbGamma;
+	QLineEdit *m_pLineEdit_OctDbGamma;
 #ifdef OCT_FLIM
     QLineEdit *m_pLineEdit_IntensityMax;
     QLineEdit *m_pLineEdit_IntensityMin;

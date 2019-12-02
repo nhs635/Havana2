@@ -2,6 +2,7 @@
 
 #include "QImageView.h"
 #include <ipps.h>
+#include <Common/basic_functions.h>
 
 
 ColorTable::ColorTable()
@@ -53,7 +54,7 @@ QImageView::QImageView(QWidget *parent) :
     // Disabled
 }
 
-QImageView::QImageView(ColorTable::colortable ctable, int width, int height, bool rgb, QWidget *parent) :
+QImageView::QImageView(ColorTable::colortable ctable, int width, int height, float gamma, bool rgb, QWidget *parent) :
     QDialog(parent), m_bSquareConstraint(false), m_bRgbUsed(rgb)
 {
     // Set default size
@@ -79,10 +80,16 @@ QImageView::QImageView(ColorTable::colortable ctable, int width, int height, boo
 	{
 		m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_Indexed8);
 		m_pRenderImage->m_pImage->setColorCount(256);
-		m_pRenderImage->m_pImage->setColorTable(m_colorTable.m_colorTableVector.at(ctable));
+		QVector<uint> colortable0 = m_colorTable.m_colorTableVector.at(ctable);
+		QVector<uint> colortable1;
+		for (int i = 0; i < 256; i++)
+			colortable1.push_back(colortable0.at((int)roundf(255.0f * powf((float)i / 255.0f, gamma))));
+		m_pRenderImage->m_pImage->setColorTable(colortable1);
 	}
 	else
         m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
+
+	m_pRenderImage->m_rectMagnified = QRect(0, 0, m_width, m_height);
 
 	memset(m_pRenderImage->m_pImage->bits(), 0, m_pRenderImage->m_pImage->byteCount());
 
@@ -140,13 +147,18 @@ void QImageView::resetSize(int width, int height)
 	else
         m_pRenderImage->m_pImage = new QImage(m_width, m_height, QImage::Format_RGB888);
 
-	memset(m_pRenderImage->m_pImage->bits(), 0, m_pRenderImage->m_pImage->byteCount());
+	m_pRenderImage->m_rectMagnified = QRect(0, 0, m_width, m_height);
 
+	memset(m_pRenderImage->m_pImage->bits(), 0, m_pRenderImage->m_pImage->byteCount());
 }
 
-void QImageView::resetColormap(ColorTable::colortable ctable)
+void QImageView::resetColormap(ColorTable::colortable ctable, float gamma)
 {
-	m_pRenderImage->m_pImage->setColorTable(m_colorTable.m_colorTableVector.at(ctable));
+	QVector<uint> colortable0 = m_colorTable.m_colorTableVector.at(ctable);
+	QVector<uint> colortable1;
+	for (int i = 0; i < 256; i++)
+		colortable1.push_back(colortable0.at((int)roundf(255.0f * powf((float)i / 255.0f, gamma))));
+	m_pRenderImage->m_pImage->setColorTable(colortable1);
 
 	m_pRenderImage->update();
 }
@@ -220,6 +232,12 @@ void QImageView::setContour(int len, uint16_t* pContour)
         memcpy(m_pRenderImage->m_contour.raw_ptr(), pContour, sizeof(uint16_t) * len);
 }
 
+void QImageView::setMagnDefault()
+{
+	m_pRenderImage->m_rectMagnified = QRect(0, 0, m_pRenderImage->m_pImage->width(), m_pRenderImage->m_pImage->height());
+	m_pRenderImage->m_fMagnLevel = 1.0;
+}
+
 void QImageView::setHLineChangeCallback(const std::function<void(int)> &slot) 
 { 
 	m_pRenderImage->DidChangedHLine.clear();
@@ -258,6 +276,12 @@ void QImageView::setReleasedMouseCallback(const std::function<void(QRect)>& slot
 	m_pRenderImage->DidReleasedMouse += slot;
 }
 
+void QImageView::setWheelMouseCallback(const std::function<void(void)>& slot)
+{
+	m_pRenderImage->DidWheelMouse.clear();
+	m_pRenderImage->DidWheelMouse += slot;
+}
+
 void QImageView::drawImage(uint8_t* pImage)
 {
 	memcpy(m_pRenderImage->m_pImage->bits(), pImage, m_pRenderImage->m_pImage->byteCount());	
@@ -280,7 +304,8 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 QRenderImage::QRenderImage(QWidget *parent) :
 	QWidget(parent), m_pImage(nullptr), m_colorLine(0xff0000), m_pColorHLine(nullptr),
 	m_bRectDrawing(false), m_bMeasureDistance(false), m_nClicked(0), m_contour_offset(0),
-    m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false)
+    m_hLineLen(0), m_vLineLen(0), m_circLen(0), m_bRadial(false), m_bDiametric(false),
+	m_bCanBeMagnified(false), m_rectMagnified(0, 0, 0, 0), m_fMagnLevel(1.0)
 {
 	m_pHLineInd = new int[10];
     m_pVLineInd = new int[10];
@@ -304,16 +329,21 @@ void QRenderImage::paintEvent(QPaintEvent *)
     int h = this->height();
 
     // Draw image
-    if (m_pImage)
-        painter.drawImage(QRect(0, 0, w, h), *m_pImage);
+	if (m_pImage)
+	{
+		painter.drawImage(QRect(0, 0, w, h), *m_pImage, m_rectMagnified);
+	}
 
 	// Draw assitive lines
 	for (int i = 0; i < m_hLineLen; i++)
 	{
-		QPointF p1; p1.setX(0.0);       p1.setY((double)(m_pHLineInd[i] * h) / (double)m_pImage->height());
-		QPointF p2; p2.setX((double)w); p2.setY((double)(m_pHLineInd[i] * h) / (double)m_pImage->height());
+		QPointF p1, p2;
+		p1.setX(0.0);
+		p1.setY((double)((m_pHLineInd[i] - m_rectMagnified.top()) * h) / (double)m_fMagnLevel / (double)m_pImage->height());
+		p2.setX((double)w);
+		p2.setY((double)((m_pHLineInd[i] - m_rectMagnified.top()) * h) / (double)m_fMagnLevel / (double)m_pImage->height());
 
-		painter.setPen(m_pColorHLine[i]);
+		painter.setPen(m_colorLine);
 		painter.drawLine(p1, p2);
 	}
 	for (int i = 0; i < m_vLineLen; i++)
@@ -321,15 +351,21 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		QPointF p1, p2;
 		if (!m_bRadial)
 		{
-			p1.setX((double)(m_pVLineInd[i] * w) / (double)m_pImage->width()); p1.setY(0.0);
-			p2.setX((double)(m_pVLineInd[i] * w) / (double)m_pImage->width()); p2.setY((double)h);			
+			p1.setX((double)((m_pVLineInd[i] - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+			p1.setY(0.0);
+			p2.setX((double)((m_pVLineInd[i] - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+			p2.setY((double)h);
 		}
 		else
-		{			
-			int circ_x = (double)(w / 2) + (double)(w / 2) * cos((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
-			int circ_y = (double)(h / 2) - (double)(h / 2) * sin((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
-			p1.setX(w / 2); p1.setY(h / 2);
-			p2.setX(circ_x); p2.setY(circ_y);			
+		{
+			int center_x = ((double)m_pImage->width() / 2.0 - (double)m_rectMagnified.left()) * (double)w / (double)m_rectMagnified.width();
+			int center_y = ((double)m_pImage->height() / 2.0 - (double)m_rectMagnified.top()) * (double)h / (double)m_rectMagnified.height();
+			int circ_x = center_x + double(w / 2) * (double)m_pImage->width() / (double)m_rectMagnified.width() * cos((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
+			int circ_y = center_y - double(h / 2) * (double)m_pImage->height() / (double)m_rectMagnified.height() * sin((double)m_pVLineInd[i] / (double)m_rMax * IPP_2PI);
+			p1.setX(center_x);
+			p1.setY(center_y);
+			p2.setX(circ_x);
+			p2.setY(circ_y);
 		}
 
 		painter.setPen(m_colorLine);
@@ -340,15 +376,21 @@ void QRenderImage::paintEvent(QPaintEvent *)
 			QPointF p1, p2;
 			if (!m_bRadial)
 			{
-				p1.setX((double)((m_pVLineInd[i] + m_pImage->width() / 2) * w) / (double)m_pImage->width()); p1.setY(0.0);
-				p2.setX((double)((m_pVLineInd[i] + m_pImage->width() / 2) * w) / (double)m_pImage->width()); p2.setY((double)h);
+				p1.setX((double)(((m_pVLineInd[i] + m_pImage->width() / 2) - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+				p1.setY(0.0);
+				p2.setX((double)(((m_pVLineInd[i] + m_pImage->width() / 2) - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+				p2.setY((double)h);
 			}
 			else
 			{
-				int circ_x = (double)(w / 2) + (double)(w / 2) * cos((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
-				int circ_y = (double)(h / 2) - (double)(h / 2) * sin((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
-				p1.setX(w / 2); p1.setY(h / 2);
-				p2.setX(circ_x); p2.setY(circ_y);
+				int center_x = ((double)m_pImage->width() / 2.0 - (double)m_rectMagnified.left()) * (double)w / (double)m_rectMagnified.width();
+				int center_y = ((double)m_pImage->height() / 2.0 - (double)m_rectMagnified.top()) * (double)h / (double)m_rectMagnified.height();
+				int circ_x = center_x + double(w / 2) * (double)m_pImage->width() / (double)m_rectMagnified.width() * cos((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
+				int circ_y = center_y - double(h / 2) * (double)m_pImage->height() / (double)m_rectMagnified.height() * sin((double)(m_pVLineInd[i] + m_rMax / 2) / (double)m_rMax * IPP_2PI);
+				p1.setX(center_x);
+				p1.setY(center_y);
+				p2.setX(circ_x);
+				p2.setY(circ_y);
 			}
 
 			painter.setPen(m_colorLine);
@@ -357,15 +399,17 @@ void QRenderImage::paintEvent(QPaintEvent *)
 	}
 	for (int i = 0; i < m_circLen; i++)
 	{
-		QPointF center; center.setX(w / 2); center.setY(h / 2);
-		double radius = (double)(m_pHLineInd[i] * h) / (double)m_pImage->height();
+		int center_x = ((double)m_pImage->width() / 2.0 - (double)m_rectMagnified.left()) * (double)w / (double)m_rectMagnified.width();
+		int center_y = ((double)m_pImage->height() / 2.0 - (double)m_rectMagnified.top()) * (double)h / (double)m_rectMagnified.height();
+		QPointF center; center.setX(center_x); center.setY(center_y);
+		double radius = (double)(m_pHLineInd[i] * h) / (double)m_rectMagnified.height();
 
 		painter.setPen(m_colorLine);
 		painter.drawEllipse(center, radius, radius);
 	}
     if (m_contour.length() != 0)
     {
-        QPen pen; pen.setColor(Qt::green);
+		QPen pen; pen.setColor(Qt::green); pen.setWidth(3);
         painter.setPen(pen);
 		if (w != h)
 		{
@@ -416,11 +460,15 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		QPen pen; pen.setColor(Qt::red); pen.setWidth(3);
 		painter.setPen(pen);
 
-		QPointF p[2];
+		QPointF p[2], pc[2];
 		for (int i = 0; i < m_nClicked; i++)
 		{
 			p[i] = QPointF(m_point[i][0], m_point[i][1]);
 			painter.drawPoint(p[i]);
+
+			int rx = (double)(p[i].x() * m_rectMagnified.width()) / (double)(this->width()) + m_rectMagnified.left();
+			int ry = (double)(p[i].y() * m_rectMagnified.height()) / (double)(this->height()) + m_rectMagnified.top();
+			pc[i] = QPointF(rx, ry);
 			
 			if (i == 1)
 			{
@@ -430,8 +478,8 @@ void QRenderImage::paintEvent(QPaintEvent *)
 				painter.drawLine(p[0], p[1]);
 				
 				// Euclidean distance
-				double dist = sqrt((p[0].x() - p[1].x()) * (p[0].x() - p[1].x())
-					+ (p[0].y() - p[1].y()) * (p[0].y() - p[1].y())) * (double)m_pImage->height() / (double)this->height();
+				double dist = sqrt((pc[0].x() - pc[1].x()) * (pc[0].x() - pc[1].x())
+								 + (pc[0].y() - pc[1].y()) * (pc[0].y() - pc[1].y()));
 				dist *= PIXEL_SIZE;
 				printf("Measured distance: %.1f\n", dist);
 
@@ -450,19 +498,22 @@ void QRenderImage::mousePressEvent(QMouseEvent *e)
 	{
 		if (m_hLineLen == 1)
 		{
-			m_pHLineInd[0] = m_pImage->height() - (int)((double)(p.y() * m_pImage->height()) / (double)this->height());
+			m_pHLineInd[0] = m_pImage->height() - ((int)((double)(p.y() * m_rectMagnified.height()) / (double)this->height()) + m_rectMagnified.top());
 			DidChangedHLine(m_pHLineInd[0]);
 		}
 		if (m_vLineLen == 1)
 		{
 			if (!m_bRadial)
 			{
-				m_pVLineInd[0] = (int)((double)(p.x() * m_pImage->width()) / (double)this->width());
+				m_pVLineInd[0] = (int)((double)(p.x() * m_rectMagnified.width()) / (double)this->width()) + m_rectMagnified.left();
 				DidChangedVLine(m_pVLineInd[0]);
 			}
 			else
 			{
-				double angle = atan2((double)height() / 2.0 - (double)p.y(), (double)p.x() - (double)width() / 2.0);
+				double center_x = ((double)m_pImage->width() / 2.0 - (double)m_rectMagnified.left()) * (double)(this->width()) / (double)m_rectMagnified.width();
+				double center_y = ((double)m_pImage->height() / 2.0 - (double)m_rectMagnified.top()) * (double)(this->height()) / (double)m_rectMagnified.height();
+
+				double angle = atan2(center_y - (double)p.y(), (double)p.x() - center_x);
 				if (angle < 0) angle += IPP_2PI;
 				m_pVLineInd[0] = (int)(angle / IPP_2PI * m_rMax);
 				DidChangedRLine(m_pVLineInd[0]);
@@ -506,9 +557,10 @@ void QRenderImage::mouseMoveEvent(QMouseEvent *e)
 	{
 		if (!m_bRectDrawing)
 		{
-			QPoint p1;
-			p1.setX((int)((double)(p.x() * m_pImage->width()) / (double)this->width()));
-			p1.setY((int)((double)(p.y() * m_pImage->height()) / (double)this->height()));
+			int rx = int((double)(p.x() * m_rectMagnified.width()) / (double)(this->width())) + m_rectMagnified.left();
+			int ry = int((double)(p.y() * m_rectMagnified.height()) / (double)(this->height())) + m_rectMagnified.top();
+
+			QPoint p1(rx, ry);
 
 			DidMovedMouse(p1);
 		}
@@ -549,6 +601,67 @@ void QRenderImage::mouseReleaseEvent(QMouseEvent *e)
 	{
 		m_nClicked++;
 		update();
+	}
+}
+
+void QRenderImage::wheelEvent(QWheelEvent *e)
+{
+	if (m_bCanBeMagnified)
+	{
+		QPoint p = e->pos();
+
+		if (QRect(0, 0, this->width(), this->height()).contains(p))
+		{
+			int rx = int((double)(p.x() * m_rectMagnified.width()) / (double)(this->width()));
+			int ry = int((double)(p.y() * m_rectMagnified.height()) / (double)(this->height()));
+
+			QPoint a = e->angleDelta();
+			if (a.y() > 0)
+			{
+				m_fMagnLevel = m_fMagnLevel - 0.05f;
+				if (m_fMagnLevel < 0.05f)
+					m_fMagnLevel = 0.05f;
+			}
+			else
+			{
+				m_fMagnLevel = m_fMagnLevel + 0.05f;
+				if (m_fMagnLevel > 1.0f)
+					m_fMagnLevel = 1.0f;
+			}
+
+			int magn_width = int(m_pImage->width() * m_fMagnLevel);
+			int magn_height = int(m_pImage->height() * m_fMagnLevel);
+			int magn_left, magn_top;
+
+			if (a.y() > 0)
+			{
+				magn_left = rx - magn_width / 2;
+				if (magn_left < 0) magn_left = 0;
+				if (magn_left > m_rectMagnified.width() - magn_width) magn_left = m_rectMagnified.width() - magn_width;
+				magn_left += m_rectMagnified.left();
+
+				magn_top = ry - magn_height / 2;
+				if (magn_top < 0) magn_top = 0;
+				if (magn_top > m_rectMagnified.height() - magn_height) magn_top = m_rectMagnified.height() - magn_height;
+				magn_top += m_rectMagnified.top();
+			}
+			else
+			{
+				magn_left = rx - magn_width / 2 + m_rectMagnified.left();
+				if (magn_left < 0) magn_left = 0;
+				if (magn_left > m_pImage->width() - magn_width) magn_left = m_pImage->width() - magn_width;
+
+				magn_top = ry - magn_height / 2 + m_rectMagnified.top();
+				if (magn_top < 0) magn_top = 0;
+				if (magn_top > m_pImage->height() - magn_height) magn_top = m_pImage->height() - magn_height;
+			}
+
+			m_rectMagnified = QRect(magn_left, magn_top, magn_width, magn_height);
+
+			DidWheelMouse();
+
+			update();
+		}
 	}
 }
 

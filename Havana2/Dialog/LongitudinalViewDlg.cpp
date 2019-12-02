@@ -41,7 +41,7 @@ LongitudinalViewDlg::LongitudinalViewDlg(QWidget *parent) :
 	
 	// Create image view buffers
 	ColorTable temp_ctable;	
-	m_pImgObjOctLongiImage = new ImageObject(((m_pResultTab->getConfigTemp()->nFrames + 3) >> 2) << 2, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
+	m_pImgObjOctLongiImage = new ImageObject(((m_pResultTab->getConfigTemp()->nFrames + 3) >> 2) << 2, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable), m_pConfig->octDbGamma);
 	
 #ifdef OCT_FLIM
 	m_pImgObjIntensity = new ImageObject(((m_pResultTab->getConfigTemp()->nFrames + 3) >> 2) << 2, 2 * m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
@@ -71,7 +71,7 @@ LongitudinalViewDlg::LongitudinalViewDlg(QWidget *parent) :
 	bool rgb_used = true;
 #endif
 #endif
-	m_pImageView_LongitudinalView = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pResultTab->getConfigTemp()->nFrames, 2 * m_pResultTab->getConfigTemp()->circRadius, rgb_used);
+	m_pImageView_LongitudinalView = new QImageView(ColorTable::colortable(m_pConfig->octColorTable), m_pResultTab->getConfigTemp()->nFrames, 2 * m_pResultTab->getConfigTemp()->circRadius, m_pConfig->octDbGamma, rgb_used);
 	m_pImageView_LongitudinalView->setMinimumWidth(600);
 	m_pImageView_LongitudinalView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	m_pImageView_LongitudinalView->setVLineChangeCallback([&](int frame) { m_pResultTab->setCurrentFrame(frame); });
@@ -167,7 +167,7 @@ void LongitudinalViewDlg::setLongiRadius(int circ_radius)
 	if (m_pImgObjOctLongiImage)
 	{
 		delete m_pImgObjOctLongiImage;
-		m_pImgObjOctLongiImage = new ImageObject(((m_pResultTab->getConfigTemp()->nFrames + 3) >> 2) << 2, 2 * circ_radius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable));
+		m_pImgObjOctLongiImage = new ImageObject(((m_pResultTab->getConfigTemp()->nFrames + 3) >> 2) << 2, 2 * circ_radius, temp_ctable.m_colorTableVector.at(m_pConfig->octColorTable), m_pConfig->octDbGamma);
 	}
 
 	// Create medfilt
