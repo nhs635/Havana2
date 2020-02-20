@@ -227,6 +227,7 @@ void QOperationTab::operateDataSaving(bool toggled)
 
 void QOperationTab::createDigitizerSetupDlg()
 {
+#if PX14_ENABLE || ALAZAR_ENABLE
 	if (m_pDigitizerSetupDlg == nullptr)
 	{
 		m_pDigitizerSetupDlg = new DigitizerSetupDlg(this);
@@ -235,12 +236,15 @@ void QOperationTab::createDigitizerSetupDlg()
 	}
 	m_pDigitizerSetupDlg->raise();
 	m_pDigitizerSetupDlg->activateWindow();
+#endif
 }
 
 void QOperationTab::deleteDigitizerSetupDlg()
 {
+#if PX14_ENABLE || ALAZAR_ENABLE
 	m_pDigitizerSetupDlg->deleteLater();
 	m_pDigitizerSetupDlg = nullptr;
+#endif
 }
 
 void QOperationTab::setAcqRecEnable()

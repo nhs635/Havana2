@@ -14,7 +14,11 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
     QDialog(parent)
 {
     // Set default size & frame
+#if PX14_ENABLE
     setFixedSize(400, 220);
+#elif ALAZAR_ENABLE
+    setFixedSize(230, 200);
+#endif
     setWindowFlags(Qt::Tool);
 	setWindowTitle("Digitizer Setup");
 
@@ -30,7 +34,7 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
     // Create widgets for digitizer setup
 	m_pLineEdit_SamplingRate = new QLineEdit(this);
 	m_pLineEdit_SamplingRate->setFixedWidth(35);
-#if PX14_ENABLE
+#if PX14_ENABLE || ALAZAR_ENABLE
 	m_pLineEdit_SamplingRate->setText(QString::number(ADC_RATE));
 #else
 	m_pLineEdit_SamplingRate->setText(QString::number(0));
@@ -48,26 +52,41 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 #else
 	double voltage = 0.0;
 #endif
+
+#if PX14_ENABLE
 	for (int i = 0; i < 25; i++)
 	{
 		m_pComboBox_VoltageRangeCh1->addItem(QString("%1 Vpp").arg(voltage, 0, 'f', 3, '0'));
 #ifdef OCT_FLIM
 		m_pComboBox_VoltageRangeCh2->addItem(QString("%1 Vpp").arg(voltage, 0, 'f', 3, '0'));
 #endif
-#if PX14_ENABLE
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
-#endif
 	}
-	m_pComboBox_VoltageRangeCh1->setCurrentIndex(m_pConfig->ch1VoltageRange);
+#elif ALAZAR_ENABLE
+    for (int i = 1; i < 14; i++)
+    {
+        m_pComboBox_VoltageRangeCh1->addItem(QString("%1 V").arg(m_pConfig->voltRange[i], 0, 'f', 3, '0'));
+#ifdef OCT_FLIM
+        m_pComboBox_VoltageRangeCh2->addItem(QString("%1 V").arg(m_pConfig->voltRange[i], 0, 'f', 3, '0'));
+#endif
+    }
+#endif
+    m_pComboBox_VoltageRangeCh1->setCurrentIndex(m_pConfig->ch1VoltageRange);
 #ifdef OCT_FLIM
 	m_pComboBox_VoltageRangeCh2->setCurrentIndex(m_pConfig->ch2VoltageRange);
 #endif	
 
+#if PX14_ENABLE
 	m_pLineEdit_PreTrigger = new QLineEdit(this);
 	m_pLineEdit_PreTrigger->setFixedWidth(35);
 	m_pLineEdit_PreTrigger->setText(QString::number(m_pConfig->preTrigSamps));
 	m_pLineEdit_PreTrigger->setAlignment(Qt::AlignCenter);
-
+#elif ALAZAR_ENABLE
+    m_pLineEdit_TriggerDelay = new QLineEdit(this);
+    m_pLineEdit_TriggerDelay->setFixedWidth(35);
+    m_pLineEdit_TriggerDelay->setText(QString::number(m_pConfig->triggerDelay));
+    m_pLineEdit_TriggerDelay->setAlignment(Qt::AlignCenter);
+#endif
 
 	m_pLineEdit_nChannels = new QLineEdit(this);
 	m_pLineEdit_nChannels->setFixedWidth(35);
@@ -87,7 +106,7 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 	m_pLineEdit_nAlines->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_nAlines->setDisabled(m_pMemBuff->m_bIsAllocatedWritingBuffer);
 
-
+#if PX14_ENABLE
 	m_pLabel_BootTimeBufTitle[0] = new QLabel("Index", this);
 	m_pLabel_BootTimeBufTitle[0]->setFixedWidth(30);
 	m_pLabel_BootTimeBufTitle[0]->setAlignment(Qt::AlignCenter);
@@ -121,6 +140,7 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 	m_pPushButton_BootTimeBufGet = new QPushButton(this);
 	m_pPushButton_BootTimeBufGet->setText("Get");
 	m_pPushButton_BootTimeBufGet->setFixedWidth(40);
+#endif
     
     // Set layout for digitizer setup
 	QGroupBox *pGroupBox_DigitizerSetup = new QGroupBox("Digitizer Setup");
@@ -130,14 +150,19 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 	pGridLayout_DigitizerSetup->addWidget(new QLabel("Sampling Rate", this), 0, 0);
 	pGridLayout_DigitizerSetup->addWidget(m_pLineEdit_SamplingRate, 0, 1);
 	pGridLayout_DigitizerSetup->addWidget(new QLabel("  MHz", this), 0, 2);
-	pGridLayout_DigitizerSetup->addWidget(new QLabel("Ch1 Voltage Range", this), 1, 0);
+    pGridLayout_DigitizerSetup->addWidget(new QLabel("Ch1 Voltage Range ", this), 1, 0);
 	pGridLayout_DigitizerSetup->addWidget(m_pComboBox_VoltageRangeCh1, 1, 1, 1, 2);
 #ifdef OCT_FLIM
-	pGridLayout_DigitizerSetup->addWidget(new QLabel("Ch2 Voltage Range", this), 2, 0);
+    pGridLayout_DigitizerSetup->addWidget(new QLabel("Ch2 Voltage Range ", this), 2, 0);
 	pGridLayout_DigitizerSetup->addWidget(m_pComboBox_VoltageRangeCh2, 2, 1, 1, 2);
 #endif
+#if PX14_ENABLE
 	pGridLayout_DigitizerSetup->addWidget(new QLabel("Pre-Trigger Samples ", this), 3, 0);
 	pGridLayout_DigitizerSetup->addWidget(m_pLineEdit_PreTrigger, 3, 1, 1, 2);
+#elif ALAZAR_ENABLE
+    pGridLayout_DigitizerSetup->addWidget(new QLabel("Trigger-Delay Samples ", this), 3, 0);
+    pGridLayout_DigitizerSetup->addWidget(m_pLineEdit_TriggerDelay, 3, 1, 1, 2);
+#endif
 	
 	pGridLayout_DigitizerSetup->addWidget(new QLabel("nChannels ", this), 4, 0);
 	pGridLayout_DigitizerSetup->addWidget(m_pLineEdit_nChannels, 4, 1, 1, 2);
@@ -148,6 +173,7 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 
 	pGroupBox_DigitizerSetup->setLayout(pGridLayout_DigitizerSetup);
 
+#if PX14_ENABLE
 	// Set layout for boot-time buffer configuration
 	QGroupBox *pGroupBox_BootBufConfig = new QGroupBox("Boot-time Buffer Configuration");
 	QGridLayout *pGridLayout_BootBufConfig = new QGridLayout;
@@ -167,12 +193,15 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 	pGridLayout_BootBufConfig->addWidget(m_pPushButton_BootTimeBufSet, 4, 2);
 		
 	pGroupBox_BootBufConfig->setLayout(pGridLayout_BootBufConfig);
+#endif
 
 	// Set layout
 	QHBoxLayout *pHBoxLayout = new QHBoxLayout;
 	pHBoxLayout->setSpacing(3);
 	pHBoxLayout->addWidget(pGroupBox_DigitizerSetup);
+#if PX14_ENABLE
 	pHBoxLayout->addWidget(pGroupBox_BootBufConfig);
+#endif
 
     setLayout(pHBoxLayout);
 
@@ -181,14 +210,20 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 #ifdef OCT_FLIM
 	connect(m_pComboBox_VoltageRangeCh2, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVoltageRangeCh2(int)));
 #endif
+#if PX14_ENABLE
 	connect(m_pLineEdit_PreTrigger, SIGNAL(textChanged(const QString &)), this, SLOT(changePreTrigger(const QString &)));
+#elif ALAZAR_ENABLE
+    connect(m_pLineEdit_TriggerDelay, SIGNAL(textChanged(const QString &)), this, SLOT(changeTriggerDelay(const QString &)));
+#endif
 	connect(m_pLineEdit_nChannels, SIGNAL(textChanged(const QString &)), this, SLOT(changeNchannels(const QString &)));
 	connect(m_pLineEdit_nScans, SIGNAL(textChanged(const QString &)), this, SLOT(changeNscans(const QString &)));
 	connect(m_pLineEdit_nAlines, SIGNAL(textChanged(const QString &)), this, SLOT(changeNalines(const QString &)));
 
+#if PX14_ENABLE
 	connect(m_pButtonGroup_IndexSelection, SIGNAL(buttonClicked(int)), this, SLOT(changeBootTimeBufIdx(int)));
 	connect(m_pPushButton_BootTimeBufGet, SIGNAL(clicked(bool)), this, SLOT(getBootTimeBufCfg()));
 	connect(m_pPushButton_BootTimeBufSet, SIGNAL(clicked(bool)), this, SLOT(setBootTimeBufCfg()));
+#endif
 }
 
 DigitizerSetupDlg::~DigitizerSetupDlg()
@@ -204,21 +239,30 @@ void DigitizerSetupDlg::keyPressEvent(QKeyEvent *e)
 
 void DigitizerSetupDlg::changeVoltageRangeCh1(int idx)
 {
-	m_pConfig->ch1VoltageRange = idx;
+    m_pConfig->ch1VoltageRange = idx;
 	m_pStreamTab->setCh1ScopeVoltRange(idx);
 }
 
 #ifdef OCT_FLIM
 void DigitizerSetupDlg::changeVoltageRangeCh2(int idx)
 {
-	m_pConfig->ch2VoltageRange = idx;
+    m_pConfig->ch2VoltageRange = idx + 1;
 	m_pStreamTab->setCh2ScopeVoltRange(idx);
 }
 #endif
 
 void DigitizerSetupDlg::changePreTrigger(const QString &str)
-{
+{    
+#if PX14_ENABLE
 	m_pConfig->preTrigSamps = str.toInt();
+#endif
+}
+
+void DigitizerSetupDlg::changeTriggerDelay(const QString &str)
+{
+#if ALAZAR_ENABLE
+    m_pConfig->triggerDelay = str.toInt();
+#endif
 }
 
 void DigitizerSetupDlg::changeNchannels(const QString &str)
@@ -253,7 +297,7 @@ void DigitizerSetupDlg::changeNalines(const QString &str)
 		printf("nAlines should be >200 and 4's multiple.\n");
 }
 
-
+#if PX14_ENABLE
 void DigitizerSetupDlg::changeBootTimeBufIdx(int idx)
 {
 	m_pConfig->bootTimeBufferIndex = idx;
@@ -280,3 +324,4 @@ void DigitizerSetupDlg::setBootTimeBufCfg()
 
 	QMessageBox::information(this, "Setting boot-time buffer", "The new boot-time buffer will be applied after PC restart.");
 }
+#endif

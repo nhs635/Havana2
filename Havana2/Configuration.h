@@ -1,14 +1,20 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.2"
+#define VERSION						"1.2.6.3"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
+#define ALAZAR_ENABLE               false
+
 #define NI_ENABLE					false
+
+#if PX14_ENABLE && ALAZAR_ENABLE
+#error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
+#endif
 
 /////////////////////// System setup ////////////////////////
 //#define OCT_FLIM
@@ -16,7 +22,7 @@
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -38,10 +44,12 @@
 
 ////////////////////// Digitizer setup //////////////////////
 #if PX14_ENABLE
-#define ADC_RATE					340 // MHz
+#define ADC_RATE					340 // MS/sec
 
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
+#elif ALAZAR_ENABLE
+#define ADC_RATE                    500 // MS/sec
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -113,6 +121,8 @@
 #endif
 
 //////////////////////// Processing /////////////////////////
+#define FREQ_SHIFTING               true
+
 #define DATA_HALVING				false // to be updated...
 
 #define PROCESSING_BUFFER_SIZE		20
@@ -170,6 +180,7 @@ struct Range
 	T max = 0;
 };
 
+#if PX14_ENABLE
 enum voltage_range
 {
 	v0_220 = 1, v0_247, v0_277, v0_311, v0_349,
@@ -178,6 +189,13 @@ enum voltage_range
 	v1_237, v1_388, v1_557, v1_748, v1_961,
 	v2_200, v2_468, v2_770, v3_108, v3_487
 };
+#elif ALAZAR_ENABLE
+enum voltage_range
+{
+    v0_002 = 1, v0_005, v0_01, v0_02,
+    v0_05, v0_1, v0_2, v0_5, v1, v2, v5, v10, v20
+};
+#endif
 
 
 #include <QString>
@@ -207,19 +225,27 @@ public:
 		settings.beginGroup("configuration");
 
 		// Digitizer setup
+#if PX14_ENABLE
 		bootTimeBufferIndex = settings.value("bootTimeBufferIndex").toInt();
+#endif
 		ch1VoltageRange = settings.value("ch1VoltageRange").toInt();
 		ch2VoltageRange = settings.value("ch2VoltageRange").toInt();
+#if PX14_ENABLE
 		preTrigSamps = settings.value("preTrigSamps").toInt();
+#endif
+#if ALAZAR_ENABLE
+        triggerDelay = settings.value("triggerDelay").toInt();
+#endif
 
 		nChannels = settings.value("nChannels").toInt(); if (nChannels == 0) nChannels = 2;
 		nScans = settings.value("nScans").toInt();
 		fnScans = nScans * 4;
-		nScansFFT = NEAR_2_POWER((double)nScans);
+		nScansFFT = NEAR_2_POWER((float)nScans);
 		n2ScansFFT = nScansFFT / 2;
 		nAlines = settings.value("nAlines").toInt();
 		n4Alines = nAlines / 4;
 		nAlines4 = ((nAlines + 3) >> 2) << 2;
+		n4Alines4 = ((n4Alines + 3) >> 2) << 2;
 		nFrameSize = nChannels * nScans * nAlines;
 
 		// OCT processing
@@ -355,10 +381,17 @@ public:
 		settings.beginGroup("configuration");
 				
 		// Digitizer setup
+#if PX14_ENABLE
 		settings.setValue("bootTimeBufferIndex", bootTimeBufferIndex);
+#endif
 		settings.setValue("ch1VoltageRange", ch1VoltageRange);
 		settings.setValue("ch2VoltageRange", ch2VoltageRange);
-		settings.setValue("preTrigSamps", preTrigSamps);
+#if PX14_ENABLE
+        settings.setValue("preTrigSamps", preTrigSamps);
+#endif
+#if ALAZAR_ENABLE
+        settings.setValue("triggerDelay", triggerDelay);
+#endif
 
 		settings.setValue("nChannels", nChannels);
 		settings.setValue("nScans", nScans);
@@ -484,9 +517,19 @@ public:
 	
 public:
 	// Digitizer setup
+#if PX14_ENABLE
 	int bootTimeBufferIndex;
+#endif
 	int ch1VoltageRange, ch2VoltageRange;
+#if ALAZAR_ENABLE
+    double voltRange[14] = { 0, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0 };
+#endif
+#if PX14_ENABLE
 	int preTrigSamps;
+#endif
+#if ALAZAR_ENABLE
+    int triggerDelay;
+#endif
 
 	int nFrames;
 	int nChannels, nScans, nAlines;
@@ -494,6 +537,7 @@ public:
 	int nScansFFT, n2ScansFFT;
 	int n4Alines;
 	int nAlines4;
+	int n4Alines4;
 	int nFrameSize;
 	
 	// OCT processing

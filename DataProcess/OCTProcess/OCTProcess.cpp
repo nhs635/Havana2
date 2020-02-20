@@ -37,7 +37,6 @@ OCTProcess::OCTProcess(int nScans, int nAlines) :
     memset(signal.raw_ptr(), 0, sizeof(float) * signal.length());
     memset(complex_resamp.raw_ptr(), 0, sizeof(float) * 2 * complex_resamp.length());
     memset(fft_complex.raw_ptr(), 0, sizeof(float) * 2 * fft_complex.length());
-
 	for (int i = 0; i < raw_size.width; i++)
 	{
         bg0(i) = (float)(POWER_2(15));
@@ -83,10 +82,14 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			// 3. Fourier transform (21 msec)
 			fft1((Ipp32fc*)(fft_complex.raw_ptr() + f1), signal.raw_ptr() + f1, (int)i);
 
-			// 4. Circshift by nfft/4 & Inverse Fourier transform (5+19 sec)
-			std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);
-			ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
-
+#if FREQ_SHIFTING
+            // 4. Circshift by nfft/4 & Remove virtual peak & Inverse Fourier transform (5+19 sec)
+			std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);            
+            ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
+#else
+            // 4. Remove virtual peak & Inverse Fourier transform (5+19 sec)
+            ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 2), fft_size.width);
+#endif
 			fft2.inverse((Ipp32fc*)(complex_signal.raw_ptr() + f1), (const Ipp32fc*)(fft_complex.raw_ptr() + f1));
 
 			// 5. k linear resampling (5 msec)		
@@ -104,8 +107,10 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			ippsLog10_32f_A11(fft2_linear.raw_ptr() + f2, img + f2, fft2_size.width);
 			ippsMulC_32f_I(10.0f, img + f2, fft2_size.width);
 			
+#if FREQ_SHIFTING
 			// 9. Circshift by -nfft/2 (1 msec)
 			std::rotate(img + f2, img + f2 + fft2_size.width / 2, img + f2 + fft2_size.width);
+#endif
 		}
 	});
 }
@@ -130,10 +135,14 @@ void OCTProcess::operator()(float* lin_img, uint16_t* fringe, const char* linear
 			// 3. Fourier transform (21 msec)
 			fft1((Ipp32fc*)(fft_complex.raw_ptr() + f1), signal.raw_ptr() + f1, (int)i);
 
-			// 4. Circshift by nfft/4 & Inverse Fourier transform (5+19 sec)
-			std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);
-			ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
-
+#if FREQ_SHIFTING
+            // 4. Circshift by nfft/4 & Remove virtual peak & Inverse Fourier transform (5+19 sec)
+            std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);
+            ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
+#else
+            // 4. Remove virtual peak & Inverse Fourier transform (5+19 sec)
+            ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 2), fft_size.width);
+#endif
 			fft2.inverse((Ipp32fc*)(complex_signal.raw_ptr() + f1), (const Ipp32fc*)(fft_complex.raw_ptr() + f1));
 
 			// 5. k linear resampling (5 msec)		
@@ -149,8 +158,10 @@ void OCTProcess::operator()(float* lin_img, uint16_t* fringe, const char* linear
 			// 8. Power spectrum (2 msec)
 			ippsPowerSpectr_32fc((const Ipp32fc*)(fft2_complex.raw_ptr() + f2), lin_img + f2, fft2_size.width);
 
+#if FREQ_SHIFTING
 			// 9. Circshift by -nfft/2 (1 msec)
 			std::rotate(lin_img + f2, lin_img + f2 + fft2_size.width / 2, lin_img + f2 + fft2_size.width);
+#endif
 		}
 	});
 
@@ -219,9 +230,11 @@ void OCTProcess::generateCalibration(int discom_val)
 
             ippsMul_32f32fc_I(mask.raw_ptr(), (Ipp32fc*)&res(0, ch), fft_size.width);
 
+#if FREQ_SHIFTING
             // 3. Frequency shifting effect removal
             std::rotate(&res(0, ch), &res(3 * fft_size.width / 4, ch), &res(fft_size.width, ch));
             //ippsSet_32f(0.0f, (Ipp32f*)&res(fft_size.width / 4, ch), fft_size.width); // should be removed?
+#endif
 
             // 4. IFFT of the signal & Phase extraction
             fft2.inverse((Ipp32fc*)&res3(0, ch), (Ipp32fc*)&res(0, ch));

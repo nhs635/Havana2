@@ -68,6 +68,9 @@
     <Filter Include="Device Control\NIRF Emission">
       <UniqueIdentifier>{e405478f-7ecb-4218-b13f-801e17920498}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Data Control\Data Acquisition\AlazarDAQ">
+      <UniqueIdentifier>{7645b803-e72e-4d21-b92e-3f688b4c679f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Havana2\Dialog\DigitizerSetupDlg.cpp">
@@ -184,6 +187,15 @@
     <ClCompile Include="Havana2\Dialog\NirfCrossTalkCompDlg.cpp">
       <Filter>Havana2\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="DataAcquisition\AlazarDAQ\AlazarDAQ.cpp">
+      <Filter>Data Control\Data Acquisition\AlazarDAQ</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\NirfEmission\NirfSyncBoard.cpp">
+      <Filter>Device Control\NIRF Emission</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\LongitudinalViewDlg.cpp">
+      <Filter>Havana2\Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
@@ -236,6 +248,12 @@
     </ClInclude>
     <ClInclude Include="Havana2\Configuration.h">
       <Filter>Havana2</Filter>
+    </ClInclude>
+    <ClInclude Include="DataAcquisition\AlazarDAQ\AlazarDAQ.h">
+      <Filter>Data Control\Data Acquisition\AlazarDAQ</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\NirfEmission\NirfSyncBoard.h">
+      <Filter>Device Control\NIRF Emission</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -314,6 +332,9 @@
       <Filter>Havana2\Dialog</Filter>
     </QtMoc>
     <QtMoc Include="Havana2\Dialog\NirfCrossTalkCompDlg.h">
+      <Filter>Havana2\Dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\LongitudinalViewDlg.h">
       <Filter>Havana2\Dialog</Filter>
     </QtMoc>
   </ItemGroup>

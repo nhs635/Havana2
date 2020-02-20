@@ -181,6 +181,9 @@ QStreamTab::QStreamTab(QWidget *parent) :
 		voltageCh1 *= DIGITIZER_VOLTAGE_RATIO;
 	for (int i = 0; i < m_pConfig->ch2VoltageRange; i++)
 		voltageCh2 *= DIGITIZER_VOLTAGE_RATIO;
+#elif ALAZAR_ENABLE
+    double voltageCh1 = m_pConfig->voltRange[m_pConfig->ch1VoltageRange + 1];
+    double voltageCh2 = m_pConfig->voltRange[m_pConfig->ch2VoltageRange + 1];
 #else
 	double voltageCh1 = 0.0;
 	double voltageCh2 = 0.0;
@@ -789,7 +792,7 @@ void QStreamTab::createOctVisualizationOptionTab()
 
 void QStreamTab::setDataAcquisitionCallback()
 {
-#if PX14_ENABLE
+#if PX14_ENABLE || ALAZAR_ENABLE
 	m_pDataAcq->ConnectDaqAcquiredData([&](int frame_count, const np::Array<uint16_t, 2>& frame) {
 
 		// Data halving
@@ -1038,10 +1041,10 @@ void QStreamTab::setDeinterleavingCallback()
 #elif defined (STANDALONE_OCT)
 				// Draw fringes	
 				ippsConvert_16u32f(ch1_ptr, m_visFringe1.raw_ptr(), m_visFringe1.length());
-				ippsSub_32f(m_visFringe1.raw_ptr(), m_visFringeBg1.raw_ptr(), m_visFringe1Rm.raw_ptr(), m_visFringe1Rm.length());
+                ippsSub_32f(m_visFringeBg1.raw_ptr(), m_visFringe1.raw_ptr(), m_visFringe1Rm.raw_ptr(), m_visFringe1Rm.length());
 				
 				ippsConvert_16u32f(ch2_ptr, m_visFringe2.raw_ptr(), m_visFringe2.length());
-				ippsSub_32f(m_visFringe2.raw_ptr(), m_visFringeBg2.raw_ptr(), m_visFringe2Rm.raw_ptr(), m_visFringe2Rm.length());
+                ippsSub_32f(m_visFringeBg2.raw_ptr(), m_visFringe2.raw_ptr(), m_visFringe2Rm.raw_ptr(), m_visFringe2Rm.length());
 
 				emit plotFringe(&m_visFringe1Rm(0, m_pSlider_SelectAline->value()), &m_visFringe2Rm(0, m_pSlider_SelectAline->value()));
 
@@ -1324,6 +1327,8 @@ void QStreamTab::setCh1ScopeVoltRange(int idx)
 	double voltage = DIGITIZER_VOLTAGE;
 	for (int i = 0; i < idx; i++)
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
+#elif ALAZAR_ENABLE
+    double voltage = m_pConfig->voltRange[idx + 1];
 #else
 	double voltage = 0.0 * idx;
 #endif
@@ -1338,6 +1343,8 @@ void QStreamTab::setCh2ScopeVoltRange(int idx)
 	double voltage = DIGITIZER_VOLTAGE;
 	for (int i = 0; i < idx; i++)
 		voltage *= DIGITIZER_VOLTAGE_RATIO;
+#elif ALAZAR_ENABLE
+    double voltage = m_pConfig->voltRange[idx + 1];
 #else
 	double voltage = 0.0 * idx;
 #endif

@@ -8,6 +8,9 @@
 #if PX14_ENABLE
 #include <DataAcquisition/SignatecDAQ/SignatecDAQ.h>
 #endif
+#if ALAZAR_ENABLE
+#include <DataAcquisition/AlazarDAQ/AlazarDAQ.h>
+#endif
 
 #include <Common/array.h>
 #include <Common/callback.h>
@@ -27,10 +30,12 @@ public:
     void StopAcquisition();
 
 public:
+#if PX14_ENABLE
 	void GetBootTimeBufCfg(int idx, int& buffer_size);
 	void SetBootTimeBufCfg(int idx, int buffer_size);
+#endif
 	
-#if PX14_ENABLE
+#if PX14_ENABLE || ALAZAR_ENABLE
 public:
     void ConnectDaqAcquiredData(const std::function<void(int, const np::Array<uint16_t, 2>&)> &slot) { pDaq->DidAcquireData += slot; }
     void ConnectDaqStopData(const std::function<void(void)> &slot) { pDaq->DidStopData += slot; }
@@ -41,6 +46,9 @@ private:
 	Configuration* m_pConfig;
 #if PX14_ENABLE
 	SignatecDAQ* pDaq;
+#endif
+#if ALAZAR_ENABLE
+    AlazarDAQ* pDaq;
 #endif
 };
 

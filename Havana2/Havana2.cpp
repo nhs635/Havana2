@@ -6,9 +6,9 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 	
+	// Dark theme palatte
 	qApp->setStyle(QStyleFactory::create("Fusion"));
 
-	// modify palette to dark
 	QPalette darkPalette;
 	darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
 	darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -33,14 +33,17 @@ int main(int argc, char *argv[])
 
 	qApp->setPalette(darkPalette);
 	
+	// Default font setting
 	QFont font;
 	font.setFamily("Tahoma");
 	font.setPointSizeF(8.5);
 	a.setFont(font);
 
+	// MainWindow class declaration
     MainWindow w;
     w.show();
 	
+	// Default position
     //w.setGeometry(w.geometry().x() + 40, w.geometry().y() - 120, w.geometry().width(), w.geometry().height());
 	
     return a.exec();

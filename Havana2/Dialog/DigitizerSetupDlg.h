@@ -36,13 +36,16 @@ private slots:
 	void changeVoltageRangeCh2(int);
 #endif
 	void changePreTrigger(const QString &);
+    void changeTriggerDelay(const QString &);
 	void changeNchannels(const QString &);
 	void changeNscans(const QString &);
 	void changeNalines(const QString &);
 
+#if PX14_ENABLE
 	void changeBootTimeBufIdx(int);
 	void getBootTimeBufCfg();
 	void setBootTimeBufCfg();
+#endif
 
 // Variables ////////////////////////////////////////////
 private:
@@ -60,12 +63,17 @@ private:
 #ifdef OCT_FLIM
 	QComboBox *m_pComboBox_VoltageRangeCh2;
 #endif
+#if PX14_ENABLE
 	QLineEdit *m_pLineEdit_PreTrigger;
+#elif ALAZAR_ENABLE
+    QLineEdit *m_pLineEdit_TriggerDelay;
+#endif
 
 	QLineEdit *m_pLineEdit_nChannels;
 	QLineEdit *m_pLineEdit_nScans;
 	QLineEdit *m_pLineEdit_nAlines;
 
+#if PX14_ENABLE
 	QLabel *m_pLabel_BootTimeBufTitle[2];
 	QRadioButton *m_pRadioButton_BootTimeBufIdx[4];
 	QButtonGroup *m_pButtonGroup_IndexSelection;
@@ -74,6 +82,7 @@ private:
 
 	QPushButton *m_pPushButton_BootTimeBufSet;
 	QPushButton *m_pPushButton_BootTimeBufGet;
+#endif
 };
 
 #endif // DIGITIZERSETUPDLG_H

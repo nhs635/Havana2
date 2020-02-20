@@ -34,6 +34,11 @@ public:
 	{
 	};
 
+	int getWidth()
+	{
+		return width;
+	}
+
 	void operator() (Ipp8u* pSrcDst)
 	{
 		ippiFilterMedianBorder_8u_C1R(pSrcDst, sizeof(Ipp8u) * RoiSize.width, DstBuffer8u, sizeof(Ipp8u) * RoiSize.width, RoiSize, MaskSize, ippBorderRepl, 0, MemBuffer8u);

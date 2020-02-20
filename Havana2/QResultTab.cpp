@@ -1454,8 +1454,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 		if (!m_pCheckBox_HsvEnhancedMap->isChecked())
 		{
 			// Paste FLIM color ring to RGB rect image
-            memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 2 * m_pConfig->ringThickness), pIntObj->qrgbimg.bits(), pIntObj->qrgbimg.byteCount());
-            memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * m_pConfig->ringThickness), pLftObj->qrgbimg.bits(), pLftObj->qrgbimg.byteCount());
+			for (int i = 0; i < m_pConfig->ringThickness; i++)
+			{
+				memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 2 * m_pConfig->ringThickness + i), pIntObj->qrgbimg.bits(), 4 * pIntObj->qrgbimg.width());
+				memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (pRectObj->arr.size(1) - 1 * m_pConfig->ringThickness + i), pLftObj->qrgbimg.bits(), 4 * pLftObj->qrgbimg.width());
+			}
 		}
 		else		
 			// Paste FLIM color ring to RGB rect image
@@ -1471,8 +1474,13 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 		if (!m_pCheckBox_HsvEnhancedMap->isChecked())
 		{
 			// Paste FLIM color ring to RGB rect image
-			memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 2 * m_pConfig->ringThickness), pIntObj->qrgbimg.bits(), pIntObj->qrgbimg.byteCount());
-			memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 1 * m_pConfig->ringThickness), pLftObj->qrgbimg.bits(), pLftObj->qrgbimg.byteCount());
+			for (int i = 0; i < m_pConfig->ringThickness; i++)
+			{
+				memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 2 * m_pConfig->ringThickness + i), pIntObj->qrgbimg.bits(), 4 * pIntObj->qrgbimg.width());
+				memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 1 * m_pConfig->ringThickness + i), pLftObj->qrgbimg.bits(), 4 * pLftObj->qrgbimg.width());
+			}
+			//memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 2 * m_pConfig->ringThickness), pIntObj->qrgbimg.bits(), 4 * pIntObj->qrgbimg.width());
+			//memcpy(pRectObj->qrgbimg.bits() + 3 * pRectObj->arr.size(0) * (center + m_pConfigTemp->circRadius - 1 * m_pConfig->ringThickness), pLftObj->qrgbimg.bits(), 4 * pLftObj->qrgbimg.width());
 		}
 		else
 			// Paste FLIM color ring to RGB rect image
@@ -1806,7 +1814,11 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 				}
 			}
 #endif
-			(*m_pMedfiltIntensityMap)(m_pImgObjIntensityMap->arr.raw_ptr());
+			IppiSize roi_flimfilt = { m_pMedfiltIntensityMap->getWidth(), roi_flimproj.height };
+			Uint8Array2 temp_intensity(roi_flimfilt.width, roi_flimfilt.height);
+			ippiCopy_8u_C1R(m_pImgObjIntensityMap->arr.raw_ptr(), roi_flimproj.width, temp_intensity.raw_ptr(), roi_flimfilt.width, roi_flimfilt);
+			(*m_pMedfiltIntensityMap)(temp_intensity);
+			ippiCopy_8u_C1R(temp_intensity.raw_ptr(), roi_flimfilt.width, m_pImgObjIntensityMap->arr.raw_ptr(), roi_flimproj.width, roi_flimproj);
 
 			ippiScale_32f8u_C1R(m_lifetimeMap.at(m_pComboBox_EmissionChannel->currentIndex()), sizeof(float) * roi_flimproj.width,
 				m_pImgObjLifetimeMap->arr.raw_ptr(), sizeof(uint8_t) * roi_flimproj.width,
@@ -1822,7 +1834,11 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 				}
 			}
 #endif
-			(*m_pMedfiltLifetimeMap)(m_pImgObjLifetimeMap->arr.raw_ptr());
+			Uint8Array2 temp_lifetime(roi_flimfilt.width, roi_flimfilt.height);
+			ippiCopy_8u_C1R(m_pImgObjLifetimeMap->arr.raw_ptr(), roi_flimproj.width, temp_lifetime.raw_ptr(), roi_flimfilt.width, roi_flimfilt);
+			(*m_pMedfiltLifetimeMap)(temp_lifetime);
+			ippiCopy_8u_C1R(temp_lifetime.raw_ptr(), roi_flimfilt.width, m_pImgObjLifetimeMap->arr.raw_ptr(), roi_flimproj.width, roi_flimproj);
+
 			m_pImgObjLifetimeMap->convertRgb();
 
 			if (m_pCheckBox_HsvEnhancedMap->isChecked())
@@ -2225,9 +2241,9 @@ void QResultTab::checkRingThickness(const QString &str)
 
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
-	m_pImgObjIntensity = new ImageObject(m_pConfigTemp->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	m_pImgObjIntensity = new ImageObject(m_pConfigTemp->n4Alines4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
-	m_pImgObjLifetime = new ImageObject(m_pConfigTemp->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+	m_pImgObjLifetime = new ImageObject(m_pConfigTemp->n4Alines4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -2672,7 +2688,9 @@ void QResultTab::externalDataProcessing()
 				if (m_pCheckBox_UserDefinedAlines->isChecked())
 				{
 					m_pConfigTemp->nAlines = m_pLineEdit_UserDefinedAlines->text().toInt();
+					m_pConfigTemp->n4Alines = m_pConfigTemp->nAlines / 4;
 					m_pConfigTemp->nAlines4 = ((m_pConfigTemp->nAlines + 3) >> 2) << 2;
+					m_pConfigTemp->n4Alines4 = ((m_pConfigTemp->n4Alines + 3) >> 2) << 2;
 #ifdef OCT_FLIM
                     if (m_pConfigTemp->nAlines != m_pConfigTemp->nAlines4)
                     {
@@ -3460,8 +3478,8 @@ void QResultTab::setObjects(Configuration* pConfig)
 #ifdef OCT_FLIM
 	for (int i = 0; i < 3; i++)
 	{
-		np::FloatArray2 intensity = np::FloatArray2(pConfig->n4Alines, pConfig->nFrames);
-		np::FloatArray2 lifetime = np::FloatArray2(pConfig->n4Alines, pConfig->nFrames);
+		np::FloatArray2 intensity = np::FloatArray2(pConfig->n4Alines4, pConfig->nFrames);
+		np::FloatArray2 lifetime = np::FloatArray2(pConfig->n4Alines4, pConfig->nFrames);
 		m_intensityMap.push_back(intensity);
 		m_lifetimeMap.push_back(lifetime);
 	}
@@ -3488,9 +3506,9 @@ void QResultTab::setObjects(Configuration* pConfig)
     m_pImgObjCircImage = new ImageObject(2 * m_pConfigTemp->circRadius, 2 * m_pConfigTemp->circRadius, temp_ctable.m_colorTableVector.at(m_pComboBox_OctColorTable->currentIndex()), m_pConfig->octDbGamma);
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensity) delete m_pImgObjIntensity;
-	m_pImgObjIntensity = new ImageObject(pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	m_pImgObjIntensity = new ImageObject(pConfig->n4Alines4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	if (m_pImgObjLifetime) delete m_pImgObjLifetime;
-	m_pImgObjLifetime = new ImageObject(pConfig->n4Alines, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+	m_pImgObjLifetime = new ImageObject(pConfig->n4Alines4, m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -3508,11 +3526,11 @@ void QResultTab::setObjects(Configuration* pConfig)
 	m_visOctProjection = np::Uint8Array2(pConfig->nAlines4, pConfig->nFrames);
 #ifdef OCT_FLIM
 	if (m_pImgObjIntensityMap) delete m_pImgObjIntensityMap;
-	m_pImgObjIntensityMap = new ImageObject(pConfig->n4Alines, pConfig->nFrames, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
+	m_pImgObjIntensityMap = new ImageObject(pConfig->n4Alines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(INTENSITY_COLORTABLE));
 	if (m_pImgObjLifetimeMap) delete m_pImgObjLifetimeMap;
-	m_pImgObjLifetimeMap = new ImageObject(pConfig->n4Alines, pConfig->nFrames, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+	m_pImgObjLifetimeMap = new ImageObject(pConfig->n4Alines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 	if (m_pImgObjHsvEnhancedMap) delete m_pImgObjHsvEnhancedMap;
-	m_pImgObjHsvEnhancedMap = new ImageObject(pConfig->n4Alines, pConfig->nFrames, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
+	m_pImgObjHsvEnhancedMap = new ImageObject(pConfig->n4Alines4, pConfig->nFrames, temp_ctable.m_colorTableVector.at(m_pComboBox_LifetimeColorTable->currentIndex()));
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -3531,7 +3549,7 @@ void QResultTab::setObjects(Configuration* pConfig)
     m_pCirc = new circularize(m_pConfigTemp->circRadius, pConfig->nAlines, false);
 
 	if (m_pMedfiltRect) delete m_pMedfiltRect;
-	m_pMedfiltRect = new medfilt(pConfig->nAlines4, pConfig->n2ScansFFT, 3, 3); // median filtering kernel
+	m_pMedfiltRect = new medfilt(pConfig->nAlines, pConfig->n2ScansFFT, 3, 3); // median filtering kernel
 #ifdef OCT_FLIM
 	if (m_pMedfiltIntensityMap) delete m_pMedfiltIntensityMap;
     if (m_pMedfiltLifetimeMap) delete m_pMedfiltLifetimeMap;
@@ -3820,9 +3838,9 @@ void QResultTab::octProcessing1(OCTProcess* pOCT, Configuration* pConfig)
 					(*pOCT)(m_vectorOctImage.at(frameCount), fringe_data);
 					if (pConfig->erasmus)
 					{
-						//IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
-						//if (!pConfig->oldUhs)
-							//ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
+						IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
+						if (!pConfig->oldUhs)
+							ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
 					}
 					emit processedSingleFrame(frameCount);
 #endif

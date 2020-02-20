@@ -10,6 +10,8 @@
 #include <Havana2/Dialog/NirfDistCompDlg.h>
 #endif
 
+#include <Common/Array.h>
+
 #include <ippi.h>
 #include <ippcc.h>
 
@@ -518,6 +520,7 @@ void SaveResultDlg::saveEnFaceMaps()
 
         int start = m_pLineEdit_RangeStart->text().toInt();
         int end = m_pLineEdit_RangeEnd->text().toInt();
+		int width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
 
 		// Set Widgets //////////////////////////////////////////////////////////////////////////////
 		emit setWidgets(false);
@@ -550,14 +553,16 @@ void SaveResultDlg::saveEnFaceMaps()
                     QFile fileIntensity(enFacePath + QString("intensity_range[%1 %2]_ch%3.enface").arg(start).arg(end).arg(i + 1));
 					if (false != fileIntensity.open(QIODevice::WriteOnly))
 					{
-                        fileIntensity.write(reinterpret_cast<char*>(&m_pResultTab->m_intensityMap.at(i)(0, start - 1)), sizeof(float) * m_pResultTab->m_intensityMap.at(i).size(0) * (end - start + 1));
+						for (int j = 0; j < (end - start + 1); j++)
+							fileIntensity.write(reinterpret_cast<char*>(&m_pResultTab->m_intensityMap.at(i)(0, start - 1 + j)), sizeof(float) * width_non4 / 4);
 						fileIntensity.close();
 					}
 
                     QFile fileLifetime(enFacePath + QString("lifetime_range[%1 %2]_ch%3.enface").arg(start).arg(end).arg(i + 1));
 					if (false != fileLifetime.open(QIODevice::WriteOnly))
 					{
-                        fileLifetime.write(reinterpret_cast<char*>(&m_pResultTab->m_lifetimeMap.at(i)(0, start - 1)), sizeof(float) * m_pResultTab->m_lifetimeMap.at(i).size(0) * (end - start + 1));
+						for (int j = 0; j < (end - start + 1); j++)
+							fileLifetime.write(reinterpret_cast<char*>(&m_pResultTab->m_lifetimeMap.at(i)(0, start - 1 + j)), sizeof(float) * width_non4 / 4);
 						fileLifetime.close();
 					}
 				}
@@ -596,11 +601,10 @@ void SaveResultDlg::saveEnFaceMaps()
 #ifdef GALVANO_MIRROR
 					if (m_pConfig->galvoHorizontalShift)
 					{
-						int roi_nirf_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
 						for (int i = 0; i < roi_nirf.height; i++)
 						{
 							float* pImg = nirfMap.raw_ptr() + i * roi_nirf.width;
-							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_nirf_width_non4);
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + width_non4);
 						}
 					}
 #endif
@@ -672,7 +676,7 @@ void SaveResultDlg::saveEnFaceMaps()
                 QFile fileOctMaxProj(enFacePath + QString("oct_max_projection_range[%1 %2].enface").arg(start).arg(end));
 				if (false != fileOctMaxProj.open(QIODevice::WriteOnly))
 				{
-                    IppiSize roi_proj = { m_pResultTab->getRectImageView()->getRender()->m_pImage->width(), m_pResultTab->m_octProjection.size(1) };
+                    IppiSize roi_proj = { width_non4, m_pResultTab->m_octProjection.size(1) };
 
                     np::FloatArray2 octProj(roi_proj.width, roi_proj.height);
                     ippiCopy_32f_C1R(m_pResultTab->m_octProjection.raw_ptr(), sizeof(float) * m_pResultTab->m_octProjection.size(0),
@@ -680,11 +684,10 @@ void SaveResultDlg::saveEnFaceMaps()
 #ifdef GALVANO_MIRROR
 					if (m_pConfig->galvoHorizontalShift)
 					{
-						int roi_proj_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
 						for (int i = 0; i < roi_proj.height; i++)
 						{
 							float* pImg = octProj.raw_ptr() + i * roi_proj.width;
-							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
+							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj.width);
 						}
 					}
 #endif
@@ -699,7 +702,7 @@ void SaveResultDlg::saveEnFaceMaps()
 		{
 			ColorTable temp_ctable;
 #ifdef OCT_FLIM
-			IppiSize roi_flimproj = { m_pResultTab->m_intensityMap.at(0).size(0), m_pResultTab->m_intensityMap.at(0).size(1) };		
+			IppiSize roi_flimproj = { m_pResultTab->m_intensityMap.at(0).size(0), m_pResultTab->m_intensityMap.at(0).size(1) };
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -725,8 +728,13 @@ void SaveResultDlg::saveEnFaceMaps()
 						}
 					}
 #endif
-					(*m_pResultTab->m_pMedfiltIntensityMap)(imgObjIntensity.arr.raw_ptr());
-                    imgObjIntensity.qindeximg.copy(0, roi_flimproj.height - end, roi_flimproj.width, end - start + 1)
+					IppiSize roi_flimfilt = { width_non4 / 4, roi_flimproj.height };
+					np::Uint8Array2 temp_intensity(roi_flimfilt.width, roi_flimfilt.height);
+					ippiCopy_8u_C1R(imgObjIntensity.arr.raw_ptr(), roi_flimproj.width, temp_intensity.raw_ptr(), roi_flimfilt.width, roi_flimfilt);
+					(*m_pResultTab->m_pMedfiltIntensityMap)(temp_intensity);
+					ippiCopy_8u_C1R(temp_intensity.raw_ptr(), roi_flimfilt.width, imgObjIntensity.arr.raw_ptr(), roi_flimproj.width, roi_flimproj);
+
+                    imgObjIntensity.qindeximg.copy(0, roi_flimproj.height - end, width_non4 / 4, end - start + 1)
                         .save(enFacePath + QString("intensity_range[%1 %2]_ch%3_[%4 %5].bmp").arg(start).arg(end).arg(i + 1)
 						.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1), "bmp");
 
@@ -744,9 +752,13 @@ void SaveResultDlg::saveEnFaceMaps()
 							std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift / 4, pImg + roi_flimproj.width);
 						}
 					}
-#endif
-					(*m_pResultTab->m_pMedfiltLifetimeMap)(imgObjLifetime.arr.raw_ptr());
-                    imgObjLifetime.qindeximg.copy(0, roi_flimproj.height - end, roi_flimproj.width, end - start + 1)
+#endif					
+					np::Uint8Array2 temp_lifetime(roi_flimfilt.width, roi_flimfilt.height);
+					ippiCopy_8u_C1R(imgObjLifetime.arr.raw_ptr(), roi_flimproj.width, temp_lifetime.raw_ptr(), roi_flimfilt.width, roi_flimfilt);
+					(*m_pResultTab->m_pMedfiltLifetimeMap)(temp_lifetime);
+					ippiCopy_8u_C1R(temp_lifetime.raw_ptr(), roi_flimfilt.width, imgObjLifetime.arr.raw_ptr(), roi_flimproj.width, roi_flimproj);
+
+                    imgObjLifetime.qindeximg.copy(0, roi_flimproj.height - end, width_non4 / 4, end - start + 1)
                         .save(enFacePath + QString("lifetime_range[%1 %2]_ch%3_[%4 %5].bmp").arg(start).arg(end).arg(i + 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1), "bmp");
 
@@ -771,7 +783,7 @@ void SaveResultDlg::saveEnFaceMaps()
 
 					ippsMul_8u_Sfs(imgObjLifetime.qrgbimg.bits(), tempImgObj.qrgbimg.bits(), imgObjHsv.qrgbimg.bits(), imgObjHsv.qrgbimg.byteCount(), 8);
 #endif
-                    imgObjHsv.qrgbimg.copy(0, roi_flimproj.height - end, roi_flimproj.width, end - start + 1)
+                    imgObjHsv.qrgbimg.copy(0, roi_flimproj.height - end, width_non4 / 4, end - start + 1)
                         .save(enFacePath + QString("flim_map_range[%1 %2]_ch%3_i[%4 %5]_t[%6 %7].bmp").arg(start).arg(end).arg(i + 1)
 						.arg(m_pConfig->flimIntensityRange.min, 2, 'f', 1).arg(m_pConfig->flimIntensityRange.max, 2, 'f', 1)
 						.arg(m_pConfig->flimLifetimeRange.min, 2, 'f', 1).arg(m_pConfig->flimLifetimeRange.max, 2, 'f', 1), "bmp");
@@ -895,15 +907,14 @@ void SaveResultDlg::saveEnFaceMaps()
 #ifdef GALVANO_MIRROR
 				if (m_pConfig->galvoHorizontalShift)
 				{
-                    int roi_proj_width_non4 = m_pResultTab->getRectImageView()->getRender()->m_pImage->width();
 					for (int i = 0; i < roi_proj.height; i++)
 					{
                         uint8_t* pImg = imgObjOctMaxProj.arr.raw_ptr() + i * roi_proj.width;
-                        std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + roi_proj_width_non4);
+                        std::rotate(pImg, pImg + m_pConfig->galvoHorizontalShift, pImg + width_non4);
 					}
 				}
 #endif
-                imgObjOctMaxProj.qindeximg.copy(0, roi_proj.height - end, m_pResultTab->getRectImageView()->getRender()->m_pImage->width(), end - start + 1).
+                imgObjOctMaxProj.qindeximg.copy(0, roi_proj.height - end, width_non4, end - start + 1).
                         save(enFacePath + QString("oct_max_projection_range[%1 %2]_dB[%3 %4 g%5].bmp").arg(start).arg(end).arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2), "bmp");
 			}
 		}
@@ -1545,10 +1556,13 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                         if (checkList.bCh[i])
                         {
                             // Paste FLIM color ring to RGB rect image
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * m_pConfig->ringThickness),
-                                pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * m_pConfig->ringThickness),
-                                pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(2 + 2 * i)->qrgbimg.byteCount()); // Lifetime
+							for (int j = 0; j < m_pConfig->ringThickness; j++)
+							{
+								memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 2 * m_pConfig->ringThickness + j),
+									pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0)); // Intensity
+								memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - 1 * m_pConfig->ringThickness + j),
+									pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0)); // Lifetime
+							}
 
                             if (checkList.bRect)
                             {
@@ -1601,8 +1615,12 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
                             pImgObjVec->at(1 + 2 * i)->qrgbimg = std::move(imgObjHsv.qrgbimg);
 #endif
                             // Paste FLIM color ring to RGB rect image
-                            memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - (nCh - n++) * m_pConfig->ringThickness),
-                                pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
+							for (int j = 0; j < m_pConfig->ringThickness; j++)
+							{
+								memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (pImgObjVec->at(0)->arr.size(1) - (nCh - n) * m_pConfig->ringThickness + j),
+									pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0));
+							}
+							n++;
                         }
 
                         if (checkList.bRect)
@@ -1955,13 +1973,15 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					if (checkList.bCh[i] && (checkList.bCirc || checkList.bLongi))
 					{
 						// Paste FLIM color ring to RGB rect image
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness),
-							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount()); // Intensity
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness),
-							pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(2 + 2 * i)->qrgbimg.byteCount()); // Lifetime
-
+						for (int j = 0; j < m_pConfig->ringThickness; j++)
+						{
+							memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 2 * m_pConfig->ringThickness + j),
+								pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0)); // Intensity
+							memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - 1 * m_pConfig->ringThickness + j),
+								pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0)); // Lifetime
+						}
 						// Circularize
-						(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[i]->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+						(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[i]->qrgbimg.bits(), "vertical", "rgb", center);
 					}
 
 					// Longitudinal
@@ -2001,13 +2021,21 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 				// Paste FLIM color ring to RGB rect image
 				for (int i = 0; i < 3; i++)
+				{
 					if (checkList.bCh[i] && (checkList.bCirc || checkList.bLongi))
-						memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - (nCh - n++) * m_pConfig->ringThickness),
-							pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), pImgObjVec->at(1 + 2 * i)->qrgbimg.byteCount());
+					{
+						for (int j = 0; j < m_pConfig->ringThickness; j++)
+						{
+							memcpy(pImgObjVec->at(0)->qrgbimg.bits() + 3 * pImgObjVec->at(0)->arr.size(0) * (center + m_pResultTab->getConfigTemp()->circRadius - (nCh - n) * m_pConfig->ringThickness + j),
+								pImgObjVec->at(1 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0));
+						}
+						n++;
+					}
+				}
 
 				// Circularize
 				if (checkList.bCirc)
-					(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[0]->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+					(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[0]->qrgbimg.bits(), "vertical", "rgb", center);
 
 				// Longitudinal
 				if (checkList.bLongi)

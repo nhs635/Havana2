@@ -89,3 +89,6 @@ Havana2.VC*
   (Minor error correction & Sync)
 - Havana2 v1.2.6.1
   (Cross-talk compensation & Minor error correction)
+- Havana2 v1.2.6.2
+- Havana2 v1.2.6.3
+  (Minor error correction & AlazarDAQ)

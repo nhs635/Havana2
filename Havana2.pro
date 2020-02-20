@@ -48,7 +48,8 @@ macx {
 win32 {
     INCLUDEPATH += $$PWD/include
 
-    LIBS += $$PWD/lib/PX14_64.lib
+    LIBS += $$PWD/lib/PX14_64.lib \
+            $$PWD/lib/ATSApi.lib
     LIBS += $$PWD/lib/NIDAQmx.lib
     LIBS += $$PWD/lib/intel64_win/ippch.lib \
             $$PWD/lib/intel64_win/ippcc.lib \
@@ -97,6 +98,7 @@ SOURCES += DataProcess/OCTProcess/OCTProcess.cpp \
     DataProcess/ThreadManager.cpp
 
 SOURCES += DataAcquisition/SignatecDAQ/SignatecDAQ.cpp \
+    DataAcquisition/AlazarDAQ/AlazarDAQ.cpp \
     DataAcquisition/DataAcquisition.cpp
 
 SOURCES += MemoryBuffer/MemoryBuffer.cpp
@@ -143,6 +145,7 @@ HEADERS += DataProcess/OCTProcess/OCTProcess.h \
     DataProcess/ThreadManager.h \
 
 HEADERS += DataAcquisition/SignatecDAQ/SignatecDAQ.h \
+    DataAcquisition/AlazarDAQ/AlazarDAQ.h \
     DataAcquisition/DataAcquisition.h
 
 HEADERS += MemoryBuffer/MemoryBuffer.h
