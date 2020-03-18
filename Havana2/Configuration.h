@@ -17,8 +17,8 @@
 #endif
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
-#define STANDALONE_OCT
+#define OCT_FLIM
+//#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
@@ -38,8 +38,8 @@
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
-//#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+#define GALVANO_MIRROR
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -166,7 +166,7 @@
 
 #endif
 
-#define RENEWAL_COUNT				5
+#define RENEWAL_COUNT				10
 
 
 
@@ -230,7 +230,7 @@ public:
 #endif
 		ch1VoltageRange = settings.value("ch1VoltageRange").toInt();
 		ch2VoltageRange = settings.value("ch2VoltageRange").toInt();
-#if PX14_ENABLE
+#if PX14_ENABLE | defined(OCT_FLIM)
 		preTrigSamps = settings.value("preTrigSamps").toInt();
 #endif
 #if ALAZAR_ENABLE
@@ -263,6 +263,11 @@ public:
 			if (i != 0)
 				flimDelayOffset[i - 1] = settings.value(QString("flimDelayOffset_%1").arg(i)).toFloat();
 		}
+
+		// FLIM classification
+		clfAnnXNode = settings.value("clfAnnXNode").toInt();
+		clfAnnHNode = settings.value("clfAnnHNode").toInt();
+		clfAnnYNode = settings.value("clfAnnYNode").toInt();
 #endif
 		// Visualization
 		circCenter = settings.value("circCenter").toInt();
@@ -282,6 +287,12 @@ public:
 		flimIntensityRange.min = settings.value("flimIntensityRangeMin").toFloat();
 		flimLifetimeRange.max = settings.value("flimLifetimeRangeMax").toFloat();
 		flimLifetimeRange.min = settings.value("flimLifetimeRangeMin").toFloat();
+
+		for (int i = 0; i < 3; i++)
+		{
+			float temp = settings.value(QString("flimIntensityComp_%1").arg(i + 1)).toFloat();
+			flimIntensityComp[i] = (temp == 0.0f) ? 1.0f : temp;
+		}
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -386,7 +397,7 @@ public:
 #endif
 		settings.setValue("ch1VoltageRange", ch1VoltageRange);
 		settings.setValue("ch2VoltageRange", ch2VoltageRange);
-#if PX14_ENABLE
+#if PX14_ENABLE | defined(OCT_FLIM)
         settings.setValue("preTrigSamps", preTrigSamps);
 #endif
 #if ALAZAR_ENABLE
@@ -524,7 +535,7 @@ public:
 #if ALAZAR_ENABLE
     double voltRange[14] = { 0, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0 };
 #endif
-#if PX14_ENABLE
+#if PX14_ENABLE | defined(OCT_FLIM)
 	int preTrigSamps;
 #endif
 #if ALAZAR_ENABLE
@@ -552,6 +563,13 @@ public:
 	float flimDelayOffset[3];
 #endif
 
+	// FLIM classification
+#ifdef OCT_FLIM
+	int clfAnnXNode;
+	int clfAnnHNode;
+	int clfAnnYNode;
+#endif
+
 	// Visualization
 	int circCenter;
 	int ballRadius;
@@ -567,6 +585,7 @@ public:
 	int flimLifetimeColorTable;
 	Range<float> flimIntensityRange;
 	Range<float> flimLifetimeRange;
+	float flimIntensityComp[3];
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF

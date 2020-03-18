@@ -56,7 +56,7 @@ QResultTab::QResultTab(QWidget *parent) :
 	, m_pFLIMpost(nullptr), m_pPulseReviewDlg(nullptr)
 	, m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
 	, m_pImgObjIntensityMap(nullptr), m_pImgObjLifetimeMap(nullptr), m_pImgObjHsvEnhancedMap(nullptr)
-	, m_pMedfiltIntensityMap(nullptr), m_pMedfiltLifetimeMap(nullptr)
+	, m_pMedfiltIntensityMap(nullptr), m_pMedfiltLifetimeMap(nullptr), m_pAnn(nullptr)
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -516,6 +516,10 @@ void QResultTab::createVisualizationOptionTab()
 	m_pLabel_LifetimeColorTable = new QLabel("Lifetime Colortable ", this);
 	m_pLabel_LifetimeColorTable->setBuddy(m_pComboBox_LifetimeColorTable);
 	m_pLabel_LifetimeColorTable->setDisabled(true);
+
+	m_pCheckBox_Classification = new QCheckBox(this);
+	m_pCheckBox_Classification->setText("Classification");
+	m_pCheckBox_Classification->setDisabled(true);
 #endif
 	
 #ifdef OCT_NIRF
@@ -619,7 +623,9 @@ void QResultTab::createVisualizationOptionTab()
     pGridLayout_Visualization->addWidget(m_pComboBox_EmissionChannel, 9, 4);
     pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 9, 5);
 
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 10, 0, 1, 3);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 10, 0);
+	pGridLayout_Visualization->addWidget(m_pCheckBox_Classification, 10, 1);
+	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 10, 2);
 	pGridLayout_Visualization->addWidget(m_pLabel_LifetimeColorTable, 10, 3);
 	pGridLayout_Visualization->addWidget(m_pComboBox_LifetimeColorTable, 10, 4);
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 10, 5);
@@ -665,6 +671,7 @@ void QResultTab::createVisualizationOptionTab()
 	connect(m_pCheckBox_HsvEnhancedMap, SIGNAL(toggled(bool)), this, SLOT(enableHsvEnhancingMode(bool)));
 	connect(m_pComboBox_EmissionChannel, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFlimCh(int)));	
 	connect(m_pComboBox_LifetimeColorTable, SIGNAL(currentIndexChanged(int)), this, SLOT(changeLifetimeColorTable(int)));
+	connect(m_pCheckBox_Classification, SIGNAL(toggled(bool)), this, SLOT(enableClassification(bool)));
 #endif
 #ifdef OCT_NIRF
 	connect(m_pLineEdit_NirfOffset, SIGNAL(textEdited(const QString &)), this, SLOT(adjustNirfOffset(const QString &)));
@@ -1438,9 +1445,9 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	pIntObj->convertScaledRgb();
 	pLftObj->convertScaledRgb();	
 
-	// HSV Enhancing
+	// HSV Enhancing  or  Classification
 	ImageObject hsvObj(pLftObj->getWidth(), 1, pLftObj->getColorTable());
-	if (m_pCheckBox_HsvEnhancedMap->isChecked())
+	if (m_pCheckBox_HsvEnhancedMap->isChecked() || m_pCheckBox_Classification->isChecked())
 	{
 		memcpy(hsvObj.qrgbimg.bits(),
 			m_pImgObjHsvEnhancedMap->qrgbimg.bits() + (m_pImgObjHsvEnhancedMap->qrgbimg.height() - m_pSlider_SelectFrame->value() - 1) * 3 * m_pImgObjHsvEnhancedMap->qrgbimg.width(),
@@ -1451,7 +1458,7 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	// Rect View
 	if (!m_pCheckBox_CircularizeImage->isChecked())
 	{
-		if (!m_pCheckBox_HsvEnhancedMap->isChecked())
+		if (!m_pCheckBox_HsvEnhancedMap->isChecked() && !m_pCheckBox_Classification->isChecked())
 		{
 			// Paste FLIM color ring to RGB rect image
 			for (int i = 0; i < m_pConfig->ringThickness; i++)
@@ -1471,7 +1478,7 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 	// Circ View
 	else
 	{
-		if (!m_pCheckBox_HsvEnhancedMap->isChecked())
+		if (!m_pCheckBox_HsvEnhancedMap->isChecked() && !m_pCheckBox_Classification->isChecked())
 		{
 			// Paste FLIM color ring to RGB rect image
 			for (int i = 0; i < m_pConfig->ringThickness; i++)
@@ -1798,6 +1805,7 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 #endif
 
 #ifdef OCT_FLIM
+			// Scaling FLIM projection
 			IppiSize roi_flimproj = { m_intensityMap.at(0).size(0), m_intensityMap.at(0).size(1) };
 
 			ippiScale_32f8u_C1R(m_intensityMap.at(m_pComboBox_EmissionChannel->currentIndex()), sizeof(float) * roi_flimproj.width,
@@ -1841,6 +1849,7 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 
 			m_pImgObjLifetimeMap->convertRgb();
 
+			// Make intensity-weighted lifetime map
 			if (m_pCheckBox_HsvEnhancedMap->isChecked())
 			{
 #if (LIFETIME_COLORTABLE == 7)
@@ -1867,9 +1876,75 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 
 				ippsMul_8u_Sfs(m_pImgObjLifetimeMap->qrgbimg.bits(), tempImgObj.qrgbimg.bits(), m_pImgObjHsvEnhancedMap->qrgbimg.bits(), tempImgObj.qrgbimg.byteCount(), 8);
 #endif
-		}
+			}
+
+			// Make classification map
+			if (m_pCheckBox_Classification->isChecked())
+			{							
+				// Ch1, ch2 lifetime and intensity ratio
+				np::FloatArray2 ch1_lifetime(m_lifetimeMap.at(0).size(0), m_lifetimeMap.at(0).size(1));
+				np::FloatArray2 ch2_lifetime(m_lifetimeMap.at(1).size(0), m_lifetimeMap.at(1).size(1));
+				np::FloatArray2 ch1_intensity(m_intensityMap.at(0).size(0), m_intensityMap.at(0).size(1));
+				np::FloatArray2 ch2_intensity(m_intensityMap.at(1).size(0), m_intensityMap.at(1).size(1));
+				np::FloatArray2 intensity_ratio(m_intensityMap.at(1).size(0), m_intensityMap.at(1).size(1));
+
+				memcpy(ch1_lifetime.raw_ptr(), m_lifetimeMap.at(0).raw_ptr(), sizeof(float) * m_lifetimeMap.at(0).length());
+				memcpy(ch2_lifetime.raw_ptr(), m_lifetimeMap.at(1).raw_ptr(), sizeof(float) * m_lifetimeMap.at(1).length());
+				memcpy(ch1_intensity.raw_ptr(), m_intensityMap.at(0).raw_ptr(), sizeof(float) * m_intensityMap.at(0).length());
+				memcpy(ch2_intensity.raw_ptr(), m_intensityMap.at(1).raw_ptr(), sizeof(float) * m_intensityMap.at(1).length());
+							
+				medfilt *pMedfiltIntensityMap = new medfilt(ch1_lifetime.size(0), ch1_lifetime.size(1), 9, 5);
+				medfilt *pMedfiltLifetimeMap = new medfilt(ch1_lifetime.size(0), ch1_lifetime.size(1), 15, 9);
+				
+				(*pMedfiltLifetimeMap)(ch1_lifetime.raw_ptr());
+				(*pMedfiltLifetimeMap)(ch2_lifetime.raw_ptr());
+				(*pMedfiltIntensityMap)(ch1_intensity.raw_ptr());
+				(*pMedfiltIntensityMap)(ch2_intensity.raw_ptr());
+
+				ippsDiv_32f(ch1_intensity.raw_ptr(), ch2_intensity.raw_ptr(), intensity_ratio.raw_ptr(), intensity_ratio.length());
+
+				// Make ann object
+				int w = ch1_lifetime.size(0), h = ch1_lifetime.size(1);
+
+				if (m_pAnn) delete m_pAnn;
+				m_pAnn = new ann(w, h, m_pConfig->clfAnnXNode, m_pConfig->clfAnnHNode, m_pConfig->clfAnnYNode);
+
+				(*m_pAnn)(ch1_lifetime, ch2_lifetime, intensity_ratio);
+
+#ifdef GALVANO_MIRROR
+				if (m_pConfig->galvoHorizontalShift)
+				{
+					for (int i = 0; i < roi_proj.height; i++)
+					{
+						uint8_t* pImg = m_pAnn->GetClfMapPtr() + i * 3 * roi_proj.width / 4;
+						std::rotate(pImg, pImg + 3 * int(m_pConfig->galvoHorizontalShift / 4), pImg + 3 * roi_proj.width / 4);
+					}
+				}
+#endif										
+				// Classification map
+				memcpy(m_pImgObjHsvEnhancedMap->qrgbimg.bits(), m_pAnn->GetClfMapPtr(), m_pImgObjHsvEnhancedMap->qrgbimg.byteCount());
+
+				// Intensity weighting
+				if (m_pCheckBox_HsvEnhancedMap->isChecked())
+				{
+					ColorTable temp_ctable;
+					ImageObject tempImgObj(m_pImgObjHsvEnhancedMap->getWidth(), m_pImgObjHsvEnhancedMap->getHeight(), temp_ctable.m_colorTableVector.at(ColorTable::gray));
+
+					memcpy(tempImgObj.qindeximg.bits(), m_pImgObjIntensityMap->arr.raw_ptr(), tempImgObj.qindeximg.byteCount());
+					tempImgObj.convertRgb();
+
+					ippsMul_8u_ISfs(tempImgObj.qrgbimg.bits(), m_pImgObjHsvEnhancedMap->qrgbimg.bits(), tempImgObj.qrgbimg.byteCount(), 8);
+				}
+				///ColorTable temp_ctable;
+				///ImageObject tempImgObj(m_pImgObjHsvEnhancedMap->getWidth(), m_pImgObjHsvEnhancedMap->getHeight(), temp_ctable.m_colorTableVector.at(ColorTable::clf));
+
+				///memcpy(tempImgObj.qindeximg.bits(), m_pAnn->GetClfMapPtr(), tempImgObj.qindeximg.byteCount());
+				///tempImgObj.convertRgb();
+
+				///memcpy(m_pImgObjHsvEnhancedMap->qrgbimg.bits(), tempImgObj.qrgbimg.bits(), tempImgObj.qrgbimg.byteCount());
+			}
 #endif
-	}
+		}
 		emit paintOctProjection(m_visOctProjection);
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -1881,7 +1956,8 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 #endif
 #ifdef OCT_FLIM
 		emit paintIntensityMap(m_pImgObjIntensityMap->arr.raw_ptr());
-		emit paintLifetimeMap((!m_pCheckBox_HsvEnhancedMap->isChecked()) ? m_pImgObjLifetimeMap->qrgbimg.bits() : m_pImgObjHsvEnhancedMap->qrgbimg.bits());
+		emit paintLifetimeMap((!m_pCheckBox_HsvEnhancedMap->isChecked() && !m_pCheckBox_Classification->isChecked()) ? 
+								m_pImgObjLifetimeMap->qrgbimg.bits() : m_pImgObjHsvEnhancedMap->qrgbimg.bits());
 #endif
 }
 }
@@ -2396,6 +2472,30 @@ void QResultTab::changeLifetimeColorTable(int ctable_ind)
 		m_pLongitudinalViewDlg->m_pImgObjHsvEnhanced = new ImageObject(((m_pConfigTemp->nFrames + 3) >> 2) << 2, 2 * m_pConfig->ringThickness, temp_ctable.m_colorTableVector.at(ctable_ind));
 	}
 
+	visualizeEnFaceMap(true);
+	visualizeImage(m_pSlider_SelectFrame->value());
+	if (m_pLongitudinalViewDlg)	m_pLongitudinalViewDlg->drawLongitudinalImage(m_pLongitudinalViewDlg->getCurrentAline());
+}
+
+void QResultTab::enableClassification(bool toggled)
+{
+	// Set enable state of associated widgets 	
+	if (toggled) m_pCheckBox_HsvEnhancedMap->setChecked(false);
+	//m_pCheckBox_HsvEnhancedMap->setEnabled(!toggled);
+	m_pLabel_EmissionChannel->setEnabled(!toggled);
+	m_pComboBox_EmissionChannel->setEnabled(!toggled);
+	m_pLabel_LifetimeColorTable->setEnabled(!toggled);
+	m_pComboBox_LifetimeColorTable->setEnabled(!toggled);
+	//m_pLineEdit_IntensityMax->setEnabled(!toggled);
+	//m_pLineEdit_IntensityMin->setEnabled(!toggled);
+	m_pLineEdit_LifetimeMax->setEnabled(!toggled);
+	m_pLineEdit_LifetimeMin->setEnabled(!toggled);
+	if (toggled)
+		m_pImageView_ColorbarLifetimeMap->resetColormap(ColorTable::colortable::clf);
+	else
+		m_pImageView_ColorbarLifetimeMap->resetColormap(ColorTable::colortable(m_pConfig->flimLifetimeColorTable));
+		
+	// Visualization
 	visualizeEnFaceMap(true);
 	visualizeImage(m_pSlider_SelectFrame->value());
 	if (m_pLongitudinalViewDlg)	m_pLongitudinalViewDlg->drawLongitudinalImage(m_pLongitudinalViewDlg->getCurrentAline());
@@ -3042,6 +3142,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pComboBox_EmissionChannel->setEnabled(true);
 		m_pLabel_LifetimeColorTable->setEnabled(true);
 		m_pComboBox_LifetimeColorTable->setEnabled(true);
+		m_pCheckBox_Classification->setEnabled(true);
 #endif
 #ifdef OCT_NIRF
 		if (pConfig->nirf)
@@ -3181,6 +3282,7 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pComboBox_EmissionChannel->setDisabled(true);
 		m_pLabel_LifetimeColorTable->setDisabled(true);
 		m_pComboBox_LifetimeColorTable->setDisabled(true);
+		m_pCheckBox_Classification->setDisabled(true);
 #endif
 #ifdef OCT_NIRF
 		m_pLabel_NirfOffset->setDisabled(true);
@@ -3300,6 +3402,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pComboBox_EmissionChannel->setEnabled(true);
 		m_pLabel_LifetimeColorTable->setEnabled(true);
 		m_pComboBox_LifetimeColorTable->setEnabled(true);
+		m_pCheckBox_Classification->setEnabled(true);
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -3415,6 +3518,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pComboBox_EmissionChannel->setDisabled(true);
 		m_pLabel_LifetimeColorTable->setDisabled(true);
 		m_pComboBox_LifetimeColorTable->setDisabled(true);
+		m_pCheckBox_Classification->setDisabled(true);
 #endif
 #ifdef OCT_NIRF
 		m_pLabel_NirfOffset->setDisabled(true);
@@ -3783,13 +3887,17 @@ void QResultTab::flimProcessing(FLIMProcess* pFLIM, Configuration* pConfig)
 			m_vectorPulseCrop.push_back(crop);
 			m_vectorPulseMask.push_back(mask);
 
+			// Intensity compensation
+			for (int i = 0; i < 3; i++)
+				ippsDivC_32f_I(pConfig->flimIntensityComp[i], &itn(0, i + 1), pConfig->n4Alines);
+
 			// Copy for Intensity & Lifetime
 			memcpy(&m_intensityMap.at(0)(0, frameCount), &itn(0, 1), sizeof(float) * pConfig->n4Alines);
 			memcpy(&m_intensityMap.at(1)(0, frameCount), &itn(0, 2), sizeof(float) * pConfig->n4Alines);
 			memcpy(&m_intensityMap.at(2)(0, frameCount), &itn(0, 3), sizeof(float) * pConfig->n4Alines);
 			memcpy(&m_lifetimeMap.at(0)(0, frameCount), &ltm(0, 0), sizeof(float) * pConfig->n4Alines);
 			memcpy(&m_lifetimeMap.at(1)(0, frameCount), &ltm(0, 1), sizeof(float) * pConfig->n4Alines);
-			memcpy(&m_lifetimeMap.at(2)(0, frameCount), &ltm(0, 2), sizeof(float) * pConfig->n4Alines);
+			memcpy(&m_lifetimeMap.at(2)(0, frameCount), &ltm(0, 2), sizeof(float) * pConfig->n4Alines);			
 			frameCount++;
 
 			// Return (push) the buffer to the previous threading queue

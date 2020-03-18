@@ -49,8 +49,9 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 
 #if PX14_ENABLE
 	double voltage = DIGITIZER_VOLTAGE;
-#else
-	double voltage = 0.0;
+//#else
+//	double voltage = 0.0;
+//	(void)voltage;
 #endif
 
 #if PX14_ENABLE
@@ -255,6 +256,8 @@ void DigitizerSetupDlg::changePreTrigger(const QString &str)
 {    
 #if PX14_ENABLE
 	m_pConfig->preTrigSamps = str.toInt();
+#else
+	(void)str;
 #endif
 }
 
@@ -262,6 +265,8 @@ void DigitizerSetupDlg::changeTriggerDelay(const QString &str)
 {
 #if ALAZAR_ENABLE
     m_pConfig->triggerDelay = str.toInt();
+#else
+	(void)str;
 #endif
 }
 
@@ -297,24 +302,30 @@ void DigitizerSetupDlg::changeNalines(const QString &str)
 		printf("nAlines should be >200 and 4's multiple.\n");
 }
 
-#if PX14_ENABLE
 void DigitizerSetupDlg::changeBootTimeBufIdx(int idx)
 {
+#if PX14_ENABLE
 	m_pConfig->bootTimeBufferIndex = idx;
+#else
+	(void)idx;
+#endif
 }
 
 void DigitizerSetupDlg::getBootTimeBufCfg()
 {
+#if PX14_ENABLE
 	int buf_size;
 	for (int i = 0; i < 4; i++)
 	{
 		m_pDataAcq->GetBootTimeBufCfg(i, buf_size);
 		m_pLineEdit_BootTimeBufSamps[i]->setText(QString::number(buf_size));
 	}	
+#endif
 }
 
 void DigitizerSetupDlg::setBootTimeBufCfg()
 {
+#if PX14_ENABLE
 	int buf_size;
 	for (int i = 0; i < 4; i++)
 	{
@@ -323,5 +334,5 @@ void DigitizerSetupDlg::setBootTimeBufCfg()
 	}
 
 	QMessageBox::information(this, "Setting boot-time buffer", "The new boot-time buffer will be applied after PC restart.");
-}
 #endif
+}

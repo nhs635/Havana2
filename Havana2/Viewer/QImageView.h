@@ -20,7 +20,7 @@ public:
 
 public:
 	enum colortable { gray = 0, inv_gray, sepia, jet, parula, hot, fire, hsv, 
-		smart, blueorange, cool, gem, greenfireblue, ice, lifetime2, vessel, hsv1, magenta, blue_hot }; // 새로 만든 colortable 이름 추가하기
+		smart, blueorange, cool, gem, greenfireblue, ice, lifetime2, vessel, hsv1, magenta, blue_hot, clf }; // 새로 만든 colortable 이름 추가하기
 	QVector<QString> m_cNameVector;
 	ColorTableVector m_colorTableVector;
 };

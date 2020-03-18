@@ -50,8 +50,7 @@ public:
 
 	void convertRgb()
 	{
-		qrgbimg = QImage(width, height, QImage::Format_RGB888);
-		np::Uint8Array2 rgbarr(qrgbimg.bits(), 3 * width, height);
+		np::Uint8Array2 rgbarr(3 * width, height);
 
 		tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)height),
 			[&](const tbb::blocked_range<size_t>& r) {
@@ -66,6 +65,8 @@ public:
 				}
 			}
 		});
+
+		memcpy(qrgbimg.bits(), rgbarr.raw_ptr(), sizeof(uint8_t) * 3 * width * height);
 	}
 
 	void convertScaledRgb()

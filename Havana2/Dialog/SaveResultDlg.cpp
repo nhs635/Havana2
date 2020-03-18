@@ -32,7 +32,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 {
     // Set default size & frame
 #ifdef OCT_FLIM
-    setFixedSize(420, 155);
+    setFixedSize(390, 160);
 #elif defined (STANDALONE_OCT)
 #ifndef OCT_NIRF
 	setFixedSize(420, 100);
@@ -188,8 +188,8 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     pHBoxLayout_RectResize->addStretch(1);
     //pHBoxLayout_RectResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-    pGridLayout->addItem(pHBoxLayout_RectResize, 0, 1, 1, 2);
-    pGridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 3);
+    pGridLayout->addItem(pHBoxLayout_RectResize, 0, 1, 1, 3);
+    //pGridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 3);
 
 	QHBoxLayout *pHBoxLayout_CircResize = new QHBoxLayout;
 	pHBoxLayout_CircResize->addWidget(m_pCheckBox_CircImage);
@@ -198,7 +198,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
     pHBoxLayout_CircResize->addStretch(1);
     //pHBoxLayout_CircResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-    pGridLayout->addItem(pHBoxLayout_CircResize, 1, 1, 1, 2);
+    pGridLayout->addItem(pHBoxLayout_CircResize, 1, 1, 1, 3);
 
 	QHBoxLayout *pHBoxLayout_LongiResize = new QHBoxLayout;
 	pHBoxLayout_LongiResize->addWidget(m_pCheckBox_LongiImage);
@@ -208,7 +208,7 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 	pHBoxLayout_LongiResize->addStretch(1);
 	//pHBoxLayout_RectResize->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Fixed));
 
-	pGridLayout->addItem(pHBoxLayout_LongiResize, 2, 1, 1, 2);
+	pGridLayout->addItem(pHBoxLayout_LongiResize, 2, 1, 1, 3);
 
 #ifdef OCT_FLIM
     pGridLayout->addWidget(m_pCheckBox_CrossSectionCh1, 3, 1);

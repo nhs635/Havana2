@@ -13,6 +13,7 @@
 #include <Common/SyncObject.h>
 #include <Common/ImageObject.h>
 #include <Common/basic_functions.h>
+#include <Common/ann.h>
 
 class MainWindow;
 #ifdef GALVANO_MIRROR
@@ -86,6 +87,8 @@ public:
 #ifdef OCT_FLIM
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
 	inline bool isHsvEnhanced() const { return m_pCheckBox_HsvEnhancedMap->isChecked(); }
+	inline bool isClassification() const { return m_pCheckBox_Classification->isChecked(); }
+	inline ImageObject* getImgObjHsvEnhancedMap() const { return m_pImgObjHsvEnhancedMap; }
 #endif
 #ifdef OCT_NIRF
 	inline void setNirfOffset(int offset) { m_pScrollBar_NirfOffset->setValue(offset); }
@@ -155,6 +158,7 @@ private slots: // widget operation
 	void enableHsvEnhancingMode(bool);
 	void adjustFlimContrast();
 	void changeLifetimeColorTable(int);
+	void enableClassification(bool);
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
@@ -320,11 +324,12 @@ public:
 #ifdef OCT_FLIM
 	medfilt* m_pMedfiltIntensityMap;
 	medfilt* m_pMedfiltLifetimeMap;
+	ann* m_pAnn;
 #endif
 #ifdef OCT_NIRF
     medfilt* m_pMedfiltNirf;
 #endif
-
+	
 
 public:
 	QString m_path;
@@ -422,6 +427,8 @@ private:
 
 	QLabel *m_pLabel_LifetimeColorTable;
 	QComboBox *m_pComboBox_LifetimeColorTable;
+
+	QCheckBox* m_pCheckBox_Classification;
 #endif
 
     // En face map tab widgets
