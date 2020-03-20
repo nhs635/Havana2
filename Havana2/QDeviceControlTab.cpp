@@ -6,6 +6,9 @@
 #include <Havana2/QStreamTab.h>
 #include <Havana2/QResultTab.h>
 
+#ifdef AXSUN_OCT_LASER
+#include <DeviceControl/AxsunControl/AxsunControl.h>
+#endif
 #ifdef ECG_TRIGGERING
 #include <Havana2/Viewer/QEcgScope.h>
 #if NI_ENABLE
@@ -67,6 +70,9 @@ QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
 	m_pGroupBox_FlimControl = new QGroupBox;
 #endif
 
+#ifdef AXSUN_OCT_LASER
+    createAxsunOCTLaserControl();
+#endif
 #ifdef ECG_TRIGGERING
 	createEcgModuleControl();
 #endif
@@ -97,9 +103,31 @@ QDeviceControlTab::~QDeviceControlTab()
 void QDeviceControlTab::closeEvent(QCloseEvent* e)
 {
 	terminateAllDevices();
-	e->accept();
+    e->accept();
 }
 
+
+#ifdef AXSUN_OCT_LASER
+void QDeviceControlTab::createAxsunOCTLaserControl()
+{
+    // Create widgets for Axsun OCT laser control
+    QGroupBox *pGroupBox_AxsunOCTLaserControl = new QGroupBox;
+    QGridLayout *pGridLayout_AxsunOCTLaserControl = new QGridLayout;
+    pGridLayout_AxsunOCTLaserControl->setSpacing(3);
+
+    m_pCheckBox_AxsunOCTLaserControl = new QCheckBox(pGroupBox_AxsunOCTLaserControl);
+    m_pCheckBox_AxsunOCTLaserControl->setText("Enable Axsun OCT Laser Control");
+
+    pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 5);
+
+    pGroupBox_AxsunOCTLaserControl->setLayout(pGridLayout_AxsunOCTLaserControl);
+    pGroupBox_AxsunOCTLaserControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
+    m_pVBoxLayout->addWidget(pGroupBox_AxsunOCTLaserControl);
+
+    // Connect signal and slot
+    connect(m_pCheckBox_AxsunOCTLaserControl, SIGNAL(toggled(bool)), this, SLOT(enableAxsunOCTLaserControl(bool)));
+}
+#endif
 
 #ifdef ECG_TRIGGERING
 void QDeviceControlTab::createEcgModuleControl()
@@ -701,6 +729,48 @@ void QDeviceControlTab::terminateAllDevices()
 	if (m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(false);
 #endif
 }
+
+
+#ifdef AXSUN_OCT_LASER
+void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
+{
+    if (toggled)
+    {
+        // Set text
+        m_pCheckBox_AxsunOCTLaserControl->setText("Disable Axsun OCT Laser Control");
+
+        // Create Axsun OCT laser control objects
+        m_pAxsunControl = new AxsunControl;
+
+        // Connect the OCT laser
+//        if (!(m_pFaulhaberMotor->ConnectDevice()))
+//        {
+//            m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
+//            return;
+//        }
+
+        // Set enable true for Axsun OCT laser control widgets
+
+    }
+    else
+    {
+        // Set enable false for Axsun OCT laser control widgets
+
+
+        if (m_pAxsunControl)
+        {
+            // Disconnect the laser
+            m_pFaulhaberMotor->DisconnectDevice();
+
+            // Delete Axsun OCT laser control objects
+            delete m_pAxsunControl;
+        }
+
+        // Set text
+        m_pCheckBox_AxsunOCTLaserControl->setText("Enable Axsun OCT Laser Control");
+    }
+}
+#endif
 
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE

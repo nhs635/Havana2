@@ -68,7 +68,7 @@ bool AlazarDAQ::initialize()
 
 	// Specify the sample rate (see sample rate id below)
     // double samplesPerSec = 500.e6;
-    const U32 SamplingRate = SAMPLE_RATE_500MSPS; // only for internal clock
+    const U32 SamplingRate = SAMPLE_RATE_800MSPS;  // SAMPLE_RATE_500MSPS; // only for internal clock
 
 	// Select clock parameters as required to generate this sample rate.
 	//

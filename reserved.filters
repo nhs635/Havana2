@@ -1,6 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
     <Filter Include="Form Files">
       <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
       <Extensions>ui</Extensions>
@@ -10,337 +15,341 @@
       <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
     </Filter>
-    <Filter Include="Data Control">
-      <UniqueIdentifier>
-      </UniqueIdentifier>
-      <Extensions>cpp;h</Extensions>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
     </Filter>
-    <Filter Include="Generated Files\Debug">
-      <UniqueIdentifier>{25e8125f-efc4-446c-98a2-031aba3969b6}</UniqueIdentifier>
-      <Extensions>cpp;moc</Extensions>
-      <SourceControlFiles>False</SourceControlFiles>
-    </Filter>
-    <Filter Include="Generated Files\Release">
-      <UniqueIdentifier>{8524c9d3-3217-42ed-be0d-2b847bc99efc}</UniqueIdentifier>
-      <Extensions>cpp;moc</Extensions>
-      <SourceControlFiles>False</SourceControlFiles>
-    </Filter>
-    <Filter Include="Havana2">
+    <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;cpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Device Control">
+    <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;cpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Havana2\Dialog">
-      <UniqueIdentifier>{89c111aa-808b-435b-a840-e6b0f06aeee8}</UniqueIdentifier>
-      <Extensions>h;cpp</Extensions>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Havana2\Viewer">
-      <UniqueIdentifier>{4137bec7-2232-4891-a475-4c141c1f0bb7}</UniqueIdentifier>
-      <Extensions>h;cpp</Extensions>
-    </Filter>
-    <Filter Include="Data Control\Data Acquisition">
-      <UniqueIdentifier>{e25829e8-53c1-40db-8b80-99790a4dd0b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data Control\Data Acquisition\SignatecDAQ">
-      <UniqueIdentifier>{8c9e82bb-52f1-4094-9ae2-5a0ac4837c4f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data Control\Memory Buffer">
-      <UniqueIdentifier>{c647dbac-a2c3-435a-b5ba-cfd9f6df3f7c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data Control\Data Process">
-      <UniqueIdentifier>{05e8fba1-aacd-44e4-86c3-8e2a593ca0ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Device Control\ECG Module Control">
-      <UniqueIdentifier>{b140654e-da42-47c4-b26a-b82d0bd47fc6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Device Control\FLIM Control">
-      <UniqueIdentifier>{991dedd7-7e4c-44c6-9272-bad421eec08a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Device Control\Pullback Device">
-      <UniqueIdentifier>{dc1e39f9-cca1-45fc-ba9a-6d7ce5673837}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Device Control\Galvo Scanner">
-      <UniqueIdentifier>{cf066b26-e5e0-409a-9cfb-2558128f82c9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Device Control\NIRF Emission">
-      <UniqueIdentifier>{e405478f-7ecb-4218-b13f-801e17920498}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data Control\Data Acquisition\AlazarDAQ">
-      <UniqueIdentifier>{7645b803-e72e-4d21-b92e-3f688b4c679f}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Havana2\Dialog\DigitizerSetupDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Havana2.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\MainWindow.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\QDeviceControlTab.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\QOperationTab.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\QResultTab.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\QStreamTab.cpp">
-      <Filter>Havana2</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\FlimCalibDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\OctCalibDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\PulseReviewDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\SaveResultDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Viewer\QCalibScope.cpp">
-      <Filter>Havana2\Viewer</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Viewer\QEcgScope.cpp">
-      <Filter>Havana2\Viewer</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Viewer\QImageView.cpp">
-      <Filter>Havana2\Viewer</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Viewer\QScope.cpp">
-      <Filter>Havana2\Viewer</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Viewer\QScope2.cpp">
-      <Filter>Havana2\Viewer</Filter>
+    <ClCompile Include="DataAcquisition\AlazarDAQ\AlazarDAQ.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DataAcquisition\DataAcquisition.cpp">
-      <Filter>Data Control\Data Acquisition</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataAcquisition\SignatecDAQ\SignatecDAQ.cpp">
-      <Filter>Data Control\Data Acquisition\SignatecDAQ</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryBuffer\MemoryBuffer.cpp">
-      <Filter>Data Control\Memory Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="DataProcess\FLIMProcess\FLIMProcess.cpp">
-      <Filter>Data Control\Data Process</Filter>
-    </ClCompile>
-    <ClCompile Include="DataProcess\OCTProcess\OCTProcess.cpp">
-      <Filter>Data Control\Data Process</Filter>
-    </ClCompile>
-    <ClCompile Include="DataProcess\ThreadManager.cpp">
-      <Filter>Data Control\Data Process</Filter>
+    <ClCompile Include="Havana2\Dialog\DigitizerSetupDlg.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceControl\ECGMonitoring\EcgMonitoring.cpp">
-      <Filter>Device Control\ECG Module Control</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.cpp">
-      <Filter>Device Control\ECG Module Control</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceControl\ECGMonitoring\Voltage800RPS.cpp">
-      <Filter>Device Control\ECG Module Control</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceControl\FLIMControl\ElforlightLaser.cpp">
-      <Filter>Device Control\FLIM Control</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceControl\FLIMControl\PmtGainControl.cpp">
-      <Filter>Device Control\FLIM Control</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceControl\FLIMControl\SyncFLIM.cpp">
-      <Filter>Device Control\FLIM Control</Filter>
+    <ClCompile Include="DataProcess\FLIMProcess\FLIMProcess.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.cpp">
-      <Filter>Device Control\Pullback Device</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceControl\ZaberStage\ZaberStage.cpp">
-      <Filter>Device Control\Pullback Device</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceControl\ZaberStage\zb_serial.cpp">
-      <Filter>Device Control\Pullback Device</Filter>
+    <ClCompile Include="Havana2\Dialog\FlimCalibDlg.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceControl\GalvoScan\GalvoScan.cpp">
-      <Filter>Device Control\Galvo Scanner</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeviceControl\NirfEmission\NirfEmission.cpp">
-      <Filter>Device Control\NIRF Emission</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceControl\NirfEmission\NirfEmissionTrigger.cpp">
-      <Filter>Device Control\NIRF Emission</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\OctIntensityHistDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\NirfEmissionProfileDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\NirfDistCompDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Havana2\Dialog\NirfCrossTalkCompDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
-    </ClCompile>
-    <ClCompile Include="DataAcquisition\AlazarDAQ\AlazarDAQ.cpp">
-      <Filter>Data Control\Data Acquisition\AlazarDAQ</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceControl\NirfEmission\NirfSyncBoard.cpp">
-      <Filter>Device Control\NIRF Emission</Filter>
+    <ClCompile Include="Havana2\Havana2.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Havana2\Dialog\LongitudinalViewDlg.cpp">
-      <Filter>Havana2\Dialog</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\MainWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBuffer\MemoryBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfCrossTalkCompDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfDistCompDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\NirfEmission\NirfEmission.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\NirfEmissionProfileDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\NirfEmission\NirfEmissionTrigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\NirfEmission\NirfSyncBoard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess\OCTProcess\OCTProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\OctCalibDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\OctIntensityHistDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FLIMControl\PmtGainControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\PulseReviewDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QCalibScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QDeviceControlTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QEcgScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QImageView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QOperationTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QResultTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Viewer\QScope2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\QStreamTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Havana2\Dialog\SaveResultDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DataAcquisition\SignatecDAQ\SignatecDAQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\FLIMControl\SyncFLIM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DataProcess\ThreadManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ECGMonitoring\Voltage800RPS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ZaberStage\ZaberStage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceControl\ZaberStage\zb_serial.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
-      <Filter>Data Control\Data Acquisition\SignatecDAQ</Filter>
-    </ClInclude>
-    <ClInclude Include="DataProcess\FLIMProcess\FLIMProcess.h">
-      <Filter>Data Control\Data Process</Filter>
-    </ClInclude>
-    <ClInclude Include="DataProcess\OCTProcess\OCTProcess.h">
-      <Filter>Data Control\Data Process</Filter>
-    </ClInclude>
-    <ClInclude Include="DataProcess\ThreadManager.h">
-      <Filter>Data Control\Data Process</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoring.h">
-      <Filter>Device Control\ECG Module Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.h">
-      <Filter>Device Control\ECG Module Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\ECGMonitoring\Voltage800RPS.h">
-      <Filter>Device Control\ECG Module Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\FLIMControl\ElforlightLaser.h">
-      <Filter>Device Control\FLIM Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\FLIMControl\PmtGainControl.h">
-      <Filter>Device Control\FLIM Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\FLIMControl\SyncFLIM.h">
-      <Filter>Device Control\FLIM Control</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.h">
-      <Filter>Device Control\Pullback Device</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\ZaberStage\ZaberStage.h">
-      <Filter>Device Control\Pullback Device</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\ZaberStage\zb_serial.h">
-      <Filter>Device Control\Pullback Device</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\GalvoScan\GalvoScan.h">
-      <Filter>Device Control\Galvo Scanner</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\NirfEmission\NirfEmission.h">
-      <Filter>Device Control\NIRF Emission</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceControl\NirfEmission\NirfEmissionTrigger.h">
-      <Filter>Device Control\NIRF Emission</Filter>
+    <ClInclude Include="DataAcquisition\AlazarDAQ\AlazarDAQ.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Havana2\Configuration.h">
-      <Filter>Havana2</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataAcquisition\AlazarDAQ\AlazarDAQ.h">
-      <Filter>Data Control\Data Acquisition\AlazarDAQ</Filter>
+    <QtMoc Include="DataAcquisition\DataAcquisition.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\DigitizerSetupDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ECGMonitoring\EcgMonitoringTrigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FLIMControl\ElforlightLaser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\FLIMProcess\FLIMProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FaulhaberMotor\FaulhaberMotor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <QtMoc Include="Havana2\Dialog\FlimCalibDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DeviceControl\GalvoScan\GalvoScan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <QtMoc Include="Havana2\Dialog\LongitudinalViewDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\MainWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="MemoryBuffer\MemoryBuffer.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\NirfCrossTalkCompDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\NirfDistCompDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DeviceControl\NirfEmission\NirfEmission.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <QtMoc Include="Havana2\Dialog\NirfEmissionProfileDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DeviceControl\NirfEmission\NirfEmissionTrigger.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DeviceControl\NirfEmission\NirfSyncBoard.h">
-      <Filter>Device Control\NIRF Emission</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\OCTProcess\OCTProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <QtMoc Include="Havana2\Dialog\OctCalibDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\OctIntensityHistDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DeviceControl\FLIMControl\PmtGainControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <QtMoc Include="Havana2\Dialog\PulseReviewDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Viewer\QCalibScope.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\QDeviceControlTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Viewer\QEcgScope.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Viewer\QImageView.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\QOperationTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\QResultTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Viewer\QScope.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Viewer\QScope2.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="DeviceControl\QSerialComm.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\QStreamTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Havana2\Dialog\SaveResultDlg.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClInclude Include="DataAcquisition\SignatecDAQ\SignatecDAQ.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\FLIMControl\SyncFLIM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataProcess\ThreadManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ECGMonitoring\Voltage800RPS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ZaberStage\ZaberStage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceControl\ZaberStage\zb_serial.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     <CustomBuild Include="debug\moc_predefs.h.cbt">
       <Filter>Generated Files</Filter>
     </CustomBuild>
     <CustomBuild Include="release\moc_predefs.h.cbt">
       <Filter>Generated Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Havana2.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="Havana2\Dialog\DigitizerSetupDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\FlimCalibDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\OctCalibDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\OctIntensityHistDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Viewer\QEcgScope.h">
-      <Filter>Havana2\Viewer</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Viewer\QImageView.h">
-      <Filter>Havana2\Viewer</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Viewer\QCalibScope.h">
-      <Filter>Havana2\Viewer</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\PulseReviewDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\QDeviceControlTab.h">
-      <Filter>Havana2</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\QOperationTab.h">
-      <Filter>Havana2</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\QResultTab.h">
-      <Filter>Havana2</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Viewer\QScope.h">
-      <Filter>Havana2\Viewer</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Viewer\QScope2.h">
-      <Filter>Havana2\Viewer</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\QStreamTab.h">
-      <Filter>Havana2</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\SaveResultDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\MainWindow.h">
-      <Filter>Havana2</Filter>
-    </QtMoc>
-    <QtMoc Include="DeviceControl\QSerialComm.h">
-      <Filter>Device Control</Filter>
-    </QtMoc>
-    <QtMoc Include="MemoryBuffer\MemoryBuffer.h">
-      <Filter>Data Control\Memory Buffer</Filter>
-    </QtMoc>
-    <QtMoc Include="DataAcquisition\DataAcquisition.h">
-      <Filter>Data Control\Data Acquisition</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\NirfEmissionProfileDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\NirfDistCompDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\NirfCrossTalkCompDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
-    <QtMoc Include="Havana2\Dialog\LongitudinalViewDlg.h">
-      <Filter>Havana2\Dialog</Filter>
-    </QtMoc>
+    
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Havana2\MainWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Havana2.rc" />
   </ItemGroup>
 </Project>

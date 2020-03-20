@@ -41,9 +41,11 @@ private slots:
 	void changeNscans(const QString &);
 	void changeNalines(const QString &);
 
+#if PX14_ENABLE
 	void changeBootTimeBufIdx(int);
 	void getBootTimeBufCfg();
 	void setBootTimeBufCfg();
+#endif
 
 // Variables ////////////////////////////////////////////
 private:

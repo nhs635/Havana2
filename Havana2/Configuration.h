@@ -8,17 +8,17 @@
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               false
+#define ALAZAR_ENABLE               true
 
-#define NI_ENABLE					false
+#define NI_ENABLE					true
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
 #endif
 
 /////////////////////// System setup ////////////////////////
-#define OCT_FLIM
-//#define STANDALONE_OCT
+//#define OCT_FLIM
+#define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
@@ -29,6 +29,8 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
+//#define AXSUN_OCT_LASER
+
 #ifndef OCT_NIRF
 #if NI_ENABLE
 //#define ECG_TRIGGERING
@@ -38,8 +40,8 @@
 //#define TWO_CHANNEL_NIRF
 //#define NI_NIRF_SYNC
 #endif
-#define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+//#define GALVANO_MIRROR
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -49,7 +51,7 @@
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #elif ALAZAR_ENABLE
-#define ADC_RATE                    500 // MS/sec
+#define ADC_RATE                    1000 // MS/sec
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -77,7 +79,7 @@
 #ifdef OCT_NIRF
 #define ALINE_RATE					51200
 
-#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI0"
+#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI9" // "/Dev3/PFI0"
 #ifndef TWO_CHANNEL_NIRF
 #define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0" // "Dev3/ai7"
 #else
@@ -87,7 +89,7 @@
 #ifdef NI_NIRF_SYNC
 #define NI_NIRF_CTR_EQV_PORT		"/Dev1/port2/line4"
 #endif
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI8" // "/Dev3/PFI1"
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI14" // "/Dev3/PFI1"
 
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 #ifndef TWO_CHANNEL_NIRF
@@ -115,13 +117,13 @@
 #define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 #define ZABER_HOME_OFFSET			0.0
 
-#define FAULHABER_NEW_CONTROLLER
-#define FAULHABER_PORT				"COM8"
+//#define FAULHABER_NEW_CONTROLLER
+#define FAULHABER_PORT				"COM4"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
 //////////////////////// Processing /////////////////////////
-#define FREQ_SHIFTING               true
+#define FREQ_SHIFTING               false
 
 #define DATA_HALVING				false // to be updated...
 
@@ -130,7 +132,7 @@
 #ifdef _DEBUG
 #define WRITING_BUFFER_SIZE			200
 #else
-#define WRITING_BUFFER_SIZE	        1000
+#define WRITING_BUFFER_SIZE	        800
 #endif
 
 //////////////////////// OCT system /////////////////////////
@@ -231,6 +233,7 @@ public:
 		ch1VoltageRange = settings.value("ch1VoltageRange").toInt();
 		ch2VoltageRange = settings.value("ch2VoltageRange").toInt();
 #if PX14_ENABLE | defined(OCT_FLIM)
+#if PX14_ENABLE
 		preTrigSamps = settings.value("preTrigSamps").toInt();
 #endif
 #if ALAZAR_ENABLE

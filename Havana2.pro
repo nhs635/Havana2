@@ -103,7 +103,8 @@ SOURCES += DataAcquisition/SignatecDAQ/SignatecDAQ.cpp \
 
 SOURCES += MemoryBuffer/MemoryBuffer.cpp
 
-SOURCES += DeviceControl/FLIMControl/PmtGainControl.cpp \
+SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
+    DeviceControl/FLIMControl/PmtGainControl.cpp \
     DeviceControl/FLIMControl/SyncFLIM.cpp \
     DeviceControl/FLIMControl/ElforlightLaser.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoring.cpp \
@@ -150,7 +151,8 @@ HEADERS += DataAcquisition/SignatecDAQ/SignatecDAQ.h \
 
 HEADERS += MemoryBuffer/MemoryBuffer.h
 
-HEADERS += DeviceControl/FLIMControl/PmtGainControl.h \
+HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
+    DeviceControl/FLIMControl/PmtGainControl.h \
     DeviceControl/FLIMControl/SyncFLIM.h \
     DeviceControl/FLIMControl/ElforlightLaser.h \
     DeviceControl/ECGMonitoring/EcgMonitoring.h \

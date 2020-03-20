@@ -17,6 +17,9 @@ class QOperationTab;
 class QStreamTab;
 class QResultTab;
 
+#ifdef AXSUN_OCT_LASER
+class AxsunControl;
+#endif
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 class QEcgScope;
@@ -95,6 +98,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif
 
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef AXSUN_OCT_LASER
+    void createAxsunOCTLaserControl();
+#endif
 #ifdef ECG_TRIGGERING
 	void createEcgModuleControl();
 #endif
@@ -119,6 +125,12 @@ private: ///////////////////////////////////////////////////////////////////////
 public: ////////////////////////////////////////////////////////////////////////////////////////////////
 	// Terminating..
 	void terminateAllDevices();
+
+#ifdef AXSUN_OCT_LASER
+    // Axsun OCT Laser Control
+
+
+#endif
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 	// ECG Module Control
@@ -131,10 +143,12 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif	
 #endif
 #ifdef OCT_NIRF
+    // NIRF Analog Input Control
 	bool initializeNiDaqAnalogInput();
 	bool startNiDaqAnalogInput();
 #endif
 #ifdef GALVANO_MIRROR
+    // Galvano Stage Control
 	int getScrollBarValue() { return m_pScrollBar_ScanAdjustment->value(); }
 	void setScrollBarValue(int pos); 
 	void setScrollBarRange(int alines); 
@@ -150,6 +164,11 @@ signals: ///////////////////////////////////////////////////////////////////////
 	void drawEcg(double, bool);
 
 private slots: //////////////////////////////////////////////////////////////////////////////////////////
+#ifdef AXSUN_OCT_LASER
+    // Axsun OCT Laser Control
+    void enableAxsunOCTLaserControl(bool);
+
+#endif
 #ifdef ECG_TRIGGERING
 	// ECG Module Control
 	void enableEcgModuleControl(bool);
@@ -218,6 +237,10 @@ private slots: /////////////////////////////////////////////////////////////////
 
 // Variables ////////////////////////////////////////////
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef AXSUN_OCT_LASER
+    // Axsun OCT Laser Control
+    AxsunControl* m_pAxsunControl;
+#endif
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 	// ECG Module Control
@@ -282,6 +305,12 @@ private: ///////////////////////////////////////////////////////////////////////
     // Layout
     QVBoxLayout *m_pVBoxLayout;
 
+#ifdef AXSUN_OCT_LASER
+    // Widgets for Axsun OCT Control
+    QCheckBox *m_pCheckBox_AxsunOCTLaserControl;
+
+
+#endif
 #ifdef ECG_TRIGGERING	
 	// Widgets for ECG module control
 	QCheckBox *m_pCheckBox_EcgModuleControl; 
