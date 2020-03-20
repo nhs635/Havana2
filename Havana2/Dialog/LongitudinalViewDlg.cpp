@@ -233,8 +233,13 @@ void LongitudinalViewDlg::setLongiRingThickness(int ring_thickness)
 void LongitudinalViewDlg::drawLongitudinalImage(int aline)
 {	
 	// Specified A line
+#if GALVANO_MIRROR
 	int aline0 = aline + m_pConfig->galvoHorizontalShift;
-	int aline1 = aline0 % (m_pResultTab->getConfigTemp()->nAlines / 2);
+
+#else
+    int aline0 = aline;
+#endif
+    int aline1 = aline0 % (m_pResultTab->getConfigTemp()->nAlines / 2);
 
 	// Make longitudinal - OCT
 	IppiSize roi_longi = { m_pImgObjOctLongiImage->getHeight(), m_pImgObjOctLongiImage->getWidth() };
