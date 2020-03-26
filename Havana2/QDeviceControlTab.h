@@ -74,6 +74,9 @@ protected:
 
 public: ////////////////////////////////////////////////////////////////////////////////////////////////
     inline QVBoxLayout* getLayout() const { return m_pVBoxLayout; }
+#ifdef AXSUN_OCT_LASER
+	inline QCheckBox* getEnableAxsunOCTLaserControl() const { return m_pCheckBox_AxsunOCTLaserControl; }
+#endif
 #ifdef OCT_FLIM
 	inline QCheckBox* getEnablePmtGainControl() const { return m_pCheckBox_PmtGainControl; }
 	inline QCheckBox* getEnableFlimLaserSyncControl() const { return m_pCheckBox_FlimLaserSyncControl; }
@@ -123,13 +126,13 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 
 public: ////////////////////////////////////////////////////////////////////////////////////////////////
-	// Terminating..
+	// Initiating & Terminating..
+	void initiateAllDevices();
 	void terminateAllDevices();
 
 #ifdef AXSUN_OCT_LASER
     // Axsun OCT Laser Control
-
-
+	void turnOnOCTLaser(bool set);
 #endif
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
@@ -167,7 +170,7 @@ private slots: /////////////////////////////////////////////////////////////////
 #ifdef AXSUN_OCT_LASER
     // Axsun OCT Laser Control
     void enableAxsunOCTLaserControl(bool);
-
+	void setLightSource(bool);
 #endif
 #ifdef ECG_TRIGGERING
 	// ECG Module Control
@@ -308,7 +311,8 @@ private: ///////////////////////////////////////////////////////////////////////
 #ifdef AXSUN_OCT_LASER
     // Widgets for Axsun OCT Control
     QCheckBox *m_pCheckBox_AxsunOCTLaserControl;
-
+	QLabel *m_pLabel_OCTLaserSource;
+	QPushButton *m_pToggleButton_OCTLaserSource;
 
 #endif
 #ifdef ECG_TRIGGERING	

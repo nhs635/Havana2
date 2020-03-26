@@ -49,8 +49,6 @@ DigitizerSetupDlg::DigitizerSetupDlg(QWidget *parent) :
 
 #if PX14_ENABLE
 	double voltage = DIGITIZER_VOLTAGE;
-#else
-	double voltage = 0.0;
 #endif
 
 #if PX14_ENABLE
@@ -255,6 +253,8 @@ void DigitizerSetupDlg::changePreTrigger(const QString &str)
 {    
 #if PX14_ENABLE
 	m_pConfig->preTrigSamps = str.toInt();
+#else
+	(void)str;
 #endif
 }
 
@@ -262,6 +262,8 @@ void DigitizerSetupDlg::changeTriggerDelay(const QString &str)
 {
 #if ALAZAR_ENABLE
     m_pConfig->triggerDelay = str.toInt();
+#else
+	(void)str;
 #endif
 }
 

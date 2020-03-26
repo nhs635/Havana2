@@ -112,6 +112,9 @@ void QOperationTab::changedTab(bool change)
 void QOperationTab::operateDataAcquisition(bool toggled)
 {
 	QStreamTab* pStreamTab = m_pMainWnd->m_pStreamTab;
+#ifdef AXSUN_OCT_LASER
+	QDeviceControlTab* pDeviceControl = m_pMainWnd->m_pDeviceControlTab;
+#endif
 	if (toggled) // Start Data Acquisition
 	{
 		if ((m_pDataAcquisition->InitializeAcquistion()) 
@@ -150,6 +153,11 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 				});
 				allocate_writing_buffer.detach();
 			}
+
+#ifdef AXSUN_OCT_LASER
+			// Turn on Axsun OCT Laser
+			pDeviceControl->turnOnOCTLaser(true);
+#endif
 		}
 		else
 			m_pToggleButton_Acquisition->setChecked(false); // When initialization is failed...
@@ -171,6 +179,11 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 		m_pToggleButton_Acquisition->setText("Start &Acquisition");
 		m_pToggleButton_Recording->setDisabled(true);
 		m_pPushButton_DigitizerSetup->setEnabled(true);
+
+#ifdef AXSUN_OCT_LASER
+		// Turn off Axsun OCT Laser
+		pDeviceControl->turnOnOCTLaser(false);
+#endif
 	}
 }
 

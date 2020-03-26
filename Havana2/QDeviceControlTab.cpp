@@ -93,7 +93,7 @@ QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
 #endif
 	
     // Set layout
-    setLayout(m_pVBoxLayout);
+    setLayout(m_pVBoxLayout);	
 }
 
 QDeviceControlTab::~QDeviceControlTab()
@@ -117,15 +117,31 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
 
     m_pCheckBox_AxsunOCTLaserControl = new QCheckBox(pGroupBox_AxsunOCTLaserControl);
     m_pCheckBox_AxsunOCTLaserControl->setText("Enable Axsun OCT Laser Control");
+	m_pCheckBox_AxsunOCTLaserControl->setFixedWidth(180);
+	
+	// Create widgets for Axsun OCT laser emission turning on/off
+	m_pToggleButton_OCTLaserSource = new QPushButton(pGroupBox_AxsunOCTLaserControl);
+	m_pToggleButton_OCTLaserSource->setCheckable(true);
+	m_pToggleButton_OCTLaserSource->setFixedWidth(40);
+	m_pToggleButton_OCTLaserSource->setText("On");
+	m_pToggleButton_OCTLaserSource->setDisabled(true);
 
-    pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 5);
+	m_pLabel_OCTLaserSource = new QLabel("OCT Laser Emission ", pGroupBox_AxsunOCTLaserControl);
+	m_pLabel_OCTLaserSource->setBuddy(m_pToggleButton_OCTLaserSource);
+	m_pLabel_OCTLaserSource->setDisabled(true);
+
+
+    pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 3);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_OCTLaserSource, 1, 1);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pToggleButton_OCTLaserSource, 1, 2);
 
     pGroupBox_AxsunOCTLaserControl->setLayout(pGridLayout_AxsunOCTLaserControl);
     pGroupBox_AxsunOCTLaserControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
     m_pVBoxLayout->addWidget(pGroupBox_AxsunOCTLaserControl);
-
+		
     // Connect signal and slot
     connect(m_pCheckBox_AxsunOCTLaserControl, SIGNAL(toggled(bool)), this, SLOT(enableAxsunOCTLaserControl(bool)));
+	connect(m_pToggleButton_OCTLaserSource, SIGNAL(toggled(bool)), this, SLOT(setLightSource(bool)));
 }
 #endif
 
@@ -696,8 +712,48 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 }
 #endif
 
+void QDeviceControlTab::initiateAllDevices()
+{
+#ifdef AXSUN_OCT_LASER
+	if (!m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(true);
+#endif
+#ifdef ECG_TRIGGERING
+#if NI_ENABLE
+	if (!m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(true);
+	if (!m_pCheckBox_Voltage800Rps->isChecked()) m_pCheckBox_Voltage800Rps->setChecked(true);
+#endif
+#endif
+#ifdef OCT_FLIM
+#if NI_ENABLE
+	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
+	if (!m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(true);
+#endif
+	if (!m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(true);
+#endif
+#ifdef OCT_NIRF
+#if NI_ENABLE
+	if (!m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(true);
+#ifdef PROGRAMMATIC_GAIN_CONTROL
+	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
+#endif
+#endif
+#endif
+#ifdef GALVANO_MIRROR
+#if NI_ENABLE
+	if (!m_pCheckBox_GalvanoMirrorControl->isChecked()) m_pCheckBox_GalvanoMirrorControl->setChecked(true);
+#endif
+#endif
+#ifdef PULLBACK_DEVICE
+	if (!m_pCheckBox_ZaberStageControl->isChecked()) m_pCheckBox_ZaberStageControl->setChecked(true);
+	if (!m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(true);
+#endif
+}
+
 void QDeviceControlTab::terminateAllDevices()
 {
+#ifdef AXSUN_OCT_LASER
+	if (m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
+#endif
 #ifdef ECG_TRIGGERING
 #if NI_ENABLE
 	if (m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(false);
@@ -743,32 +799,104 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
         m_pAxsunControl = new AxsunControl;
 
         // Connect the OCT laser
-//        if (!(m_pFaulhaberMotor->ConnectDevice()))
-//        {
-//            m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
-//            return;
-//        }
+        if (!(m_pAxsunControl->initialize()))
+        {
+            m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
+            return;
+        }
 
         // Set enable true for Axsun OCT laser control widgets
-
+		m_pLabel_OCTLaserSource->setEnabled(true);
+		m_pToggleButton_OCTLaserSource->setEnabled(true);
+		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#ff0000; }");
     }
     else
     {
         // Set enable false for Axsun OCT laser control widgets
-
+		if (m_pToggleButton_OCTLaserSource->isChecked()) m_pToggleButton_OCTLaserSource->setChecked(false);
+		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#353535; }");
+		m_pToggleButton_OCTLaserSource->setDisabled(true);
+		m_pLabel_OCTLaserSource->setDisabled(true);
 
         if (m_pAxsunControl)
         {
-            // Disconnect the laser
-            m_pFaulhaberMotor->DisconnectDevice();
-
             // Delete Axsun OCT laser control objects
             delete m_pAxsunControl;
+			m_pAxsunControl = nullptr;
         }
 
         // Set text
         m_pCheckBox_AxsunOCTLaserControl->setText("Enable Axsun OCT Laser Control");
     }
+}
+
+void QDeviceControlTab::setLightSource(bool toggled)
+{
+	if (m_pAxsunControl)
+	{
+		if (toggled)
+		{
+			// Set widgets
+			m_pCheckBox_AxsunOCTLaserControl->setDisabled(true);
+
+			// Set text
+			m_pToggleButton_OCTLaserSource->setText("Off");
+			m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#00ff00; }");
+
+			// Start Axsun light source operation
+			m_pAxsunControl->setLaserEmission(true);
+		}
+		else
+		{	
+			// If acquisition is processing...
+			if (m_pOperationTab->isAcquisitionButtonToggled())
+			{
+				QMessageBox MsgBox;
+				MsgBox.setWindowTitle("Warning");
+				MsgBox.setIcon(QMessageBox::Warning);
+				MsgBox.setText("Re-turning the laser on does not guarantee the synchronized operation once you turn off the laser.\nWould you like to turn off the laser?");
+				MsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+				MsgBox.setDefaultButton(QMessageBox::No);
+
+				int resp = MsgBox.exec();
+				switch (resp)
+				{
+				case QMessageBox::Yes:
+					m_pToggleButton_OCTLaserSource->setChecked(false);
+					break;
+				case QMessageBox::No:
+					m_pToggleButton_OCTLaserSource->setChecked(true);
+					return;
+				default:
+					m_pToggleButton_OCTLaserSource->setChecked(true);
+					return;
+				}
+			}
+			
+			// Stop Axsun light source operation
+			if (m_pAxsunControl) m_pAxsunControl->setLaserEmission(false);
+
+			// Set text
+			m_pToggleButton_OCTLaserSource->setText("On");
+			m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#ff0000; }");			
+			
+			// Set widgets
+			m_pCheckBox_AxsunOCTLaserControl->setEnabled(true);
+		}
+	}
+}
+
+void QDeviceControlTab::turnOnOCTLaser(bool set)
+{
+	if (set)
+	{
+		if (!m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(true);
+		m_pToggleButton_OCTLaserSource->setChecked(true);
+	}
+	else
+	{
+		m_pToggleButton_OCTLaserSource->setChecked(false);
+	}
 }
 #endif
 

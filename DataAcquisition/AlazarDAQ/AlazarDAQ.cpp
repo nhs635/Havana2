@@ -394,29 +394,43 @@ void AlazarDAQ::run()
     // Wait for each buffer to be filled, process the buffer, and re-post it to the board.
     if (success)
     {
-
         U32 buffersCompleted = 0, buffersCompletedUpdate = 0;
         UINT64 bytesTransferred = 0, bytesTransferredPerUpdate = 0;
         ULONG dwTickStart = 0, dwTickLastUpdate;
 
+        // Set a buffer timeout that is longer than the time
+        // required to capture all the records in one buffer.
+        DWORD timeout_ms = 100;
+
         _running = true;
         while (_running)
         {
-            // Set a buffer timeout that is longer than the time
-            // required to capture all the records in one buffer.
-            DWORD timeout_ms = 5000;
-
             // Wait for the buffer at the head of the list of available buffers
             // to be filled by the board.
             bufferIndex = buffersCompleted % BUFFER_COUNT;
             U16* pBuffer = BufferArray[bufferIndex];
 			
-            retCode = AlazarWaitAsyncBufferComplete(boardHandle, pBuffer, timeout_ms);
-            if (retCode != ApiSuccess)
+            while (true)
             {
-                dumpError(retCode, "Error: AlazarWaitAsyncBufferComplete failed: ");
-                success = FALSE;
-//                return;
+                retCode = AlazarWaitAsyncBufferComplete(boardHandle, pBuffer, timeout_ms);
+                if (retCode == ApiSuccess)
+                    break;
+                else if (retCode == ApiWaitTimeout)
+                {
+                    printf(".");
+                    SwitchToThread();
+                }
+                else
+                {
+                    dumpError(retCode, "Error: AlazarWaitAsyncBufferComplete failed: ");
+                    return;
+                }
+
+                if (!_running)
+                {
+                    success = FALSE;
+                    break;
+                }
             }
 			
             if (success)

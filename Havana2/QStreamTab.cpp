@@ -183,7 +183,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 		voltageCh2 *= DIGITIZER_VOLTAGE_RATIO;
 #elif ALAZAR_ENABLE
     double voltageCh1 = m_pConfig->voltRange[m_pConfig->ch1VoltageRange + 1];
-    double voltageCh2 = m_pConfig->voltRange[m_pConfig->ch2VoltageRange + 1];
+    //double voltageCh2 = m_pConfig->voltRange[m_pConfig->ch2VoltageRange + 1];
 #else
 	double voltageCh1 = 0.0;
 	double voltageCh2 = 0.0;
@@ -207,7 +207,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 	m_pScope_OctFringe->setMinimumSize(600, 250);
 	m_pScope_OctDepthProfile = new QScope2({ 0, (double)m_pConfig->n2ScansFFT }, { (double)m_pConfig->octDbRange.min, (double)m_pConfig->octDbRange.max }, 2, 2, 1, 1, 0, 0, "", "dB");
 	m_pScope_OctDepthProfile->setMinimumSize(600, 250);
-	m_pScope_OctDepthProfile->setVerticalLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
+	//m_pScope_OctDepthProfile->setVerticalLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
 	m_pScope_OctDepthProfile->getRender()->update();
 #endif
 	

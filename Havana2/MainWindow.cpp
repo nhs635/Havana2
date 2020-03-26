@@ -136,6 +136,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_pTimer, SIGNAL(timeout()), this, SLOT(onTimer()));
 	connect(m_pTimerSync, SIGNAL(timeout()), this, SLOT(onTimerSync()));
 	connect(m_pTabWidget, SIGNAL(currentChanged(int)), this, SLOT(changedTab(int)));
+	
+	// Connect all devices
+	m_pDeviceControlTab->initiateAllDevices();
 }
 
 MainWindow::~MainWindow()

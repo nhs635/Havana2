@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.3"
+#define VERSION						"1.2.6.4"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -29,7 +29,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define AXSUN_OCT_LASER
+#define AXSUN_OCT_LASER
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
@@ -117,8 +117,8 @@
 #define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 #define ZABER_HOME_OFFSET			0.0
 
-//#define FAULHABER_NEW_CONTROLLER
-#define FAULHABER_PORT				"COM4"
+#define FAULHABER_NEW_CONTROLLER
+#define FAULHABER_PORT				"COM3"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
