@@ -94,3 +94,5 @@ Havana2.VC*
   (Minor error correction & AlazarDAQ)
 - Havana2 v1.2.6.4
   (FLIM ANN & Axsun OCT laser control)
+- Havana2 v1.2.6.5
+  (NIRF Sync & FLIM Process)

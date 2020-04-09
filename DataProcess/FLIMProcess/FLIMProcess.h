@@ -134,8 +134,8 @@ public:
 			crop_src.raw_ptr(), sizeof(float) * crop_src.size(0), srcSize);
 		
 		// 2. Determine whether saturated
-		ippsThreshold_32f(crop_src.raw_ptr(), sat_src.raw_ptr(), sat_src.length(), 65531, ippCmpLess);
-		ippsSubC_32f_I(65531, sat_src.raw_ptr(), sat_src.length());
+		ippsThreshold_32f(crop_src.raw_ptr(), sat_src.raw_ptr(), sat_src.length(), 63000, ippCmpLess);  // 65531
+		ippsSubC_32f_I(63000, sat_src.raw_ptr(), sat_src.length());
 		int roi_len = (int)round(pulse_roi_length / ActualFactor);		
 		for (int i = 1; i < 4; i++)
 		{
@@ -149,44 +149,55 @@ public:
 		
 		// 3. BG subtraction
 		ippsSubC_32f_I(pParams.bg, crop_src.raw_ptr(), crop_src.length());
-		
-		// 4. Remove artifact manually (smart artifact removal method)
-		int ch_ind4[5]; memcpy(ch_ind4, pParams.ch_start_ind, sizeof(int) * 5);
-		int dc_determine_len = 5;
+	
+		///int ch_ind4[5]; memcpy(ch_ind4, pParams.ch_start_ind, sizeof(int) * 5);
+		///int dc_determine_len = 5;
 
+		// Parallel-for loop
 		memcpy(mask_src.raw_ptr(), crop_src.raw_ptr(), sizeof(float) * mask_src.length());
 		tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)ny),
 			[&](const tbb::blocked_range<size_t>& r) {
 			for (size_t i = r.begin(); i != r.end(); ++i)
 			{
-				int end_ind4[4]; memcpy(end_ind4, ch_ind4 + 1, sizeof(int) * 4);
-				ippsSubC_32s_ISfs(ch_ind4[0], end_ind4, 4, 0);
+				float max_val; int max_ind;
 
+				// 4. Jitter compensation
+				int cpos = 4, rpos = 4;
+				ippsMaxIndx_32f(&mask_src(0, (int)i), start_ind[0], &max_val, &cpos);
+				
+				int offset = cpos - rpos;
+				if (offset < 0) offset += mask_src.size(0);
+				std::rotate(&mask_src(0, (int)i), &mask_src(offset, (int)i), &mask_src(mask_src.size(0) - 1, (int)i));
+
+				///int end_ind4[4]; memcpy(end_ind4, ch_ind4 + 1, sizeof(int) * 4);
+				///ippsSubC_32s_ISfs(ch_ind4[0], end_ind4, 4, 0);
+
+				// 5. Remove artifact manually (smart artifact removal method)
 				for (int ch = 0; ch < 4; ch++)
 				{
 					if (start_ind[ch])
 					{
 						if (ch == 0)
-							ippsMul_32f_I(pMask, &mask_src(0, (int)i), end_ind[ch]);
+							ippsSet_32f(0.0f, &mask_src(start_ind[ch], (int)i), end_ind[ch] - start_ind[ch] + 1);
+							///ippsMul_32f_I(pMask, &mask_src(0, (int)i), end_ind[ch]);
 						else
 						{
-							float max_val; int max_ind;
 							ippsMaxIndx_32f(&mask_src(start_ind[ch], (int)i), end_ind[ch] - start_ind[ch] + 1, &max_val, &max_ind);
 							max_ind += start_ind[ch] - 1;
-							end_ind4[ch - 1] = max_ind - 4;
-							ippsSet_32f(0.0f, &mask_src(max_ind - 3, (int)i), 8);
+							///end_ind4[ch - 1] = max_ind - 4;
+							ippsSet_32f(0.0f, &mask_src(max_ind - 2, (int)i), 7);
 						}
 					}
 				}
 
-				// 5. DC level auto-adjustment
-				for (int ch = 1; ch < 4; ch++)
-				{
-					float dc_level;
-					ippsMean_32f(&mask_src(end_ind4[ch] - dc_determine_len, (int)i), dc_determine_len, &dc_level, ippAlgHintFast);
-					if (mask_src.size(0) == (ch_ind4[4] - ch_ind4[0])) 
-						ippsSubC_32f_I(dc_level, &mask_src(ch_ind4[ch] - ch_ind4[0], (int)i), ch_ind4[ch + 1] - ch_ind4[ch]);
-				}
+				/// 5. DC level auto-adjustment
+				///for (int ch = 1; ch < 4; ch++)
+				///{
+				///	float dc_level;
+				///	ippsMean_32f(&mask_src(end_ind4[ch] - dc_determine_len, (int)i), dc_determine_len, &dc_level, ippAlgHintFast);
+				///	if (mask_src.size(0) == (ch_ind4[4] - ch_ind4[0])) 
+				///		ippsSubC_32f_I(dc_level, &mask_src(ch_ind4[ch] - ch_ind4[0], (int)i), ch_ind4[ch + 1] - ch_ind4[ch]);
+				///}
                 
                 // 6. Up-sampling by cubic natural spline interpolation
                 DFTaskPtr task1 = nullptr;
@@ -305,10 +316,10 @@ public:
             for (int j = 0; j < intensity.size(0); j++)
             {
                 intensity(j, i) = 0;
-                if (resize.saturated(j, i) < 4)
+                if (resize.saturated(j, i) < 1)
                 {
                     offset = resize.ch_start_ind1[i] - resize.ch_start_ind1[0];
-                    ippsSum_32f(&resize.ext_src(offset, j), resize.pulse_roi_length, &intensity(j, i), ippAlgHintFast);
+                    ippsSum_32f(&resize.ext_src(offset, j), resize.pulse_roi_length, &intensity(j, i), ippAlgHintAccurate);
                 }
             }
         }
@@ -334,6 +345,7 @@ public:
                 for (int j = 0; j < 4; j++)
                 {
                     int offset, width, left, maxIdx;
+					float md_temp;
                     offset = resize.ch_start_ind1[j] - resize.ch_start_ind1[0];
                     
                     // 1. Get IRF width
@@ -343,8 +355,8 @@ public:
                     left = (int)floor(roiWidth[j] / 2);
                     
                     // 2. Get mean delay of each channel (iterative process)
-                    MeanDelay_32f(resize, offset, (int)i, maxIdx, roiWidth[j], left, mean_delay((int)i, j));
-                    mean_delay((int)i, j) = (mean_delay((int)i, j) + (float)resize.ch_start_ind1[j]) / resize.ActualFactor;
+                    MeanDelay_32f(resize, offset, (int)i, maxIdx, roiWidth[j], left, md_temp);
+                    mean_delay((int)i, j) = (md_temp + (float)resize.ch_start_ind1[j]) / resize.ActualFactor;
                 }
                 
                 // 3. Subtract mean delay of IRF to mean delay of each channel
@@ -408,7 +420,7 @@ public:
             if (resize.pSeq)
             {
                 ippsDotProd_32f(pulse, &resize.pSeq[start], width, &weight_sum);
-                ippsSum_32f(pulse, width, &sum, ippAlgHintFast);
+                ippsSum_32f(pulse, width, &sum, ippAlgHintAccurate);
             }
             
             if (sum)
@@ -451,9 +463,9 @@ public:
 	void setParameters(Configuration* pConfig);
 
 	// For masking
-    //void saveMaskData(const char* maskpath = "flim_mask.dat");
+    ///void saveMaskData(const char* maskpath = "flim_mask.dat");
 	void saveMaskData(QString maskpath = "flim_mask.dat");
-	//void loadMaskData(const char* maskpath = "flim_mask.dat");
+	///void loadMaskData(const char* maskpath = "flim_mask.dat");
 	void loadMaskData(QString maskpath = "flim_mask.dat");
     
 // Variables

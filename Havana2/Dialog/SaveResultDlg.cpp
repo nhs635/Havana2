@@ -1275,7 +1275,7 @@ void SaveResultDlg::rectWriting(CrossSectionCheckList checkList)
 #endif
 
 #ifndef OCT_NIRF
-		rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%d]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2);
+		rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%3]/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2);
 #else
         rectPath = m_pResultTab->m_path + QString("/rect_image_dB[%1 %2 g%3]%4/").arg(m_pConfig->octDbRange.min).arg(m_pConfig->octDbRange.max).arg(m_pConfig->octDbGamma, 3, 'f', 2).arg(checkList.bNirfRingOnly ? "_ring-masked" : "");
 		if (checkList.bNirfRingOnly)

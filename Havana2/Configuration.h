@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.4"
+#define VERSION						"1.2.6.5"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -22,7 +22,7 @@
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -38,7 +38,6 @@
 #else
 #define PROGRAMMATIC_GAIN_CONTROL
 //#define TWO_CHANNEL_NIRF
-//#define NI_NIRF_SYNC
 #endif
 //#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
@@ -77,7 +76,7 @@
 #endif
 
 #ifdef OCT_NIRF
-#define ALINE_RATE					51200
+#define ALINE_RATE					200318
 
 #define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI9" // "/Dev3/PFI0"
 #ifndef TWO_CHANNEL_NIRF
@@ -86,10 +85,7 @@
 #define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0, Dev1/ai7" // "Dev3/ai0"
 #endif
 #define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
-#ifdef NI_NIRF_SYNC
-#define NI_NIRF_CTR_EQV_PORT		"/Dev1/port2/line4"
-#endif
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI14" // "/Dev3/PFI1"
+#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI10" // "/Dev3/PFI1"
 
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 #ifndef TWO_CHANNEL_NIRF
@@ -99,9 +95,6 @@
 #endif
 #endif
 
-#ifdef NI_NIRF_SYNC
-#define NI_NIRF_SYNC_PORT			"/Dev1/port0/line0:1" // power & reset
-#endif
 #endif
 
 #ifdef GALVANO_MIRROR
@@ -365,9 +358,9 @@ public:
         {
             if (settings.contains(QString("ChannelStart_%1").arg(i)))
 #if PX14_ENABLE
-                flimChStartInd[i] = (int)(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / (float)ADC_RATE));
+                flimChStartInd[i] = (int)round(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / (float)ADC_RATE));
 #else
-                flimChStartInd[i] = (int)(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / 340.0f));
+                flimChStartInd[i] = (int)round(settings.value(QString("ChannelStart_%1").arg(i)).toFloat() / (1000.0f / 340.0f));
 #endif
 
             if (i != 0)

@@ -38,9 +38,6 @@ class ElforlightLaser;
 #endif
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
-#ifdef NI_NIRF_SYNC
-class NirfSyncBoard;
-#endif
 class NirfEmissionTrigger;
 class NirfEmission;
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -266,9 +263,6 @@ private: ///////////////////////////////////////////////////////////////////////
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
 	// NIRF Emission
-#ifdef NI_NIRF_SYNC
-	NirfSyncBoard* m_pNirfSyncBoard;
-#endif
 	NirfEmissionTrigger* m_pNirfEmissionTrigger;
 	NirfEmission* m_pNirfEmission;
 #ifdef PROGRAMMATIC_GAIN_CONTROL

@@ -26,7 +26,6 @@
 #endif
 #ifdef OCT_NIRF
 #if NI_ENABLE
-#include <DeviceControl/NirfEmission/NirfSyncBoard.h>
 #include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
 #include <DeviceControl/NirfEmission/NirfEmission.h>
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -717,27 +716,27 @@ void QDeviceControlTab::initiateAllDevices()
 #ifdef AXSUN_OCT_LASER
 	if (!m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(true);
 #endif
-#ifdef ECG_TRIGGERING
-#if NI_ENABLE
-	if (!m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(true);
-	if (!m_pCheckBox_Voltage800Rps->isChecked()) m_pCheckBox_Voltage800Rps->setChecked(true);
-#endif
-#endif
-#ifdef OCT_FLIM
-#if NI_ENABLE
-	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
-	if (!m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(true);
-#endif
-	if (!m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(true);
-#endif
-#ifdef OCT_NIRF
-#if NI_ENABLE
-	if (!m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(true);
-#ifdef PROGRAMMATIC_GAIN_CONTROL
-	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
-#endif
-#endif
-#endif
+//#ifdef ECG_TRIGGERING
+//#if NI_ENABLE
+//	if (!m_pCheckBox_EcgModuleControl->isChecked()) m_pCheckBox_EcgModuleControl->setChecked(true);
+//	if (!m_pCheckBox_Voltage800Rps->isChecked()) m_pCheckBox_Voltage800Rps->setChecked(true);
+//#endif
+//#endif
+//#ifdef OCT_FLIM
+//#if NI_ENABLE
+//	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
+//	if (!m_pCheckBox_FlimLaserSyncControl->isChecked()) m_pCheckBox_FlimLaserSyncControl->setChecked(true);
+//#endif
+//	if (!m_pCheckBox_FlimLaserPowerControl->isChecked()) m_pCheckBox_FlimLaserPowerControl->setChecked(true);
+//#endif
+//#ifdef OCT_NIRF
+//#if NI_ENABLE
+//	if (!m_pCheckBox_NirfAcquisitionControl->isChecked()) m_pCheckBox_NirfAcquisitionControl->setChecked(true);
+//#ifdef PROGRAMMATIC_GAIN_CONTROL
+//	if (!m_pCheckBox_PmtGainControl->isChecked()) m_pCheckBox_PmtGainControl->setChecked(true);
+//#endif
+//#endif
+//#endif
 #ifdef GALVANO_MIRROR
 #if NI_ENABLE
 	if (!m_pCheckBox_GalvanoMirrorControl->isChecked()) m_pCheckBox_GalvanoMirrorControl->setChecked(true);
@@ -848,30 +847,30 @@ void QDeviceControlTab::setLightSource(bool toggled)
 		}
 		else
 		{	
-			// If acquisition is processing...
-			if (m_pOperationTab->isAcquisitionButtonToggled())
-			{
-				QMessageBox MsgBox;
-				MsgBox.setWindowTitle("Warning");
-				MsgBox.setIcon(QMessageBox::Warning);
-				MsgBox.setText("Re-turning the laser on does not guarantee the synchronized operation once you turn off the laser.\nWould you like to turn off the laser?");
-				MsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-				MsgBox.setDefaultButton(QMessageBox::No);
+			/// If acquisition is processing...
+			///if (m_pOperationTab->isAcquisitionButtonToggled())
+			///{
+			///	QMessageBox MsgBox;
+			///	MsgBox.setWindowTitle("Warning");
+			///	MsgBox.setIcon(QMessageBox::Warning);
+			///	MsgBox.setText("Re-turning the laser on does not guarantee the synchronized operation once you turn off the laser.\nWould you like to turn off the laser?");
+			///	MsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+			///	MsgBox.setDefaultButton(QMessageBox::No);
 
-				int resp = MsgBox.exec();
-				switch (resp)
-				{
-				case QMessageBox::Yes:
-					m_pToggleButton_OCTLaserSource->setChecked(false);
-					break;
-				case QMessageBox::No:
-					m_pToggleButton_OCTLaserSource->setChecked(true);
-					return;
-				default:
-					m_pToggleButton_OCTLaserSource->setChecked(true);
-					return;
-				}
-			}
+			///	int resp = MsgBox.exec();
+			///	switch (resp)
+			///	{
+			///	case QMessageBox::Yes:
+			///		m_pToggleButton_OCTLaserSource->setChecked(false);
+			///		break;
+			///	case QMessageBox::No:
+			///		m_pToggleButton_OCTLaserSource->setChecked(true);
+			///		return;
+			///	default:
+			///		m_pToggleButton_OCTLaserSource->setChecked(true);
+			///		return;
+			///	}
+			///}
 			
 			// Stop Axsun light source operation
 			if (m_pAxsunControl) m_pAxsunControl->setLaserEmission(false);
@@ -925,11 +924,6 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 {
 #if NI_ENABLE
 	// Create NIRF emission acquisition objects
-#ifdef NI_NIRF_SYNC
-	m_pNirfSyncBoard = new NirfSyncBoard;
-	m_pNirfSyncBoard->value = 0x03; // power(line0) 1, reset(line1) 1
-#endif
-
 	m_pNirfEmissionTrigger = new NirfEmissionTrigger;
 	m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
 
@@ -939,11 +933,7 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 	m_pMainWnd->m_pStreamTab->setNirfAcquisitionCallback();
 
 	// Initializing
-#ifndef NI_NIRF_SYNC
-	if (!m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
-#else
-	if (!m_pNirfSyncBoard->initialize() || !m_pNirfEmissionTrigger->initialize() || !m_pNirfEmission->initialize())
-#endif
+	if (!m_pNirfEmission->initialize()) // || !m_pNirfEmission->initialize()) Trigger
 		return false;
 #endif
 
@@ -956,12 +946,10 @@ bool QDeviceControlTab::startNiDaqAnalogInput()
 	m_pMainWnd->m_pStreamTab->makeNirfEmissionProfileDlg();
 
 	// Generate trigger pulse & Start NIRF acquisition
-#ifdef NI_NIRF_SYNC
-	if (m_pNirfSyncBoard) m_pNirfSyncBoard->start();
-#endif
 	if (m_pNirfEmission) m_pNirfEmission->start();
+
 	Sleep(100);
-	if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
+	//if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
 #endif
 
 	return true;
@@ -1407,18 +1395,12 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 			m_pNirfEmission->stop();
 			delete m_pNirfEmission;
 		}
-		if (m_pNirfEmissionTrigger)
-		{
-			m_pNirfEmissionTrigger->stop();
-			delete m_pNirfEmissionTrigger;
-		}
-#ifdef NI_NIRF_SYNC
-		if (m_pNirfSyncBoard)
-		{
-			m_pNirfSyncBoard->stop();
-			delete m_pNirfSyncBoard;
-		}
-#endif
+		//if (m_pNirfEmissionTrigger)
+		//{
+		//	m_pNirfEmissionTrigger->stop();
+		//	delete m_pNirfEmissionTrigger;
+		//}
+
 		// Set text
 		m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
 		m_pCheckBox_NirfAcquisitionControl->setChecked(false);

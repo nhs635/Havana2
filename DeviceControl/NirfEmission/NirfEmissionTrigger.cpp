@@ -77,19 +77,6 @@ void NirfEmissionTrigger::stop()
 		DAQmxStopTask(_taskHandle);
 		DAQmxClearTask(_taskHandle);
 		_taskHandle = nullptr;
-
-#ifdef NI_NIRF_SYNC
-		int32 written;
-		uInt32 value = 0x00;
-		DAQmxCreateTask("", &_taskHandle);
-		DAQmxCreateDOChan(_taskHandle, NI_NIRF_CTR_EQV_PORT, "", DAQmx_Val_ChanForAllLines);
-		DAQmxStartTask(_taskHandle);
-		DAQmxWriteDigitalU32(_taskHandle, 1, TRUE, 10.0, DAQmx_Val_GroupByChannel, &value, &written, NULL);
-
-		DAQmxStopTask(_taskHandle);
-		DAQmxClearTask(_taskHandle);
-		_taskHandle = nullptr;
-#endif
 	}
 }
 

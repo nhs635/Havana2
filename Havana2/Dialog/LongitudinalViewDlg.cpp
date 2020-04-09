@@ -233,9 +233,8 @@ void LongitudinalViewDlg::setLongiRingThickness(int ring_thickness)
 void LongitudinalViewDlg::drawLongitudinalImage(int aline)
 {	
 	// Specified A line
-#if GALVANO_MIRROR
+#ifdef GALVANO_MIRROR
 	int aline0 = aline + m_pConfig->galvoHorizontalShift;
-
 #else
     int aline0 = aline;
 #endif

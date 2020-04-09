@@ -55,20 +55,6 @@ void FLIMProcess::setParameters(Configuration*)
 #endif
 }
 
-//void FLIMProcess::saveMaskData(const char* maskpath)
-//{
-//	size_t sizeRead;
-//
-//	// create file (flim mask)
-//	FILE* pMaskFile = nullptr;
-//	pMaskFile = fopen(maskpath, "wb");
-//	if (pMaskFile != nullptr)
-//	{
-//		sizeRead = fwrite(_resize.pMask, sizeof(float), _resize.nx, pMaskFile);
-//		fclose(pMaskFile);
-//	}
-//}
-
 void FLIMProcess::saveMaskData(QString maskpath)
 {
 	qint64 sizeRead;
@@ -81,45 +67,6 @@ void FLIMProcess::saveMaskData(QString maskpath)
 		maskFile.close();
 	}
 }
-
-//void FLIMProcess::loadMaskData(const char* maskpath)
-//{
-//	size_t sizeRead;
-//
-//    // create file (flim mask)
-//    FILE* pMaskFile = nullptr;  
-//    pMaskFile = fopen(maskpath, "rb");
-//    if (pMaskFile != nullptr)
-//    {
-//        sizeRead = fread(_resize.pMask, sizeof(float), _resize.nx, pMaskFile);
-//        fclose(pMaskFile);
-//        
-//        int start_count = 0, end_count = 0;
-//        for (int i = 0; i < _resize.nx - 1; i++)
-//        {
-//            if (_resize.pMask[i + 1] - _resize.pMask[i] == -1)
-//            {
-//                start_count++;
-//                if (start_count < 5)
-//                    _resize.start_ind[start_count - 1] = i + 1;
-//            }
-//            if (_resize.pMask[i + 1] - _resize.pMask[i] == 1)
-//            {
-//                end_count++;
-//                if (end_count < 5)
-//                    _resize.end_ind[end_count - 1] = i;
-//            }
-//        }
-//        
-//        for (int i = 0; i < 4; i++)
-//            printf("mask %d: [%d %d]\n", i + 1, _resize.start_ind[i], _resize.end_ind[i]);
-//        
-//        if ((start_count == 4) && (end_count == 4))
-//            printf("Proper mask is selected!!\n");
-//        else
-//            printf("Improper mask: please modify the mask!\n");
-//    }
-//}
 
 void FLIMProcess::loadMaskData(QString maskpath)
 {
@@ -145,7 +92,7 @@ void FLIMProcess::loadMaskData(QString maskpath)
 			{
 				end_count++;
 				if (end_count < 5)
-					_resize.end_ind[end_count - 1] = i;
+					_resize.end_ind[end_count - 1] = i - 2;
 			}
 		}
 

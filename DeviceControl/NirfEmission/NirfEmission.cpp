@@ -69,21 +69,21 @@ bool NirfEmission::initialize()
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	if ((res = DAQmxCfgSampClkTiming(_taskHandle, "", max_rate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, nAlines)) != 0)
+	if ((res = DAQmxCfgSampClkTiming(_taskHandle, NI_NIRF_ALINES_SOURCE, max_rate, DAQmx_Val_Rising, DAQmx_Val_ContSamps, nAlines)) != 0) // "" / DAQmx_Val_FiniteSamps
 	{
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	if ((res = DAQmxCfgDigEdgeStartTrig(_taskHandle, alinesTrigger, DAQmx_Val_Rising)) != 0)
-	{
-		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
-		return false;
-	}
-	if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
-	{
-		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
-		return false;
-	}
+	//if ((res = DAQmxCfgDigEdgeStartTrig(_taskHandle, alinesTrigger, DAQmx_Val_Rising)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+	//	return false;
+	//}
+	//if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
+	//{
+	//	dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+	//	return false;
+	//}
 
 	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, nAlines, 0, EveryNCallback, this)) != 0)
 	{
