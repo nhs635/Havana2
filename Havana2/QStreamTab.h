@@ -220,7 +220,9 @@ public:
 	FLIMProcess* m_pFLIM;
 #elif defined (STANDALONE_OCT)
 	OCTProcess* m_pOCT1;
+#ifdef DUAL_CHANNEL
 	OCTProcess* m_pOCT2;
+#endif
 #endif
 
 public:

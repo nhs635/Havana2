@@ -110,7 +110,6 @@ SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoring.cpp \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.cpp \
     DeviceControl/ECGMonitoring/Voltage800RPS.cpp \
-    DeviceControl/NirfEmission/NirfSyncBoard.cpp \
     DeviceControl/NirfEmission/NirfEmission.cpp \
     DeviceControl/NirfEmission/NirfEmissionTrigger.cpp \
     DeviceControl/GalvoScan/GalvoScan.cpp \
@@ -158,7 +157,6 @@ HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
     DeviceControl/ECGMonitoring/EcgMonitoring.h \
     DeviceControl/ECGMonitoring/EcgMonitoringTrigger.h \
     DeviceControl/ECGMonitoring/Voltage800RPS.h \
-    DeviceControl/NirfEmission/NirfSyncBoard.h \
     DeviceControl/NirfEmission/NirfEmission.h \
     DeviceControl/NirfEmission/NirfEmissionTrigger.h \
     DeviceControl/GalvoScan/GalvoScan.h \

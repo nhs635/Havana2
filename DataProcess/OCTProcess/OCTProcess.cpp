@@ -307,6 +307,24 @@ void OCTProcess::generateCalibration(int discom_val)
     calib.detach();
 }
 
+void OCTProcess::removeCalibration()
+{
+	for (int i = 0; i < raw_size.width; i++)
+	{
+		bg0(i) = (float)(POWER_2(15));
+		bg(i) = (float)(POWER_2(15));
+	}
+
+	for (int i = 0; i < raw2_size.width; i++)
+	{
+		calib_index(i) = (float)i * 2.0f;
+		calib_weight(i) = 1;
+		dispersion(i) = { 1, 0 };
+		discom(i) = { 1, 0 };
+		dispersion1(i) = { 1, 0 };
+	}
+}
+
 
 void OCTProcess::changeDiscomValue(int discom_val)
 {

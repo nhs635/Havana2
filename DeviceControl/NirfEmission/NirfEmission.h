@@ -33,7 +33,6 @@ private:
 	double max_rate;
 	
 	const char* physicalChannel;
-	const char* sampleClockSource;
 	const char* alinesTrigger;
 
 	TaskHandle _taskHandle;

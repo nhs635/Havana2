@@ -26,7 +26,9 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
     m_pOCT = m_pStreamTab->m_pOCT;
 #elif defined (STANDALONE_OCT)
 	m_pOCT1 = m_pStreamTab->m_pOCT1;
+#ifdef DUAL_CHANNEL
 	m_pOCT2 = m_pStreamTab->m_pOCT2;
+#endif
 #endif
 	
     // Create widgets for OCT calibration (background)
@@ -74,7 +76,9 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 		for (int i = 0; i < m_pConfig->nScans; i++)
 		{
 			m_pOCT1->getFringe(0)[i] = (float)frame1(i, 0);
+#ifdef DUAL_CHANNEL
 			m_pOCT2->getFringe(0)[i] = (float)frame2(i, 0);
+#endif
 		}
 #endif		
 		file.close();
@@ -115,7 +119,9 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 		for (int i = 0; i < m_pConfig->nScans; i++)
 		{
 			m_pOCT1->getFringe(1)[i] = (float)frame1(i, 0);
+#ifdef DUAL_CHANNEL
 			m_pOCT2->getFringe(1)[i] = (float)frame2(i, 0);
+#endif
 		}
 #endif		
 		file.close();
@@ -135,6 +141,14 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 	m_pPushButton_GenerateCalibration->setDisabled(true);
     m_pLabel_GenerateCalibration = new QLabel(this);
 
+	m_pPushButton_RemoveCalibration = new QPushButton(this);
+	m_pPushButton_RemoveCalibration->setText("Remove");
+	m_pPushButton_RemoveCalibration->setFixedWidth(72);
+
+	m_pPushButton_ReloadCalibration = new QPushButton(this);
+	m_pPushButton_ReloadCalibration->setText("Reload");
+	m_pPushButton_ReloadCalibration->setFixedWidth(72);
+
 	info = QFileInfo("calibration.dat");
 	if (info.exists())
 	{
@@ -149,6 +163,8 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 
 	if (QFileInfo("d1.bin").exists() && QFileInfo("d2.bin").exists())
 		m_pPushButton_GenerateCalibration->setEnabled(true);
+
+	
 
 	// Create widgets for discom value
 	m_pLabel_DiscomValue = new QLabel(this);
@@ -192,6 +208,8 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 	QHBoxLayout *pHBoxLayout = new QHBoxLayout;
 	pHBoxLayout->setSpacing(3);
 
+	pHBoxLayout->addWidget(m_pPushButton_RemoveCalibration);
+	pHBoxLayout->addWidget(m_pPushButton_ReloadCalibration);
 	pHBoxLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	pHBoxLayout->addWidget(m_pLabel_DiscomValue);
 	pHBoxLayout->addWidget(m_pLineEdit_DiscomValue);
@@ -221,6 +239,8 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
     connect(m_pPushButton_CaptureD1, SIGNAL(clicked(bool)), this, SLOT(captureD1(void)));
     connect(m_pPushButton_CaptureD2, SIGNAL(clicked(bool)), this, SLOT(captureD2(void)));
     connect(m_pPushButton_GenerateCalibration, SIGNAL(clicked(bool)), this, SLOT(generateCalibration(void)));
+	connect(m_pPushButton_RemoveCalibration, SIGNAL(clicked(bool)), this, SLOT(removeCalibration(void)));
+	connect(m_pPushButton_ReloadCalibration, SIGNAL(clicked(bool)), this, SLOT(reloadCalibration(void)));
 	connect(m_pLineEdit_DiscomValue, SIGNAL(textChanged(const QString &)), this, SLOT(setDiscomValue(const QString &)));
 	connect(m_pPushButton_Proceed, SIGNAL(clicked(bool)), this, SLOT(proceed(void)));
 	connect(this, SIGNAL(setGenerateCalibPushButton(bool)), this, SLOT(enableGenerateCalibPushButton(bool)));
@@ -297,7 +317,9 @@ void OctCalibDlg::setOctCallback()
 		m_bBeingCalibrated = false;
 
 #ifdef STANDALONE_OCT
+#ifdef DUAL_CHANNEL
 		m_pOCT2-> loadCalibration(CH_2);
+#endif
 #endif
 		m_pScope->resetAxis({ 0, (double)m_pConfig->nScansFFT }, { m_pStreamTab->getOctMinDb(), m_pStreamTab->getOctMaxDb() });
 		m_pScope->update();
@@ -536,9 +558,11 @@ void OctCalibDlg::caughtBackground(uint16_t* fringe1, uint16_t* fringe2)
 	{
 		// Set background
 		np::Uint16Array2 frame1(fringe1, m_pConfig->nScans, m_pConfig->nAlines);
-		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT1->setBg(frame1);
+#ifdef DUAL_CHANNEL
+		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT2->setBg(frame2);
+#endif
 
 		// Disconnecting
 		disconnect(this, SIGNAL(catchFringe(uint16_t*, uint16_t*)), 0, 0);
@@ -557,10 +581,16 @@ void OctCalibDlg::caughtBackground(uint16_t* fringe1, uint16_t* fringe2)
 		if (file.open(QIODevice::WriteOnly))
 		{
 			qint64 sizeWrote1 = file.write(reinterpret_cast<char*>(frame1.raw_ptr()), sizeof(uint16_t) * frame1.length());
+#ifdef DUAL_CHANNEL
 			qint64 sizeWrote2 = file.write(reinterpret_cast<char*>(frame2.raw_ptr()), sizeof(uint16_t) * frame2.length());
+#endif
 			file.close();
 
+#ifdef DUAL_CHANNEL
 			if (sizeWrote1 && sizeWrote2)
+#else
+			if (sizeWrote1)
+#endif
 				printf("Captured background fringe.\n");
 			else
 				printf("Error is occurred while capturing background fringe.\n");
@@ -588,9 +618,11 @@ void OctCalibDlg::caughtD1(uint16_t* fringe1, uint16_t* fringe2)
 	{
 		// Set d1
 		np::Uint16Array2 frame1(fringe1, m_pConfig->nScans, m_pConfig->nAlines);
-		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT1->setFringe(frame1, 0);
+#ifdef DUAL_CHANNEL
+		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT2->setFringe(frame2, 0);
+#endif
 
 		// Disconnecting
 		disconnect(this, SIGNAL(catchFringe(uint16_t*, uint16_t*)), 0, 0);
@@ -609,10 +641,16 @@ void OctCalibDlg::caughtD1(uint16_t* fringe1, uint16_t* fringe2)
 		if (file.open(QIODevice::WriteOnly))
 		{
 			qint64 sizeWrote1 = file.write(reinterpret_cast<char*>(frame1.raw_ptr()), sizeof(uint16_t) * frame1.length());
+#ifdef DUAL_CHANNEL
 			qint64 sizeWrote2 = file.write(reinterpret_cast<char*>(frame2.raw_ptr()), sizeof(uint16_t) * frame2.length());
+#endif
 			file.close();
 
+#ifdef DUAL_CHANNEL
 			if (sizeWrote1 && sizeWrote2)
+#else
+			if (sizeWrote1)
+#endif
 				printf("Captured d1 fringe.\n");
 			else
 				printf("Error is occurred while capturing d1 fringe.\n");
@@ -640,9 +678,11 @@ void OctCalibDlg::caughtD2(uint16_t* fringe1, uint16_t* fringe2)
 	{
 		// Set d2
 		np::Uint16Array2 frame1(fringe1, m_pConfig->nScans, m_pConfig->nAlines);
-		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT1->setFringe(frame1, 1);
+#ifdef DUAL_CHANNEL
+		np::Uint16Array2 frame2(fringe2, m_pConfig->nScans, m_pConfig->nAlines);
 		m_pOCT2->setFringe(frame2, 1);
+#endif
 
 		// Disconnecting
 		disconnect(this, SIGNAL(catchFringe(uint16_t*, uint16_t*)), 0, 0);
@@ -661,10 +701,16 @@ void OctCalibDlg::caughtD2(uint16_t* fringe1, uint16_t* fringe2)
 		if (file.open(QIODevice::WriteOnly))
 		{
 			qint64 sizeWrote1 = file.write(reinterpret_cast<char*>(frame1.raw_ptr()), sizeof(uint16_t) * frame1.length());
+#ifdef DUAL_CHANNEL
 			qint64 sizeWrote2 = file.write(reinterpret_cast<char*>(frame2.raw_ptr()), sizeof(uint16_t) * frame2.length());
+#endif
 			file.close();
 
+#ifdef DUAL_CHANNEL
 			if (sizeWrote1 && sizeWrote2)
+#else
+			if (sizeWrote1)
+#endif
 				printf("Captured d2 fringe.\n");
 			else
 				printf("Error is occurred while capturing d2 fringe.\n");
@@ -687,6 +733,24 @@ void OctCalibDlg::caughtD2(uint16_t* fringe1, uint16_t* fringe2)
 }
 #endif
 
+void OctCalibDlg::removeCalibration()
+{
+#ifdef OCT_FLIM
+	m_pOCT->removeCalibration();
+#elif defined (STANDALONE_OCT)
+	m_pOCT1->removeCalibration();
+#endif
+}
+
+void OctCalibDlg::reloadCalibration()
+{
+#ifdef OCT_FLIM
+	m_pOCT->loadCalibration();
+#elif defined (STANDALONE_OCT)
+	m_pOCT1->loadCalibration();
+#endif
+}
+
 void OctCalibDlg::setDiscomValue(const QString &str)
 {
 	m_pConfig->octDiscomVal = str.toInt();
@@ -694,7 +758,9 @@ void OctCalibDlg::setDiscomValue(const QString &str)
 	m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
 #elif defined (STANDALONE_OCT)
 	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+#ifdef DUAL_CHANNEL
 	m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+#endif
 #endif
 }
 

@@ -56,6 +56,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #ifdef OCT_FLIM
 	m_pOCT = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT->loadCalibration();
+	m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
 
 	m_pFLIM = new FLIMProcess;
 	m_pFLIM->setParameters(m_pConfig);
@@ -64,9 +65,12 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #elif defined (STANDALONE_OCT)
 	m_pOCT1 = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT1->loadCalibration(CH_1);
-
+	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+#ifdef DUAL_CHANNEL
 	m_pOCT2 = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT2->loadCalibration(CH_2);
+	m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+#endif
 #endif	
 
 	// Create thread managers for data processing
@@ -356,7 +360,9 @@ QStreamTab::~QStreamTab()
 	if (m_pOCT) delete m_pOCT;
 #elif defined (STANDALONE_OCT)
 	if (m_pOCT1) delete m_pOCT1;
+#ifdef DUAL_CHANNEL
 	if (m_pOCT2) delete m_pOCT2;
+#endif
 #endif
 }
 
@@ -1024,7 +1030,11 @@ void QStreamTab::setDeinterleavingCallback()
 			{
 				// Data deinterleaving
 				int frame_length = m_pConfig->nFrameSize / m_pConfig->nChannels;
-				ippsCplxToReal_16sc((Ipp16sc *)fulldata_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+
+				if (m_pConfig->nChannels == 2)
+					ippsCplxToReal_16sc((Ipp16sc *)fulldata_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+				else
+					memcpy(ch1_ptr, fulldata_ptr, sizeof(uint16_t) * frame_length);
 #ifdef OCT_FLIM
 				// Draw fringe & pulse	
 				ippsConvert_16u32f(ch1_ptr, m_visFringe.raw_ptr(), m_visFringe.length());
@@ -1172,7 +1182,9 @@ void QStreamTab::setCh2ProcessingCallback()
 					emit m_pFlimCalibDlg->plotRoiPulse(m_pFLIM, m_pSlider_SelectAline->value() / 4);
 
 #elif defined (STANDALONE_OCT)
-				//(*m_pOCT2)(res_ptr, ch2_data);
+#ifdef DUAL_CHANNEL
+				(*m_pOCT2)(res_ptr, ch2_data);
+#endif
 #endif		
 				// Push the buffers to sync Queues
 				m_syncCh2Visualization.Queue_sync.push(res_ptr);
@@ -1376,12 +1388,14 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 		m_pOCT1 = new OCTProcess(m_pConfig->nScans, nAlines);
 		m_pOCT1->loadCalibration(CH_1);
 	}
+#ifdef DUAL_CHANNEL
 	if (m_pOCT2)
 	{
 		delete m_pOCT2;
 		m_pOCT2 = new OCTProcess(m_pConfig->nScans, nAlines);
 		m_pOCT2->loadCalibration(CH_2);
 	}
+#endif
 #endif
 
 	// Create buffers for threading operation
@@ -1930,11 +1944,15 @@ void QStreamTab::changeFringeBg(bool toggled)
 
 #elif defined (STANDALONE_OCT)
 	float* bg1 = (toggled) ? m_pOCT1->getBg() : m_pOCT1->getBg0();
+#ifdef DUAL_CHANNEL
 	float* bg2 = (toggled) ? m_pOCT2->getBg() : m_pOCT2->getBg0();	
+#endif
 	for (int i = 0; i < m_pConfig->nAlines; i++)
 	{
 		memcpy(&m_visFringeBg1(0, i), bg1, sizeof(float) * m_pConfig->nScans);
+#ifdef DUAL_CHANNEL
 		memcpy(&m_visFringeBg2(0, i), bg2, sizeof(float) * m_pConfig->nScans);
+#endif
 	}
 #endif   
 

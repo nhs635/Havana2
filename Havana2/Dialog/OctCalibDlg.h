@@ -49,6 +49,8 @@ public slots:
 	void caughtD1(uint16_t* fringe, uint16_t* fringe2);
 	void caughtD2(uint16_t* fringe, uint16_t* fringe2);
 #endif
+	void removeCalibration();
+	void reloadCalibration();
 	void setDiscomValue(const QString &str);
 
 private slots:
@@ -75,7 +77,9 @@ private:
 	OCTProcess* m_pOCT;
 #elif defined (STANDALONE_OCT)
 	OCTProcess* m_pOCT1;
+#ifdef DUAL_CHANNEL
 	OCTProcess* m_pOCT2;
+#endif
 #endif
 
 private:
@@ -87,6 +91,8 @@ private:
     QPushButton *m_pPushButton_CaptureD1;
     QPushButton *m_pPushButton_CaptureD2;
     QPushButton *m_pPushButton_GenerateCalibration;
+	QPushButton *m_pPushButton_RemoveCalibration;
+	QPushButton *m_pPushButton_ReloadCalibration;
 
     QLabel *m_pLabel_CaptureBackground;
     QLabel *m_pLabel_CaptureD1;

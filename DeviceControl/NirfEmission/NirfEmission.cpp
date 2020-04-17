@@ -14,7 +14,7 @@ using namespace std;
 #include <ipps.h>
 
 #include <chrono>
-chrono::steady_clock::time_point startTime, endTime;
+chrono::steady_clock::time_point startTime, startTimeUpdate, endTime;
 
 
 int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEventType, uInt32 nSamples, void *callbackData);
@@ -28,8 +28,8 @@ NirfEmission::NirfEmission() :
 	max_rate(ALINE_RATE),
 	data(nullptr),
 	physicalChannel(NI_NIRF_EMISSION_CHANNEL),
-	sampleClockSource(NI_NIRF_TRIGGER_SOURCE),
-	alinesTrigger(NI_NIRF_ALINES_SOURCE)
+	///sampleClockSource(NI_NIRF_TRIGGER_SOURCE),
+	alinesTrigger(NI_NIRF_TRIGGER_SOURCE)
 {
 }
 
@@ -69,21 +69,26 @@ bool NirfEmission::initialize()
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	if ((res = DAQmxCfgSampClkTiming(_taskHandle, NI_NIRF_ALINES_SOURCE, max_rate, DAQmx_Val_Rising, DAQmx_Val_ContSamps, nAlines)) != 0) // "" / DAQmx_Val_FiniteSamps
+	if ((res = DAQmxCfgSampClkTiming(_taskHandle, alinesTrigger, max_rate, DAQmx_Val_Rising, DAQmx_Val_ContSamps, nAlines)) != 0) // "" / DAQmx_Val_FiniteSamps
 	{
 		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
 		return false;
 	}
-	//if ((res = DAQmxCfgDigEdgeStartTrig(_taskHandle, alinesTrigger, DAQmx_Val_Rising)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
-	//	return false;
-	//}
-	//if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
-	//{
-	//	dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
-	//	return false;
-	//}
+	if ((res = DAQmxCfgDigEdgeStartTrig(_taskHandle, alinesTrigger, DAQmx_Val_Rising)) != 0)
+	{
+		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+		return false;
+	}
+	if ((res = DAQmxSetBufInputBufSize(_taskHandle, 100 * nAlines)) != 0)
+	{
+		dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+		return false;
+	}
+	///if ((res = DAQmxSetStartTrigRetriggerable(_taskHandle, 1)) != 0)
+	///{
+	///	dumpError(res, "ERROR: Failed to set NIRF emission acquisition: ");
+	///	return false;
+	///}
 
 	if ((res = DAQmxRegisterEveryNSamplesEvent(_taskHandle, DAQmx_Val_Acquired_Into_Buffer, nAlines, 0, EveryNCallback, this)) != 0)
 	{
@@ -110,6 +115,7 @@ void NirfEmission::start()
 			return;
 		}
 		startTime = chrono::steady_clock::now();
+		startTimeUpdate = chrono::steady_clock::now();
 	}
 }
 
@@ -175,10 +181,16 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 
 		endTime = chrono::steady_clock::now();
 		chrono::milliseconds elapsed = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
+		chrono::milliseconds elapsedUpdate = chrono::duration_cast<chrono::milliseconds>(endTime - startTimeUpdate);
 
 		if (pNirfEmission->nAcqs % 500 == 0)
-			printf("@@ NIRF time: %.2f sec // NIRF rate: %.2f acqs/sec\n", 
-				(double)elapsed.count() / 1000.0, 1000.0 * (double)pNirfEmission->nAcqs / (double)elapsed.count());
+		{
+			printf("@@ NIRF time: %.2f sec // NIRF rate: %.2f acqs/sec\n",
+				(double)elapsed.count() / 1000.0, 1000.0 * (double)pNirfEmission->nAcqs / (double)elapsedUpdate.count());
+
+			pNirfEmission->nAcqs = 0;
+			startTimeUpdate = chrono::steady_clock::now();
+		}
 	}
 
 	(void)nSamples;

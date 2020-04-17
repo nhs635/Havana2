@@ -68,7 +68,7 @@ bool AlazarDAQ::initialize()
 
 	// Specify the sample rate (see sample rate id below)
     // double samplesPerSec = 500.e6;
-    const U32 SamplingRate = SAMPLE_RATE_800MSPS;  // SAMPLE_RATE_500MSPS; // only for internal clock
+    const U32 SamplingRate = SAMPLE_RATE_1200MSPS;  // SAMPLE_RATE_500MSPS; // only for internal clock
 
 	// Select clock parameters as required to generate this sample rate.
 	//
@@ -278,7 +278,7 @@ void AlazarDAQ::run()
     int channelCount = nChannels;
 
     // Select which channels to capture (A, B, or both)
-    U32 channelMask = CHANNEL_A | CHANNEL_B;
+    U32 channelMask = (channelCount == 2) ? CHANNEL_A | CHANNEL_B : CHANNEL_A;
 
     // Get the sample size in bits, and the on-board memory size in samples per channel
     U8 bitsPerSample;
@@ -464,7 +464,7 @@ void AlazarDAQ::run()
                 // - a sample code of 0x800 represents a ~0V signal.
                 // - a sample code of 0xFFF represents a positive full scale input signal.
 
-                if (nChannels == 2)
+                //if (nChannels == 2)
                 {
                     // Callback
                     np::Array<uint16_t, 2> frame(pBuffer, channelCount * nScans, nAlines);
@@ -577,8 +577,8 @@ void AlazarDAQ::run()
 // Dump a Alazar library error
 void AlazarDAQ::dumpError(RETURN_CODE retCode, const char* pPreamble)
 {
-    char *pErr = nullptr;
-    int my_res;
+//    char *pErr = nullptr;
+//    int my_res;
     char msg[MAX_MSG_LENGTH];
     memcpy(msg, pPreamble, strlen(pPreamble));
 

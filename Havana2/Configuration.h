@@ -1,14 +1,14 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.5"
+#define VERSION						"1.2.6.6"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               true
+#define ALAZAR_ENABLE               false
 
 #define NI_ENABLE					true
 
@@ -29,7 +29,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-#define AXSUN_OCT_LASER
+//#define AXSUN_OCT_LASER
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
@@ -40,7 +40,7 @@
 //#define TWO_CHANNEL_NIRF
 #endif
 //#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -50,7 +50,7 @@
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #elif ALAZAR_ENABLE
-#define ADC_RATE                    1000 // MS/sec
+#define ADC_RATE                    1200 // MS/sec
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -76,7 +76,7 @@
 #endif
 
 #ifdef OCT_NIRF
-#define ALINE_RATE					200318
+#define ALINE_RATE					200318 // approximated value (should be larger than the actual value)
 
 #define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI9" // "/Dev3/PFI0"
 #ifndef TWO_CHANNEL_NIRF
@@ -84,8 +84,8 @@
 #else
 #define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0, Dev1/ai7" // "Dev3/ai0"
 #endif
-#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
-#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI10" // "/Dev3/PFI1"
+///#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
+///#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI10" // "/Dev3/PFI1"
 
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 #ifndef TWO_CHANNEL_NIRF
@@ -110,13 +110,13 @@
 #define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 #define ZABER_HOME_OFFSET			0.0
 
-#define FAULHABER_NEW_CONTROLLER
-#define FAULHABER_PORT				"COM3"
+//#define FAULHABER_NEW_CONTROLLER
+#define FAULHABER_PORT				"COM4"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
 //////////////////////// Processing /////////////////////////
-#define FREQ_SHIFTING               false
+#define FREQ_SHIFTING               true
 
 #define DATA_HALVING				false // to be updated...
 
@@ -161,7 +161,7 @@
 
 #endif
 
-#define RENEWAL_COUNT				10
+#define RENEWAL_COUNT				5
 
 
 

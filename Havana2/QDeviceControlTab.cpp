@@ -924,8 +924,8 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 {
 #if NI_ENABLE
 	// Create NIRF emission acquisition objects
-	m_pNirfEmissionTrigger = new NirfEmissionTrigger;
-	m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
+	///m_pNirfEmissionTrigger = new NirfEmissionTrigger;
+	///m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
 
 	m_pNirfEmission = new NirfEmission;
 	m_pNirfEmission->nAlines = m_pConfig->nAlines;
@@ -948,8 +948,8 @@ bool QDeviceControlTab::startNiDaqAnalogInput()
 	// Generate trigger pulse & Start NIRF acquisition
 	if (m_pNirfEmission) m_pNirfEmission->start();
 
-	Sleep(100);
-	//if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
+	///Sleep(100);
+	///if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
 #endif
 
 	return true;
@@ -1395,11 +1395,11 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 			m_pNirfEmission->stop();
 			delete m_pNirfEmission;
 		}
-		//if (m_pNirfEmissionTrigger)
-		//{
-		//	m_pNirfEmissionTrigger->stop();
-		//	delete m_pNirfEmissionTrigger;
-		//}
+		///if (m_pNirfEmissionTrigger)
+		///{
+		///	m_pNirfEmissionTrigger->stop();
+		///	delete m_pNirfEmissionTrigger;
+		///}
 
 		// Set text
 		m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");

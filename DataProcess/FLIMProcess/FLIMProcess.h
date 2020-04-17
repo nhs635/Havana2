@@ -127,25 +127,26 @@ public:
 		int _nx = pParams.ch_start_ind[4] - pParams.ch_start_ind[0];
 		if ((nx != _nx) || !initiated)
 			initialize(pParams, _nx, FLIM_SPLINE_FACTOR, src.size(1));
+		int roi_len = (int)round(pulse_roi_length / ActualFactor);
 
 		// 1. Crop ROI
 		int offset = pParams.act_ch * src.size(0) / 4 + pParams.ch_start_ind[0] + pParams.pre_trig;
 		ippiConvert_16u32f_C1R(&src(offset, 0), sizeof(uint16_t) * src.size(0), 
 			crop_src.raw_ptr(), sizeof(float) * crop_src.size(0), srcSize);
 		
-		// 2. Determine whether saturated
-		ippsThreshold_32f(crop_src.raw_ptr(), sat_src.raw_ptr(), sat_src.length(), 63000, ippCmpLess);  // 65531
-		ippsSubC_32f_I(63000, sat_src.raw_ptr(), sat_src.length());
-		int roi_len = (int)round(pulse_roi_length / ActualFactor);		
-		for (int i = 1; i < 4; i++)
-		{
-			for (int j = 0; j < ny; j++)
-			{
-				saturated(j, i) = 0;
-				offset = pParams.ch_start_ind[i] - pParams.ch_start_ind[0];
-				ippsSum_32f(&sat_src(offset, j), roi_len, &saturated(j, i), ippAlgHintFast);
-			}
-		}
+		/// 2. Determine whether saturated
+		///ippsThreshold_32f(crop_src.raw_ptr(), sat_src.raw_ptr(), sat_src.length(), 63000, ippCmpLess);  // 65531
+		///ippsSubC_32f_I(63000, sat_src.raw_ptr(), sat_src.length());
+		///int roi_len = (int)round(pulse_roi_length / ActualFactor);		
+		///for (int i = 1; i < 4; i++)
+		///{
+		///	for (int j = 0; j < ny; j++)
+		///	{
+		///		saturated(j, i) = 0;
+		///		offset = pParams.ch_start_ind[i] - pParams.ch_start_ind[0];
+		///		ippsSum_32f(&sat_src(offset, j), roi_len, &saturated(j, i), ippAlgHintFast);
+		///	}
+		///}
 		
 		// 3. BG subtraction
 		ippsSubC_32f_I(pParams.bg, crop_src.raw_ptr(), crop_src.length());
@@ -188,6 +189,17 @@ public:
 							ippsSet_32f(0.0f, &mask_src(max_ind - 2, (int)i), 7);
 						}
 					}
+				}
+
+				// 5. Determine whether saturated
+				int thres = 31000;
+				ippsThreshold_32f(&mask_src(0, (int)i), &sat_src(0, (int)i), sat_src.size(0), thres, ippCmpLess); 
+				ippsSubC_32f_I(thres, &sat_src(0, (int)i), sat_src.size(0));
+				for (int j = 1; j < 4; j++)
+				{
+					saturated((int)i, j) = 0;
+					offset = pParams.ch_start_ind[j] - pParams.ch_start_ind[0];
+					ippsSum_32f(&sat_src(offset, (int)i), roi_len, &saturated((int)i, j), ippAlgHintFast);
 				}
 
 				/// 5. DC level auto-adjustment

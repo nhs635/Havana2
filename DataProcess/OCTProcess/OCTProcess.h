@@ -140,6 +140,8 @@ public:
     float* getFringe(int ch) { return &fringe(0, ch); }
 
     void generateCalibration(int discom_val = 0);
+	void removeCalibration();
+
     void changeDiscomValue(int discom_val = 0);
     //void saveCalibration(const char* calibpath = "calibration.dat");	
 	void saveCalibration(QString calibpath = "calibration.dat");

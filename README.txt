@@ -96,3 +96,5 @@ Havana2.VC*
   (FLIM ANN & Axsun OCT laser control)
 - Havana2 v1.2.6.5
   (NIRF Sync & FLIM Process)
+- Havana2 v1.2.6.6
+  (One channel enabled & calibration removal & NIRF sync)

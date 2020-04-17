@@ -3748,7 +3748,10 @@ void QResultTab::deinterleaving(Configuration* pConfig)
 				{
 					// Data deinterleaving
 					int frame_length = pConfig->nFrameSize / pConfig->nChannels;
-					ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+					if (pConfig->nChannels == 2)
+						ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+					else
+						memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
 					//printf("ch1,2proc: %d %d [%d]\n", m_syncCh1Processing.queue_buffer.size(), m_syncCh2Processing.queue_buffer.size(), frameCount);
 					frameCount++;
 
@@ -3813,7 +3816,10 @@ void QResultTab::deinterleavingInBuffer(Configuration* pConfig)
 			{
 				// Data deinterleaving
 				int frame_length = pConfig->nFrameSize / pConfig->nChannels;
-				ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+				if (pConfig->nChannels == 2)
+					ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+				else
+					memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
 				//printf("ch1,2proc: %d %d [%d]\n", m_syncCh1Processing.queue_buffer.size(), m_syncCh2Processing.queue_buffer.size(), frameCount);
 				frameCount++;
 
