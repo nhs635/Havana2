@@ -82,7 +82,7 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			// 3. Fourier transform (21 msec)
 			fft1((Ipp32fc*)(fft_complex.raw_ptr() + f1), signal.raw_ptr() + f1, (int)i);
 
-#if FREQ_SHIFTING
+#ifdef FREQ_SHIFTING
             // 4. Circshift by nfft/4 & Remove virtual peak & Inverse Fourier transform (5+19 sec)
 			std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);            
             ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
@@ -107,7 +107,7 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			ippsLog10_32f_A11(fft2_linear.raw_ptr() + f2, img + f2, fft2_size.width);
 			ippsMulC_32f_I(10.0f, img + f2, fft2_size.width);
 			
-#if FREQ_SHIFTING
+#ifdef FREQ_SHIFTING
 			// 9. Circshift by -nfft/2 (1 msec)
 			std::rotate(img + f2, img + f2 + fft2_size.width / 2, img + f2 + fft2_size.width);
 #endif
@@ -135,7 +135,7 @@ void OCTProcess::operator()(float* lin_img, uint16_t* fringe, const char* linear
 			// 3. Fourier transform (21 msec)
 			fft1((Ipp32fc*)(fft_complex.raw_ptr() + f1), signal.raw_ptr() + f1, (int)i);
 
-#if FREQ_SHIFTING
+#ifdef FREQ_SHIFTING
             // 4. Circshift by nfft/4 & Remove virtual peak & Inverse Fourier transform (5+19 sec)
             std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);
             ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
@@ -158,7 +158,7 @@ void OCTProcess::operator()(float* lin_img, uint16_t* fringe, const char* linear
 			// 8. Power spectrum (2 msec)
 			ippsPowerSpectr_32fc((const Ipp32fc*)(fft2_complex.raw_ptr() + f2), lin_img + f2, fft2_size.width);
 
-#if FREQ_SHIFTING
+#ifdef FREQ_SHIFTING
 			// 9. Circshift by -nfft/2 (1 msec)
 			std::rotate(lin_img + f2, lin_img + f2 + fft2_size.width / 2, lin_img + f2 + fft2_size.width);
 #endif
@@ -230,7 +230,7 @@ void OCTProcess::generateCalibration(int discom_val)
 
             ippsMul_32f32fc_I(mask.raw_ptr(), (Ipp32fc*)&res(0, ch), fft_size.width);
 
-#if FREQ_SHIFTING
+#ifdef FREQ_SHIFTING
             // 3. Frequency shifting effect removal
             std::rotate(&res(0, ch), &res(3 * fft_size.width / 4, ch), &res(fft_size.width, ch));
             //ippsSet_32f(0.0f, (Ipp32f*)&res(fft_size.width / 4, ch), fft_size.width); // should be removed?

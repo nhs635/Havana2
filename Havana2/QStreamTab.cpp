@@ -17,7 +17,11 @@
 #endif
 #include <Havana2/Viewer/QImageView.h>
 
+#ifndef CUDA_ENABLED
 #include <DataProcess/OCTProcess/OCTProcess.h>
+#else
+#include <CUDA/CudaOCTProcess.cuh>
+#endif
 #ifdef OCT_FLIM
 #include <DataProcess/FLIMProcess/FLIMProcess.h>
 #endif
@@ -54,22 +58,43 @@ QStreamTab::QStreamTab(QWidget *parent) :
 
 	// Create data process object
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 	m_pOCT = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT->loadCalibration();
 	m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+	m_pOCT = new CudaOCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
+	m_pOCT->loadCalibration();
+	m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
+	m_pOCT->initialize();
+#endif
 
 	m_pFLIM = new FLIMProcess;
 	m_pFLIM->setParameters(m_pConfig);
 	m_pFLIM->_resize(np::Uint16Array2(m_pConfig->fnScans, m_pConfig->n4Alines), m_pFLIM->_params);
 	m_pFLIM->loadMaskData();
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 	m_pOCT1 = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT1->loadCalibration(CH_1);
 	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+	m_pOCT1 = new CudaOCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
+	m_pOCT1->loadCalibration(CH_1);
+	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+	m_pOCT1->initialize();
+#endif
 #ifdef DUAL_CHANNEL
+#ifndef CUDA_ENABLED
 	m_pOCT2 = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
 	m_pOCT2->loadCalibration(CH_2);
 	m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+	m_pOCT2 = new CudaOCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
+	m_pOCT2->loadCalibration(CH_2);
+	m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+	m_pOCT2->initialize();
+#endif
 #endif
 #endif	
 
@@ -169,7 +194,11 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #endif
 #endif
 	
+#ifndef CUDA_ENABLED
 	m_pCirc = new circularize(m_pConfig->circRadius, m_pConfig->nAlines, false);
+#else
+	m_pCirc = new CudaCircularize(m_pConfig->circRadius, m_pConfig->nAlines, m_pConfig->n2ScansFFT);
+#endif
 	m_pMedfilt = new medfilt(m_pConfig->nAlines, m_pConfig->n2ScansFFT, 3, 3);
 
 
@@ -1371,9 +1400,18 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #ifdef OCT_FLIM
 	if (m_pOCT)
 	{
+#ifndef CUDA_ENABLED
 		delete m_pOCT;
 		m_pOCT = new OCTProcess(m_pConfig->nScans, nAlines);
 		m_pOCT->loadCalibration();
+		m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+		delete m_pOCT;
+		m_pOCT = new CudaOCTProcess(m_pConfig->nScans, nAlines);
+		m_pOCT->loadCalibration();
+		m_pOCT->changeDiscomValue(m_pConfig->octDiscomVal);
+		m_pOCT->initialize();
+#endif
 	}
 	if (m_pFLIM)
 	{
@@ -1384,16 +1422,34 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #elif defined (STANDALONE_OCT)
 	if (m_pOCT1)
 	{
+#ifndef CUDA_ENABLED
 		delete m_pOCT1;
 		m_pOCT1 = new OCTProcess(m_pConfig->nScans, nAlines);
 		m_pOCT1->loadCalibration(CH_1);
+		m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+		delete m_pOCT1;
+		m_pOCT1 = new CudaOCTProcess(m_pConfig->nScans, nAlines);
+		m_pOCT1->loadCalibration(CH_1);
+		m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
+		m_pOCT1->initialize();
+#endif
 	}
 #ifdef DUAL_CHANNEL
 	if (m_pOCT2)
 	{
+#ifndef CUDA_ENABLED
 		delete m_pOCT2;
 		m_pOCT2 = new OCTProcess(m_pConfig->nScans, nAlines);
 		m_pOCT2->loadCalibration(CH_2);
+		m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+#else
+		delete m_pOCT2;
+		m_pOCT2 = new CudaOCTProcess(m_pConfig->nScans, nAlines);
+		m_pOCT2->loadCalibration(CH_2);
+		m_pOCT2->changeDiscomValue(m_pConfig->octDiscomVal);
+		m_pOCT2->initialize();
+#endif
 	}
 #endif
 #endif
@@ -1517,7 +1573,11 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	if (m_pCirc)
 	{
 		delete m_pCirc;
+#ifndef CUDA_ENABLED
 		m_pCirc = new circularize(m_pConfig->circRadius, nAlines, false);
+#else
+		m_pCirc = new CudaCircularize(m_pConfig->circRadius, nAlines, m_pConfig->n2ScansFFT);
+#endif
 	}
 	if (m_pMedfilt)
 	{
@@ -1607,7 +1667,11 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	}
 	else // circ image
     {
+#ifndef CUDA_ENABLED
 		(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", m_pConfig->circCenter);
+#else
+		(*m_pCirc)(m_pImgObjRectImage->arr.raw_ptr(), m_pImgObjCircImage->arr.raw_ptr(), m_pConfig->circCenter);
+#endif
 		emit paintCircImage(m_pImgObjCircImage->qindeximg.bits());
 	}
 
@@ -1694,7 +1758,11 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 		memcpy(rectObj->qrgbimg.bits() + 3 * rectObj->arr.size(0) * (m_pConfig->circCenter + m_pConfig->circRadius - 1 * m_pConfig->ringThickness), lftObj->qrgbimg.bits(), lftObj->qrgbimg.byteCount());
 
 		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
+#ifndef CUDA_ENABLED
 		(*m_pCirc)(rect_temp, circObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+#else
+		(*m_pCirc)(rect_temp.raw_ptr(), circObj->qrgbimg.bits(), "rgb", m_pConfig->circCenter);
+#endif
 
 		// Draw image  
 		m_pImageView_CircImage->drawImage(circObj->qrgbimg.bits());
@@ -1752,7 +1820,11 @@ void QStreamTab::constructRgbImage(ImageObject *rectObj, ImageObject *circObj, I
 #endif
 
 		np::Uint8Array2 rect_temp(rectObj->qrgbimg.bits(), 3 * rectObj->arr.size(0), rectObj->arr.size(1));
+#ifndef CUDA_ENABLED
 		(*m_pCirc)(rect_temp, circObj->qrgbimg.bits(), "vertical", "rgb", m_pConfig->circCenter);
+#else
+		(*m_pCirc)(rect_temp.raw_ptr(), circObj->qrgbimg.bits(), "rgb", m_pConfig->circCenter);
+#endif
 
 		// Draw image  
 		m_pImageView_CircImage->drawImage(circObj->qrgbimg.bits());
@@ -2049,7 +2121,11 @@ void QStreamTab::checkCircRadius(const QString &str)
 	if (m_pCirc)
 	{
 		delete m_pCirc;
+#ifndef CUDA_ENABLED
 		m_pCirc = new circularize(circRadius, m_pConfig->nAlines, false);
+#else
+		m_pCirc = new CudaCircularize(circRadius, m_pConfig->nAlines, m_pConfig->n2ScansFFT);
+#endif
 	}
 
 	// Renewal

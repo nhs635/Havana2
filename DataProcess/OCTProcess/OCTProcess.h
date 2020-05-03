@@ -138,6 +138,10 @@ public:
     float* getBg() { return bg.raw_ptr(); }
     float* getBg0() { return bg0.raw_ptr(); }
     float* getFringe(int ch) { return &fringe(0, ch); }
+	float* getWin() { return win.raw_ptr(); }
+	float* getCalibIndex() { return calib_index.raw_ptr(); }
+	float* getCalibWeight() { return calib_weight.raw_ptr(); }
+	auto getDispComp() { return dispersion1.raw_ptr(); }
 
     void generateCalibration(int discom_val = 0);
 	void removeCalibration();

@@ -32,12 +32,12 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 {
     // Set default size & frame
 #ifdef OCT_FLIM
-    setFixedSize(390, 160);
+    setFixedSize(420, 160);
 #elif defined (STANDALONE_OCT)
 #ifndef OCT_NIRF
-	setFixedSize(420, 100);
+	setFixedSize(450, 100);
 #else
-    setFixedSize(420, 145);
+    setFixedSize(450, 145);
 #endif
 #endif
     setWindowFlags(Qt::Tool);
@@ -1866,7 +1866,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 			// Circularize
 			if (checkList.bCirc)
+#ifndef CUDA_ENABLED
 				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qindeximg.bits(), "vertical", center);
+#else
+				(*m_pResultTab->m_pCirc)(rect_temp.raw_ptr(), pCircImgObj->qindeximg.bits(), center);
+#endif
 
 #ifdef OCT_NIRF
 			// NIRF ring only here
@@ -1880,7 +1884,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #ifndef TWO_CHANNEL_NIRF
 				rect_nirf_temp = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
 				if (checkList.bCirc)
+#ifndef CUDA_ENABLED
 					(*m_pResultTab->m_pCirc)(rect_nirf_temp, pCircNirfObj->qindeximg.bits(), "vertical", pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius);
+#else
+					(*m_pResultTab->m_pCirc)(rect_nirf_temp, pCircNirfObj->qindeximg.bits(), pImgObjVec->at(1)->arr.size(1) - m_pResultTab->getConfigTemp()->circRadius);
+#endif
 #else
 				rect_nirf_temp1 = np::Uint8Array2(pImgObjVec->at(1)->qindeximg.bits(), pImgObjVec->at(1)->arr.size(0), pImgObjVec->at(1)->arr.size(1));
 				rect_nirf_temp2 = np::Uint8Array2(pImgObjVec->at(2)->qindeximg.bits(), pImgObjVec->at(2)->arr.size(0), pImgObjVec->at(2)->arr.size(1));
@@ -1981,7 +1989,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 								pImgObjVec->at(2 + 2 * i)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0)); // Lifetime
 						}
 						// Circularize
+#ifndef CUDA_ENABLED
 						(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[i]->qrgbimg.bits(), "vertical", "rgb", center);
+#else
+						(*m_pResultTab->m_pCirc)(rect_temp.raw_ptr(), pCircImgObj[i]->qrgbimg.bits(), "rgb", center);
+#endif
 					}
 
 					// Longitudinal
@@ -2035,7 +2047,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 				// Circularize
 				if (checkList.bCirc)
+#ifndef CUDA_ENABLED
 					(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj[0]->qrgbimg.bits(), "vertical", "rgb", center);
+#else
+					(*m_pResultTab->m_pCirc)(rect_temp.raw_ptr(), pCircImgObj[0]->qrgbimg.bits(), "rgb", center);
+#endif
 
 				// Longitudinal
 				if (checkList.bLongi)
@@ -2087,7 +2103,11 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 			// Circularize
 			if (checkList.bCirc)
+#ifndef CUDA_ENABLED
 				(*m_pResultTab->m_pCirc)(rect_temp, pCircImgObj->qrgbimg.bits(), "vertical", "rgb", center);
+#else
+				(*m_pResultTab->m_pCirc)(rect_temp.raw_ptr(), pCircImgObj->qrgbimg.bits(), "rgb", center);
+#endif
 			
 			// Longitudinal
 			if (checkList.bLongi)

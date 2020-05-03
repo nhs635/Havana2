@@ -13,6 +13,9 @@
 #include <Common/array.h>
 #include <Common/circularize.h>
 #include <Common/medfilt.h>
+#ifdef CUDA_ENABLED
+#include <CUDA/CudaCircularize.cuh>
+#endif
 #include <Common/Queue.h>
 #include <Common/ImageObject.h>
 #include <Common/basic_functions.h>

@@ -13,7 +13,11 @@
 
 class MainWindow;
 class QStreamTab;
+#ifndef CUDA_ENABLED
 class OCTProcess;
+#else
+class CudaOCTProcess;
+#endif
 
 
 class OctCalibDlg : public QDialog
@@ -74,11 +78,23 @@ private:
 	Configuration* m_pConfig;
     QStreamTab* m_pStreamTab;
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT;
+#else
+	CudaOCTProcess* m_pOCT;
+#endif
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT1;
+#else
+	CudaOCTProcess* m_pOCT1;
+#endif
 #ifdef DUAL_CHANNEL
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT2;
+#else
+	CudaOCTProcess* m_pOCT2;
+#endif
 #endif
 #endif
 

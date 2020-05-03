@@ -68,6 +68,9 @@ win32 {
     LIBS += $$PWD/lib/intel64_win/mkl_core.lib \
             $$PWD/lib/intel64_win/mkl_tbb_thread.lib \
             $$PWD/lib/intel64_win/mkl_intel_lp64.lib
+    LIBS += $$PWD/lib/cuda.lib \
+            $$PWD/lib/cudart.lib \
+            $$PWD/lib/cufft.lib
 }
 
 
@@ -117,6 +120,9 @@ SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
     DeviceControl/ZaberStage/zb_serial.cpp \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.cpp
 
+SOURCES += CUDA/CudaOCTProcess.cu \
+    CUDA/CudaCircularize.cu
+
 
 HEADERS += Havana2/Configuration.h \
     Havana2/MainWindow.h \
@@ -164,6 +170,9 @@ HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
     DeviceControl/ZaberStage/zb_serial.h \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.h \
     DeviceControl/QSerialComm.h
+
+HEADERS += CUDA/CudaOCTProcess.cuh \
+    CUDA/CudaCircularize.cuh
 
 
 FORMS    += Havana2/MainWindow.ui

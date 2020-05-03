@@ -335,7 +335,7 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		painter.drawImage(QRect(0, 0, w, h), *m_pImage, m_rectMagnified);
 	}
 
-	// Draw assitive lines
+	// Draw assitive lines - horizontal
 	for (int i = 0; i < m_hLineLen; i++)
 	{
 		QPointF p1, p2;
@@ -347,6 +347,8 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		painter.setPen(m_colorLine);
 		painter.drawLine(p1, p2);
 	}
+
+	// Draw assitive lines - vertical 
 	for (int i = 0; i < m_vLineLen; i++)
 	{
 		QPointF p1, p2;
@@ -398,6 +400,8 @@ void QRenderImage::paintEvent(QPaintEvent *)
 			painter.drawLine(p1, p2);
 		}
 	}
+
+	// Draw assitive lines - circular 
 	for (int i = 0; i < m_circLen; i++)
 	{
 		int center_x = ((double)m_pImage->width() / 2.0 - (double)m_rectMagnified.left()) * (double)w / (double)m_rectMagnified.width();
@@ -408,19 +412,21 @@ void QRenderImage::paintEvent(QPaintEvent *)
 		painter.setPen(m_colorLine);
 		painter.drawEllipse(center, radius, radius);
 	}
+
+	// Draw assitive lines - contour
     if (m_contour.length() != 0)
     {
-		QPen pen; pen.setColor(Qt::green); pen.setWidth(3);
+		QPen pen; pen.setColor(Qt::green); pen.setWidth(2);
         painter.setPen(pen);
 		if (w != h)
 		{
 			for (int i = 0; i < m_contour.length() - 1; i++)
 			{
 				QPointF x0, x1;
-				x0.setX((float)(i) / (float)m_contour.length() * (float)w);
-				x0.setY((float)(m_contour[i]) / (float)m_pImage->height() * (float)h);
-				x1.setX((float)(i + 1) / (float)m_contour.length() * w);
-				x1.setY((float)(m_contour[i + 1]) / (float)m_pImage->height() * (float)h);
+				x0.setX((double)((i - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+				x0.setY((double)((m_contour[i] - m_rectMagnified.top()) * h) / (double)m_fMagnLevel / (double)m_pImage->height());
+				x1.setX((double)((i + 1 - m_rectMagnified.left()) * w) / (double)m_fMagnLevel / (double)m_pImage->width());
+				x1.setY((double)((m_contour[i + 1] - m_rectMagnified.top()) * h) / (double)m_fMagnLevel / (double)m_pImage->height());
 
 				painter.drawLine(x0, x1);
 			}
@@ -434,10 +440,10 @@ void QRenderImage::paintEvent(QPaintEvent *)
 				float r0 = (float)(m_contour[i] + m_contour_offset) / (float)m_pImage->height() * (float)h;
 				float t1 = (float)(i + 1) / (float)m_contour.length() * (float)IPP_2PI;
 				float r1 = (float)(m_contour[i + 1] + m_contour_offset) / (float)m_pImage->height() * (float)h;
-				x0.setX(r0 * cosf(t0) + h / 2);
-				x0.setY(r0 * sinf(-t0) + h / 2);
-				x1.setX(r1 * cosf(t1) + h / 2);
-				x1.setY(r1 * sinf(-t1) + h / 2);
+				x0.setX((r0 * cosf(t0) + h / 2) / (double)m_fMagnLevel - double(m_rectMagnified.left() * (float)w / m_fMagnLevel / (float)m_pImage->width()));
+				x0.setY((r0 * sinf(-t0) + h / 2) / (double)m_fMagnLevel - double(m_rectMagnified.top() * (float)h / m_fMagnLevel / (float)m_pImage->height()));
+				x1.setX((r1 * cosf(t1) + h / 2) / (double)m_fMagnLevel - double(m_rectMagnified.left() * (float)w / m_fMagnLevel / (float)m_pImage->width()));
+				x1.setY((r1 * sinf(-t1) + h / 2) / (double)m_fMagnLevel - double(m_rectMagnified.top() * (float)h / m_fMagnLevel / (float)m_pImage->height()));
 
 				painter.drawLine(x0, x1);
 			}

@@ -4,7 +4,7 @@
 #include <Havana2/Configuration.h>
 #include <QtWidgets/QMessageBox.h>
 
-#ifdef OCT_NIRF
+#ifdef OCT_NIRF_DISABLE
 
 #if NI_ENABLE
 #include <NIDAQmx.h>

@@ -36,6 +36,7 @@ public:
     inline bool isTBRMode() const { return m_pToggleButton_TBRMode->isChecked(); }
     inline bool isFiltered() const { return m_pCheckBox_Filtering->isChecked(); }
 	inline bool isZeroTbr() const { return m_pCheckBox_ZeroTBRDefinition->isChecked(); }
+	inline bool isShowLumContour() const { return m_pCheckBox_ShowLumenContour->isChecked(); }
 	
 public slots:
 	void setWidgetEnabled(bool enabled);
@@ -51,6 +52,7 @@ private slots:
 	void tbrZeroDefinition(bool);
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
+	void showLumenContour(bool);
 
 public:
 	void getCompInfo(const QString &);
@@ -127,6 +129,9 @@ private:
 
     QLabel *m_pLabel_TBR_Background;
     QLineEdit *m_pLineEdit_TBR_Background;
+
+	// Widgets for indicator
+	QCheckBox *m_pCheckBox_ShowLumenContour;
 #endif
 };
 

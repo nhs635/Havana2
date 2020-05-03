@@ -24,7 +24,11 @@
 
 #include <MemoryBuffer/MemoryBuffer.h>
 
+#ifndef CUDA_ENABLED
 #include <DataProcess/OCTProcess/OCTProcess.h>
+#else
+#include <CUDA/CudaOCTProcess.cuh>
+#endif
 #ifdef OCT_FLIM
 #include <DataProcess/FLIMProcess/FLIMProcess.h>
 #endif
@@ -1330,27 +1334,38 @@ void QResultTab::visualizeImage(int frame)
 		
         if (m_pNirfDistCompDlg)
         {
-#ifndef TWO_CHANNEL_NIRF
-            np::Uint16Array contour(m_nirfMap.size(0));
-#else
-			np::Uint16Array contour(m_nirfMap1.size(0));
-#endif
-			if (m_pNirfDistCompDlg->distMap.length() > 0)
+			if (m_pNirfDistCompDlg->isShowLumContour())
 			{
-				memcpy(contour, &m_pNirfDistCompDlg->distMap(0, frame), sizeof(uint16_t) * contour.length());
-#ifdef GALVANO_MIRROR
-				if (m_pConfig->galvoHorizontalShift)
-					std::rotate(contour.raw_ptr(), contour.raw_ptr() + m_pConfig->galvoHorizontalShift, contour.raw_ptr() + contour.length());
+#ifndef TWO_CHANNEL_NIRF
+				np::Uint16Array contour(m_nirfMap.size(0));
+#else
+				np::Uint16Array contour(m_nirfMap1.size(0));
 #endif
-				ippsAddC_16u_ISfs((Ipp16u)m_pConfig->nirfLumContourOffset, contour.raw_ptr(), contour.length(), 0);
-				m_pImageView_RectImage->setContour(contour.length(), contour.raw_ptr());
-				m_pImageView_RectImage->setHorizontalLine(2, m_pConfig->nirfOuterSheathPos, m_pConfig->nirfOuterSheathPos);
-				m_pImageView_RectImage->setHorizontalLineColor(2, 0xff0000, 0xff0000);
-				
-				int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-					(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 4) + m_polishedSurface(frame) - m_pConfig->ballRadius;				
-				m_pImageView_CircImage->setContour(contour.length(), contour.raw_ptr());
-				m_pImageView_CircImage->getRender()->m_contour_offset = -center;
+				if (m_pNirfDistCompDlg->distMap.length() > 0)
+				{
+					memcpy(contour, &m_pNirfDistCompDlg->distMap(0, frame), sizeof(uint16_t) * contour.length());
+#ifdef GALVANO_MIRROR
+					if (m_pConfig->galvoHorizontalShift)
+						std::rotate(contour.raw_ptr(), contour.raw_ptr() + m_pConfig->galvoHorizontalShift, contour.raw_ptr() + contour.length());
+#endif
+					ippsAddC_16u_ISfs((Ipp16u)m_pConfig->nirfLumContourOffset, contour.raw_ptr(), contour.length(), 0);
+					m_pImageView_RectImage->setContour(contour.length(), contour.raw_ptr());
+					m_pImageView_RectImage->setHorizontalLine(2, m_pConfig->nirfOuterSheathPos, m_pConfig->nirfOuterSheathPos);
+					m_pImageView_RectImage->setHorizontalLineColor(2, 0xff0000, 0xff0000);
+
+					int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+						(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 4) + m_polishedSurface(frame) - m_pConfig->ballRadius;
+					m_pImageView_CircImage->setContour(contour.length(), contour.raw_ptr());
+					m_pImageView_CircImage->getRender()->m_contour_offset = -center;
+				}
+			}
+			else
+			{
+				m_pImageView_RectImage->setContour(0, nullptr);
+				m_pImageView_RectImage->setHorizontalLine(0);
+				m_pImageView_RectImage->setHorizontalLineColor(0);
+
+				m_pImageView_CircImage->setContour(0, nullptr);
 			}
         }
 
@@ -1378,7 +1393,11 @@ void QResultTab::visualizeImage(int frame)
 		}
 		else
 		{
+#ifndef CUDA_ENABLED
 			(*m_pCirc)(m_pImgObjRectImage->arr, m_pImgObjCircImage->arr.raw_ptr(), "vertical", center);
+#else
+			(*m_pCirc)(m_pImgObjRectImage->arr.raw_ptr(), m_pImgObjCircImage->arr.raw_ptr(), center);
+#endif
 			if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(m_pImgObjCircImage->qindeximg.bits());
 		}
 #endif
@@ -1496,7 +1515,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 		
 				
 		np::Uint8Array2 rect_temp(pRectObj->qrgbimg.bits(), 3 * pRectObj->arr.size(0), pRectObj->arr.size(1));
+#ifndef CUDA_ENABLED
 		(*m_pCirc)(rect_temp, pCircObj->qrgbimg.bits(), "vertical", "rgb", center);
+#else
+		(*m_pCirc)(rect_temp.raw_ptr(), pCircObj->qrgbimg.bits(), "rgb", center);
+#endif
 		
 		// Draw image        
         if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(pCircObj->qrgbimg.bits());
@@ -1558,7 +1581,11 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 
 		// Circularize
 		np::Uint8Array2 rect_temp(pRectObj->qrgbimg.bits(), 3 * pRectObj->arr.size(0), pRectObj->arr.size(1));
+#ifndef CUDA_ENABLED
 		(*m_pCirc)(rect_temp, pCircObj->qrgbimg.bits(), "vertical", "rgb", center);
+#else
+		(*m_pCirc)(rect_temp.raw_ptr(), pCircObj->qrgbimg.bits(), "rgb", center);
+#endif
 
 		// Draw image        
 		if (m_pImageView_CircImage->isEnabled()) emit paintCircImage(pCircObj->qrgbimg.bits());
@@ -2238,7 +2265,11 @@ void QResultTab::checkCircRadius(const QString &str)
 	if (m_pCirc)
 	{
 		delete m_pCirc;
+#ifndef CUDA_ENABLED
 		m_pCirc = new circularize(circRadius, m_pConfigTemp->nAlines, false);
+#else
+		m_pCirc = new CudaCircularize(circRadius, m_pConfigTemp->nAlines, m_pConfigTemp->n2ScansFFT);
+#endif
 	}
 
 	// Set Dialog
@@ -2654,12 +2685,24 @@ void QResultTab::inBufferDataProcessing()
 #endif
 		// Set OCT FLIM Object //////////////////////////////////////////////////////////////////////
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 		OCTProcess* pOCT = m_pMainWnd->m_pStreamTab->m_pOCT;
+#else
+		CudaOCTProcess* pOCT = m_pMainWnd->m_pStreamTab->m_pOCT;
+#endif
 		m_pFLIMpost = m_pMainWnd->m_pStreamTab->m_pFLIM;
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 		OCTProcess* pOCT1 = m_pMainWnd->m_pStreamTab->m_pOCT1;
+#else
+		CudaOCTProcess* pOCT1 = m_pMainWnd->m_pStreamTab->m_pOCT1;
+#endif
 #ifdef DUAL_CHANNEL
+#ifndef CUDA_ENABLED
 		OCTProcess* pOCT2 = m_pMainWnd->m_pStreamTab->m_pOCT2;
+#else
+		CudaOCTProcess* pOCT2 = m_pMainWnd->m_pStreamTab->m_pOCT2;
+#endif
 #endif
 #endif				
 		// Data DeInterleaving & FLIM Process ///////////////////////////////////////////////////////
@@ -2845,10 +2888,16 @@ void QResultTab::externalDataProcessing()
 #endif
 				// Set OCT FLIM Object //////////////////////////////////////////////////////////////////////
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 				OCTProcess* pOCT = new OCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
-				pOCT->loadCalibration(CH_1, calibName, bgName, m_pConfigTemp->erasmus);
+				pOCT->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
 				pOCT->changeDiscomValue(m_pConfigTemp->octDiscomVal);
-
+#else
+				CudaOCTProcess* pOCT = new CudaOCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
+				pOCT->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+				pOCT->changeDiscomValue(m_pConfigTemp->octDiscomVal);
+				pOCT->initialize();
+#endif
 				if (m_pFLIMpost) if (m_pFLIMpost != m_pMainWnd->m_pStreamTab->m_pFLIM) delete m_pFLIMpost;
 				m_pFLIMpost = new FLIMProcess;
 				m_pFLIMpost->setParameters(m_pConfigTemp);
@@ -2856,14 +2905,27 @@ void QResultTab::externalDataProcessing()
 				m_pFLIMpost->loadMaskData(maskName);
 
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 				OCTProcess* pOCT1 = new OCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
 				pOCT1->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
 				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
-
+#else
+				CudaOCTProcess* pOCT1 = new CudaOCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
+				pOCT1->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
+				pOCT1->initialize();
+#endif
 #ifdef DUAL_CHANNEL
+#ifndef CUDA_ENABLED
 				OCTProcess* pOCT2 = new OCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
-				pOCT2->loadCalibration(CH_2, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
-				pOCT2->changeDiscomValue(m_pConfigTemp->octDiscomVal);
+				pOCT1->loadCalibration(CH_2, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
+#else
+				CudaOCTProcess* pOCT2 = new CudaOCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
+				pOCT1->loadCalibration(CH_2, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
+				pOCT2->initialize();
+#endif
 #endif
 #endif				
 				// Get external data ////////////////////////////////////////////////////////////////////////
@@ -3650,7 +3712,11 @@ void QResultTab::setObjects(Configuration* pConfig)
 
 	// Circ & Medfilt objects
     if (m_pCirc) delete m_pCirc;
+#ifndef CUDA_ENABLED
     m_pCirc = new circularize(m_pConfigTemp->circRadius, pConfig->nAlines, false);
+#else
+	m_pCirc = new CudaCircularize(m_pConfigTemp->circRadius, m_pConfigTemp->nAlines, m_pConfigTemp->n2ScansFFT);
+#endif
 
 	if (m_pMedfiltRect) delete m_pMedfiltRect;
 	m_pMedfiltRect = new medfilt(pConfig->nAlines, pConfig->n2ScansFFT, 3, 3); // median filtering kernel
@@ -3835,7 +3901,11 @@ void QResultTab::deinterleavingInBuffer(Configuration* pConfig)
 }
 
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 void QResultTab::octProcessing(OCTProcess* pOCT, Configuration* pConfig)
+#else
+void QResultTab::octProcessing(CudaOCTProcess* pOCT, Configuration* pConfig)
+#endif
 {	
 	int frameCount = 0;
 	while (frameCount < pConfig->nFrames)
@@ -3920,8 +3990,11 @@ void QResultTab::flimProcessing(FLIMProcess* pFLIM, Configuration* pConfig)
 	}
 }
 #elif defined (STANDALONE_OCT)
-
+#ifndef CUDA_ENABLED
 void QResultTab::octProcessing1(OCTProcess* pOCT, Configuration* pConfig)
+#else
+void QResultTab::octProcessing1(CudaOCTProcess* pOCT, Configuration* pConfig)
+#endif
 {
 	int frameCount = 0;
 	while (frameCount < pConfig->nFrames)
@@ -3983,7 +4056,11 @@ void QResultTab::octProcessing1(OCTProcess* pOCT, Configuration* pConfig)
 	}
 }
 
+#ifndef CUDA_ENABLED
 void QResultTab::octProcessing2(OCTProcess* pOCT, Configuration* pConfig)
+#else
+void QResultTab::octProcessing2(CudaOCTProcess* pOCT, Configuration* pConfig)
+#endif
 {
 	int frameCount = 0;
 	while (frameCount < pConfig->nFrames)

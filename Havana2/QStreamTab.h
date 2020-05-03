@@ -11,6 +11,10 @@
 #include <Common/circularize.h>
 #include <Common/medfilt.h>
 #include <Common/SyncObject.h>
+#ifdef CUDA_ENABLED
+#include <CUDA/CudaCircularize.cuh>
+#include <CUDA/Common/CudaSyncObject.cuh>
+#endif
 #include <Common/ImageObject.h>
 #include <Common/basic_functions.h>
 
@@ -25,7 +29,11 @@ class QScope2;
 #endif
 class QImageView;
 
+#ifndef CUDA_ENABLED
 class OCTProcess;
+#else
+class CudaOCTProcess;
+#endif
 #ifdef OCT_FLIM
 class FLIMProcess;
 #endif
@@ -216,12 +224,24 @@ private:
 public:
 	// Data process objects
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT;
+#else
+	CudaOCTProcess* m_pOCT;
+#endif
 	FLIMProcess* m_pFLIM;
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT1;
+#else
+	CudaOCTProcess* m_pOCT1;
+#endif
 #ifdef DUAL_CHANNEL
+#ifndef CUDA_ENABLED
 	OCTProcess* m_pOCT2;
+#else
+	CudaOCTProcess* m_pOCT2;
+#endif
 #endif
 #endif
 
@@ -235,8 +255,21 @@ public:
 private:
 	// Thread synchronization objects
 	SyncObject<uint16_t> m_syncDeinterleaving;
+#ifndef CUDA_ENABLED
 	SyncObject<uint16_t> m_syncCh1Processing;
 	SyncObject<uint16_t> m_syncCh2Processing;
+#else
+	CudaSyncObject<uint16_t> m_syncCh1Processing;
+#ifdef OCT_FLIM
+	SyncObject<uint16_t> m_syncCh2Processing;
+#else
+#ifdef DUAL_CHANNEL
+	CudaSyncObject<uint16_t> m_syncCh2Processing;
+#else
+	SyncObject<uint16_t> m_syncCh2Processing;
+#endif
+#endif
+#endif
 	SyncObject<float> m_syncCh1Visualization;
 	SyncObject<float> m_syncCh2Visualization;
 #ifdef STANDALONE_OCT
@@ -244,7 +277,7 @@ private:
 	SyncObject<double> m_syncNirfVisualization;
 #endif
 #endif
-
+	
 public:
 	// Visualization buffers
 #ifdef OCT_FLIM
@@ -288,7 +321,11 @@ public:
 #endif
 #endif
 #endif
+#ifndef CUDA_ENABLED
 	circularize* m_pCirc;
+#else
+	CudaCircularize* m_pCirc;
+#endif
 	medfilt* m_pMedfilt;
 
 

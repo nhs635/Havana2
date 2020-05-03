@@ -4,7 +4,11 @@
 #include <Havana2/MainWindow.h>
 #include <Havana2/QStreamTab.h>
 
+#ifndef CUDA_ENABLED
 #include <DataProcess/OCTProcess/OCTProcess.h>
+#else
+#include <CUDA/CudaOCTProcess.cuh>
+#endif
 
 #include <iostream>
 #include <thread>
@@ -392,8 +396,14 @@ void OctCalibDlg::generateCalibration()
 
 #ifdef OCT_FLIM
 	m_pOCT->generateCalibration(m_pConfig->octDiscomVal);
+#ifdef CUDA_ENABLED
+	m_pOCT->transferCalibData();
+#endif
 #elif defined (STANDALONE_OCT)
 	m_pOCT1->generateCalibration(m_pConfig->octDiscomVal);
+#ifdef CUDA_ENABLED
+	m_pOCT1->transferCalibData();
+#endif
 #endif
 }
 

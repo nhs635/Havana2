@@ -11,6 +11,10 @@
 #include <Common/circularize.h>
 #include <Common/medfilt.h>
 #include <Common/SyncObject.h>
+#ifdef CUDA_ENABLED
+#include <CUDA/CudaCircularize.cuh>
+#include <CUDA/Common/CudaSyncObject.cuh>
+#endif
 #include <Common/ImageObject.h>
 #include <Common/basic_functions.h>
 #include <Common/ann.h>
@@ -38,6 +42,9 @@ class NirfCrossTalkCompDlg;
 #endif
 
 class OCTProcess;
+#ifdef CUDA_ENABLED
+class CudaOCTProcess;
+#endif
 #ifdef OCT_FLIM
 class FLIMProcess;
 #endif
@@ -220,11 +227,20 @@ private:
 	void deinterleaving(Configuration* pConfig);
 	void deinterleavingInBuffer(Configuration* pConfig);
 #ifdef OCT_FLIM
+#ifndef CUDA_ENABLED
 	void octProcessing(OCTProcess* pOCT, Configuration* pConfig);	
+#else
+	void octProcessing(CudaOCTProcess* pOCT, Configuration* pConfig);
+#endif
 	void flimProcessing(FLIMProcess* pFLIM, Configuration* pConfig);
 #elif defined (STANDALONE_OCT)
+#ifndef CUDA_ENABLED
 	void octProcessing1(OCTProcess* pOCT, Configuration* pConfig);
 	void octProcessing2(OCTProcess* pOCT, Configuration* pConfig);
+#else
+	void octProcessing1(CudaOCTProcess* pOCT, Configuration* pConfig);
+	void octProcessing2(CudaOCTProcess* pOCT, Configuration* pConfig);
+#endif
 #ifdef DUAL_CHANNEL
 	void imageMerge(Configuration* pConfig);
 #endif
@@ -250,8 +266,21 @@ public:
 
 private: // for threading operation
 	SyncObject<uint16_t> m_syncDeinterleaving;
+#ifndef CUDA_ENABLED
 	SyncObject<uint16_t> m_syncCh1Processing;
 	SyncObject<uint16_t> m_syncCh2Processing;
+#else
+	CudaSyncObject<uint16_t> m_syncCh1Processing;
+#ifdef OCT_FLIM
+	SyncObject<uint16_t> m_syncCh2Processing;
+#else
+#ifdef DUAL_CHANNEL
+	CudaSyncObject<uint16_t> m_syncCh2Processing;
+#else
+	SyncObject<uint16_t> m_syncCh2Processing;
+#endif
+#endif
+#endif
 #ifdef STANDALONE_OCT
 #ifdef DUAL_CHANNEL
 	SyncObject<float> m_syncCh1Visualization;
@@ -319,7 +348,11 @@ public:
 #endif	
 
 public:
+#ifndef CUDA_ENABLED
 	circularize* m_pCirc;
+#else
+	CudaCircularize* m_pCirc;
+#endif
 	medfilt* m_pMedfiltRect;
 #ifdef OCT_FLIM
 	medfilt* m_pMedfiltIntensityMap;

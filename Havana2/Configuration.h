@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.6.6"
+#define VERSION						"1.2.7"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -10,7 +10,7 @@
 #define PX14_ENABLE                 false
 #define ALAZAR_ENABLE               false
 
-#define NI_ENABLE					true
+#define NI_ENABLE					false
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
@@ -22,7 +22,7 @@
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -116,9 +116,17 @@
 #endif
 
 //////////////////////// Processing /////////////////////////
-#define FREQ_SHIFTING               true
+//#define CUDA_ENABLED				// Only valid in visual studio environment
 
-#define DATA_HALVING				false // to be updated...
+#ifdef CUDA_ENABLED
+#define N_CUDA_THREADS				16
+#define N_CUDA_STREAMS				4
+#define N_CUDA_PARTITIONS			2
+#endif
+
+#define FREQ_SHIFTING               
+
+///#define DATA_HALVING				 // to be updated... 
 
 #define PROCESSING_BUFFER_SIZE		20
 

@@ -1,14 +1,15 @@
 /*** Required Software ***/
 
-- Windows 7 64 bit OS
+- Windows 7 or 10 64 bit OS
 
 - Microsoft Visual Studio 2015 (vc14)
 - VC_redistributable_MSVC_2015
 - Intel C++ Compiler 17 (recommended)
-- Qt 5.8
+- Qt >5.8
 - QMake (Makefile by qmake (.pro))
 - NI-DAQmx Run-Time Engine 9.3
 - PX14400 Digitizer Setup
+- CUDA v10.0 & NVIDIA Graphic Driver >411
 
 - Intel Performance Primitives Update 3
 - Thread Building Blocks Update 3
@@ -98,3 +99,5 @@ Havana2.VC*
   (NIRF Sync & FLIM Process)
 - Havana2 v1.2.6.6
   (One channel enabled & calibration removal & NIRF sync)
+- Havana2 v1.2.7
+  (CUDA-enabled)

@@ -28,7 +28,11 @@
 #endif
 #endif
 
+#ifndef CUDA_ENABLED
 #include <DataProcess/OCTProcess/OCTProcess.h>
+#else
+#include <CUDA/CudaOCTProcess.cuh>
+#endif
 #ifdef OCT_FLIM
 #include <DataProcess/FLIMProcess/FLIMProcess.h>
 #endif

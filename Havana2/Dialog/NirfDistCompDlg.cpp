@@ -165,6 +165,11 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLabel_TBR_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_TBR_Background->setBuddy(m_pLineEdit_TBR_Background);
 	m_pLabel_TBR_Background->setDisabled(true);
+	
+	// Create widgets for guide line indicator
+	m_pCheckBox_ShowLumenContour = new QCheckBox(this);
+	m_pCheckBox_ShowLumenContour->setText("Show Lumen Contour  ");
+	m_pCheckBox_ShowLumenContour->setChecked(true);
 
 	
     // Initialization
@@ -231,6 +236,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pHBoxLayout_TBR_Option->setSpacing(1);
 
 	pHBoxLayout_TBR_Option->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_ShowLumenContour);
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_Filtering);
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_ZeroTBRDefinition);
 
@@ -267,6 +273,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pCheckBox_ZeroTBRDefinition, SIGNAL(toggled(bool)), this, SLOT(tbrZeroDefinition(bool)));
 	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
     connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
+	connect(m_pCheckBox_ShowLumenContour, SIGNAL(toggled(bool)), this, SLOT(showLumenContour(bool)));
 	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
 
 	// Get Log file
@@ -569,6 +576,12 @@ void NirfDistCompDlg::changeTbrBackground(const QString &str)
 
     // Invalidate
     m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::showLumenContour(bool)
+{
+	// Invalidate
+	m_pResultTab->invalidate();
 }
 
 

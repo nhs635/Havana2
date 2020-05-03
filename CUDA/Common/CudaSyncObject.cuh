@@ -1,26 +1,31 @@
-#ifndef SYNCOBJECT_H
-#define SYNCOBJECT_H
+#ifndef CUDA_SYNCOBJECT_CUH
+#define CUDA_SYNCOBJECT_CUH
 
 #include <iostream>
 #include <queue>
 #include <mutex>
 
+#include <cuda_runtime.h>
+#include <cufft.h>
+
 #include <Common/Queue.h>
 
+#include "CudaErrorCheck.cuh"
+
 template <typename T>
-class SyncObject
+class CudaSyncObject
 {
 public:
-    explicit SyncObject() {}
-    ~SyncObject() {	deallocate_queue_buffer(); }
+	explicit CudaSyncObject() {}
+    ~CudaSyncObject() {	deallocate_queue_buffer(); }
 
 public:
     void allocate_queue_buffer(int width, int height, int n)
     {
 		n_buffer = n;
         for (int i = 0; i < n_buffer; i++)
-        {
-            T* buffer = new T[width * height];
+        {			
+			T* buffer; CUDA_CHECK_ERROR(cudaHostAlloc((void**)&buffer, sizeof(T) * width * height, cudaHostAllocDefault));
             memset(buffer, 0, width * height * sizeof(T));
             queue_buffer.push(buffer);
         }
@@ -34,7 +39,7 @@ public:
 			{
 				T* buffer = queue_buffer.front();
 				queue_buffer.pop();
-				delete[] buffer;
+				cudaFreeHost(buffer);
 			}
 		}
 	}
@@ -48,4 +53,4 @@ private:
 	int n_buffer;
 };
 
-#endif // SYNCOBJECT_H
+#endif // CUDA_SYNCOBJECT_H
