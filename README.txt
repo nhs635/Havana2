@@ -101,3 +101,5 @@ Havana2.VC*
   (One channel enabled & calibration removal & NIRF sync)
 - Havana2 v1.2.7
   (CUDA-enabled)
+- Havana2 v1.2.7.1
+  (CUDA-enabled modification & 2ch-NIRF modification)

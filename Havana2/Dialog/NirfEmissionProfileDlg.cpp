@@ -64,4 +64,10 @@ void NirfEmissionProfileDlg::keyPressEvent(QKeyEvent *e)
         QDialog::keyPressEvent(e);
 }
 
+
+void NirfEmissionProfileDlg::setTitle(const QString & str)
+{
+	setWindowTitle(str);
+}
+
 #endif

@@ -946,11 +946,22 @@ void QStreamTab::setNirfAcquisitionCallback()
 
 				// Visualization
 				if (m_pNirfEmissionProfileDlg)
+				{
 #ifndef TWO_CHANNEL_NIRF
-                    m_pNirfEmissionProfileDlg->getScope()->drawData(data);
+					m_pNirfEmissionProfileDlg->getScope()->drawData(data);
+					Ipp64f mean, std;
+					ippsMeanStdDev_64f(data, m_pConfig->nAlines, &mean, &std);
+
+					m_pNirfEmissionProfileDlg->setTitle(QString("NIRF Emission Profile (%1 + %2)").arg(mean, 3, 'f', 4).arg(std, 3, 'f', 4));
 #else
 					m_pNirfEmissionProfileDlg->getScope()->drawData(data, data + m_pConfig->nAlines);
+					Ipp64f mean[2], std[2];
+					ippsMeanStdDev_64f(data, m_pConfig->nAlines, &mean[0], &std[0]);
+					ippsMeanStdDev_64f(data + m_pConfig->nAlines, m_pConfig->nAlines, &mean[1], &std[1]);
+
+					m_pNirfEmissionProfileDlg->setTitle(QString("NIRF Emission Profile (Ch1: %1 + %2 / Ch2: %3 + %4)").arg(mean[0], 3, 'f', 4).arg(std[0], 3, 'f', 4).arg(mean[1], 3, 'f', 4).arg(std[1], 3, 'f', 4));
 #endif
+				}
 
 				// Push the buffer to sync Queue
 				m_syncNirfVisualization.Queue_sync.push(nirf_ptr);
@@ -1691,29 +1702,40 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 
 	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf);
 #else
-	np::FloatArray scanNirf1(roi_nirf.width);
-	ippsConvert_64f32f(res3, scanNirf1, roi_nirf.width);
+	// Deinterleaving process
+	np::DoubleArray2 scanNirf_itlv64(res3, 2, m_pConfig->nAlines);
+	np::FloatArray2 scanNirf_itlv(2, m_pConfig->nAlines);
+	np::FloatArray2 scanNirf(m_pConfig->nAlines, 2);
+	ippsConvert_64f32f(scanNirf_itlv64, scanNirf_itlv, scanNirf_itlv.length());
+	ippiTranspose_32f_C1R(scanNirf_itlv, sizeof(float) * 2, scanNirf, sizeof(float) * m_pConfig->nAlines, { 2, m_pConfig->nAlines });
+
+	///np::FloatArray scanNirf1(roi_nirf.width);
+	///ippsConvert_64f32f(res3, scanNirf1, roi_nirf.width);
 	uint8_t* rectNirf1 = m_pImgObjNirf1->arr.raw_ptr();
-	ippiScale_32f8u_C1R(scanNirf1, roi_nirf.width * sizeof(double), rectNirf1, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max);
+	ippiScale_32f8u_C1R(&scanNirf(0, 0), roi_nirf.width * sizeof(double), rectNirf1, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max);
 
 	for (int i = 1; i < m_pConfig->ringThickness; i++)
 		memcpy(&m_pImgObjNirf1->arr(0, i), rectNirf1, sizeof(uint8_t) * roi_nirf.width);
 	
+#if defined(CH_DIVIDING_LINE)
 	np::Uint8Array boundary(roi_nirf.width);
 	ippsSet_8u(255, boundary.raw_ptr(), roi_nirf.width);
 
 	memcpy(&m_pImgObjNirf1->arr(0, 0), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
 	memcpy(&m_pImgObjNirf1->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
+#endif
 
-	np::FloatArray scanNirf2(roi_nirf.width);
-	ippsConvert_64f32f(res3 + roi_nirf.width, scanNirf2, roi_nirf.width);
+	///np::FloatArray scanNirf2(roi_nirf.width);
+	///ippsConvert_64f32f(res3 + roi_nirf.width, scanNirf2, roi_nirf.width);
 	uint8_t* rectNirf2 = m_pImgObjNirf2->arr.raw_ptr();
-	ippiScale_32f8u_C1R(scanNirf2, roi_nirf.width * sizeof(double), rectNirf2, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max);
+	ippiScale_32f8u_C1R(&scanNirf(0, 1), roi_nirf.width * sizeof(double), rectNirf2, roi_nirf.width * sizeof(uint8_t), roi_nirf, m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max);
 
 	for (int i = 1; i < m_pConfig->ringThickness; i++)
 		memcpy(&m_pImgObjNirf2->arr(0, i), rectNirf2, sizeof(uint8_t) * roi_nirf.width);
 
+#if defined(CH_DIVIDING_LINE)
 	memcpy(&m_pImgObjNirf2->arr(0, m_pConfig->ringThickness - 1), boundary.raw_ptr(), sizeof(uint8_t) * roi_nirf.width);
+#endif
 	
 	emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf1, m_pImgObjNirf2);
 #endif

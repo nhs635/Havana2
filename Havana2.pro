@@ -120,9 +120,6 @@ SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
     DeviceControl/ZaberStage/zb_serial.cpp \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.cpp
 
-SOURCES += CUDA/CudaOCTProcess.cu \
-    CUDA/CudaCircularize.cu
-
 
 HEADERS += Havana2/Configuration.h \
     Havana2/MainWindow.h \
@@ -171,8 +168,11 @@ HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.h \
     DeviceControl/QSerialComm.h
 
-HEADERS += CUDA/CudaOCTProcess.cuh \
-    CUDA/CudaCircularize.cuh
+
+OTHER_FILES += CUDA/CudaOCTProcess.cuh \
+    CUDA/CudaOCTProcess.cu \
+    CUDA/CudaCircularize.cuh \
+    CUDA/CudaCircularize.cu
 
 
 FORMS    += Havana2/MainWindow.ui

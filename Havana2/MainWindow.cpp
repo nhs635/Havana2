@@ -272,6 +272,8 @@ void MainWindow::changedTab(int index)
 #ifdef OCT_NIRF
 		if (m_pStreamTab->getNirfEmissionProfileDlg())
 			m_pStreamTab->getNirfEmissionProfileDlg()->close();
+		if (m_pDeviceControlTab->getEnablePmtGainControl()->isChecked())
+			m_pDeviceControlTab->getEnablePmtGainControl()->setChecked(false);
 #endif
 #endif
 
@@ -279,7 +281,7 @@ void MainWindow::changedTab(int index)
 		if (m_pDeviceControlTab->getEnableGalvanoMirrorControl()->isChecked())
 			m_pDeviceControlTab->getEnableGalvanoMirrorControl()->setChecked(false);
 
-		m_pDeviceControlTab->setScrollBarRange(m_pResultTab->m_pCirc ? m_pResultTab->m_pCirc->alines : m_pConfiguration->nAlines);
+		//m_pDeviceControlTab->setScrollBarRange(m_pResultTab->m_pCirc ? m_pResultTab->m_pCirc->alines : m_pConfiguration->nAlines);
 		m_pDeviceControlTab->setScrollBarValue(m_pDeviceControlTab->getScrollBarValue());
 		m_pDeviceControlTab->setScrollBarEnabled(true);
 #endif

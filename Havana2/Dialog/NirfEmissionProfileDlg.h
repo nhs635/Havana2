@@ -40,6 +40,7 @@ public:
 #else
 	inline QScope2* getScope() const { return m_pScope; }
 #endif
+	void setTitle(const QString& str);
 
 // Variables ////////////////////////////////////////////
 private:	

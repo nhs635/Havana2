@@ -28,6 +28,7 @@ ColorTable::ColorTable()
 	m_cNameVector.push_back("magenta"); // 17
 	m_cNameVector.push_back("blue_hot"); // 18
 	m_cNameVector.push_back("clf");
+	m_cNameVector.push_back("bwr");
 	// 새로운 파일 이름 추가 하기
 
 	for (int i = 0; i < m_cNameVector.size(); i++)

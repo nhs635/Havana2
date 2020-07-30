@@ -172,11 +172,12 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 	if (read > 0)
 	{		
 		np::DoubleArray data(pNirfEmission->nCh * pNirfEmission->nAlines);
-#ifndef TWO_CHANNEL_NIRF
-		memcpy(data, pNirfEmission->data, sizeof(double) * pNirfEmission->nAlines);
-#else
-		ippsCplxToReal_64fc((const Ipp64fc*)pNirfEmission->data, data.raw_ptr(), data.raw_ptr() + pNirfEmission->nAlines, pNirfEmission->nAlines);
-#endif
+		memcpy(data, pNirfEmission->data, sizeof(double) * pNirfEmission->nCh * pNirfEmission->nAlines); // interleaved form
+//#ifndef TWO_CHANNEL_NIRF
+//		memcpy(data, pNirfEmission->data, sizeof(double) * pNirfEmission->nAlines);
+//#else
+//		ippsCplxToReal_64fc((const Ipp64fc*)pNirfEmission->data, data.raw_ptr(), data.raw_ptr() + pNirfEmission->nAlines, pNirfEmission->nAlines);
+//#endif
 		pNirfEmission->DidAcquireData(++pNirfEmission->nAcqs, data.raw_ptr());
 
 		endTime = chrono::steady_clock::now();

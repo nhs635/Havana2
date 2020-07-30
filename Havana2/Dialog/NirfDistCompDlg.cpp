@@ -75,9 +75,12 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	{
 		m_pLineEdit_CompensationCoeff[i] = new QLineEdit(this);
 		m_pLineEdit_CompensationCoeff[i]->setFixedWidth(70);
-		m_pLineEdit_CompensationCoeff[i]->setText(QString::number(m_pConfig->nirfCompCoeffs[i]));
 		m_pLineEdit_CompensationCoeff[i]->setAlignment(Qt::AlignCenter);
 	}
+	m_pLineEdit_CompensationCoeff[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
+	m_pLineEdit_CompensationCoeff[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
+	m_pLineEdit_CompensationCoeff[2]->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
+	m_pLineEdit_CompensationCoeff[3]->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
 
 	m_pLabel_CompensationCoeff = new QLabel("Compensation Coefficient\n((a*exp(b*x)+c*exp(d*x))/(a+c))");
 
@@ -463,10 +466,10 @@ void NirfDistCompDlg::changeCompensationCurve()
 	float factor_prop_const = m_pLineEdit_FactorPropConst->text().toFloat();
 	float dist_prop_const = m_pLineEdit_DistPropConst->text().toFloat();
 
-	m_pConfig->nirfCompCoeffs[0] = a;
-	m_pConfig->nirfCompCoeffs[1] = b;
-	m_pConfig->nirfCompCoeffs[2] = c;
-	m_pConfig->nirfCompCoeffs[3] = d;
+	m_pConfig->nirfCompCoeffs_a = a;
+	m_pConfig->nirfCompCoeffs_b = b;
+	m_pConfig->nirfCompCoeffs_c = c;
+	m_pConfig->nirfCompCoeffs_d = d;
 
 	m_pConfig->nirfFactorThres = factor_thres;
 	m_pConfig->nirfFactorPropConst = factor_prop_const;
@@ -594,13 +597,15 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	int nirfOffset = settings.value("nirfOffset").toInt();
 	m_pResultTab->setNirfOffset(nirfOffset);
 
-	m_pConfig->nirfCompCoeffs[0] = settings.value("nirfCompCoeffs_a").toFloat();	
-	m_pConfig->nirfCompCoeffs[1] = settings.value("nirfCompCoeffs_b").toFloat();
-	m_pConfig->nirfCompCoeffs[2] = settings.value("nirfCompCoeffs_c").toFloat();
-	m_pConfig->nirfCompCoeffs[3] = settings.value("nirfCompCoeffs_d").toFloat();
+	m_pConfig->nirfCompCoeffs_a = settings.value("nirfCompCoeffs_a").toFloat();
+	m_pConfig->nirfCompCoeffs_b = settings.value("nirfCompCoeffs_b").toFloat();
+	m_pConfig->nirfCompCoeffs_c = settings.value("nirfCompCoeffs_c").toFloat();
+	m_pConfig->nirfCompCoeffs_d = settings.value("nirfCompCoeffs_d").toFloat();
 
-	for (int i = 0 ; i < 4; i++)
-		m_pLineEdit_CompensationCoeff[i]->setText(QString::number(m_pConfig->nirfCompCoeffs[i]));
+	m_pLineEdit_CompensationCoeff[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
+	m_pLineEdit_CompensationCoeff[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
+	m_pLineEdit_CompensationCoeff[2]->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
+	m_pLineEdit_CompensationCoeff[3]->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
 
 	m_pConfig->nirfFactorThres = settings.value("nirfFactorThres").toFloat();
 	m_pLineEdit_FactorThreshold->setText(QString::number(m_pConfig->nirfFactorThres));
@@ -650,10 +655,10 @@ void NirfDistCompDlg::setCompInfo(const QString &infopath)
 
 	settings.setValue("nirfOffset", m_pResultTab->getCurrentNirfOffset());
 	
-	settings.setValue("nirfCompCoeffs_a", QString::number(m_pConfig->nirfCompCoeffs[0], 'f', 10));
-	settings.setValue("nirfCompCoeffs_b", QString::number(m_pConfig->nirfCompCoeffs[1], 'f', 10));
-	settings.setValue("nirfCompCoeffs_c", QString::number(m_pConfig->nirfCompCoeffs[2], 'f', 10));
-	settings.setValue("nirfCompCoeffs_d", QString::number(m_pConfig->nirfCompCoeffs[3], 'f', 10));
+	settings.setValue("nirfCompCoeffs_a", QString::number(m_pConfig->nirfCompCoeffs_a, 'f', 10));
+	settings.setValue("nirfCompCoeffs_b", QString::number(m_pConfig->nirfCompCoeffs_b, 'f', 10));
+	settings.setValue("nirfCompCoeffs_c", QString::number(m_pConfig->nirfCompCoeffs_c, 'f', 10));
+	settings.setValue("nirfCompCoeffs_d", QString::number(m_pConfig->nirfCompCoeffs_d, 'f', 10));
 	
 	settings.setValue("nirfFactorThres", QString::number(m_pConfig->nirfFactorThres, 'f', 1));
 	settings.setValue("nirfFactorPropConst", QString::number(m_pConfig->nirfFactorPropConst, 'f', 3));

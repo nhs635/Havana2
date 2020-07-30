@@ -32,10 +32,10 @@ SaveResultDlg::SaveResultDlg(QWidget *parent) :
 {
     // Set default size & frame
 #ifdef OCT_FLIM
-    setFixedSize(420, 160);
+    setFixedSize(390, 160);
 #elif defined (STANDALONE_OCT)
 #ifndef OCT_NIRF
-	setFixedSize(450, 100);
+	setFixedSize(420, 100);
 #else
     setFixedSize(450, 145);
 #endif

@@ -137,6 +137,7 @@ private slots: // widget operation
 #endif
 #endif
 	void enableUserDefinedAlines(bool);
+	void enableDiscomValue(bool);
 	void visualizeImage(int);
 #ifdef OCT_FLIM
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
@@ -165,6 +166,7 @@ private slots: // widget operation
 	void enableHsvEnhancingMode(bool);
 	void adjustFlimContrast();
 	void changeLifetimeColorTable(int);
+	void enableIntensityRatio(bool);
 	void enableClassification(bool);
 #endif
 #ifdef OCT_NIRF
@@ -395,7 +397,7 @@ private:
 
 	QCheckBox *m_pCheckBox_SingleFrame;
 
-	QLabel *m_pLabel_DiscomValue;
+	QCheckBox *m_pCheckBox_DiscomValue;
 	QLineEdit *m_pLineEdit_DiscomValue;
 
 	QProgressBar *m_pProgressBar_PostProcessing;
@@ -461,6 +463,7 @@ private:
 	QLabel *m_pLabel_LifetimeColorTable;
 	QComboBox *m_pComboBox_LifetimeColorTable;
 
+	QCheckBox* m_pCheckBox_IntensityRatio;
 	QCheckBox* m_pCheckBox_Classification;
 #endif
 

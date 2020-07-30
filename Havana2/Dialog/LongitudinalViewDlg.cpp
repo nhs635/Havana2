@@ -341,6 +341,7 @@ void LongitudinalViewDlg::drawLongitudinalImage(int aline)
 
 		m_pImgObjLifetime->convertRgb();
 		memcpy(tempImgObj.qindeximg.bits(), m_pImgObjIntensity->arr.raw_ptr(), tempImgObj.qindeximg.byteCount());
+		ippsMulC_8u_ISfs(5, tempImgObj.qindeximg.bits(), tempImgObj.qindeximg.byteCount(), 0);
 		tempImgObj.convertRgb();
 
 		ippsMul_8u_Sfs(m_pImgObjLifetime->qrgbimg.bits(), tempImgObj.qrgbimg.bits(), m_pImgObjHsvEnhanced->qrgbimg.bits(), tempImgObj.qrgbimg.byteCount(), 8);

@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.7"
+#define VERSION						"1.2.7.1"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -22,7 +22,7 @@
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
@@ -37,10 +37,10 @@
 #endif
 #else
 #define PROGRAMMATIC_GAIN_CONTROL
-//#define TWO_CHANNEL_NIRF
+#define TWO_CHANNEL_NIRF
 #endif
-//#define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+#define GALVANO_MIRROR
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -119,12 +119,14 @@
 //#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
-#define N_CUDA_THREADS				16
+#define N_CUDA_THREADS				32
 #define N_CUDA_STREAMS				4
-#define N_CUDA_PARTITIONS			2
+#define N_CUDA_PARTITIONS			4
 #endif
 
-#define FREQ_SHIFTING               
+//#define FREQ_SHIFTING               
+
+//#define OCT_VERTICAL_MIRRORING
 
 ///#define DATA_HALVING				 // to be updated... 
 
@@ -135,9 +137,6 @@
 #else
 #define WRITING_BUFFER_SIZE	        800
 #endif
-
-//////////////////////// OCT system /////////////////////////
-#define DISCOM_VAL					0
 
 /////////////////////// FLIM system /////////////////////////
 #ifdef OCT_FLIM
@@ -164,7 +163,7 @@
 #ifdef TWO_CHANNEL_NIRF
 #define NIRF_COLORTABLE2			18 // cyan
 
-//#define CH_DIVIDING_LINE
+#define CH_DIVIDING_LINE
 #endif
 
 #endif
@@ -316,10 +315,10 @@ public:
 #endif
         // NIRF distance compensation
 #ifdef OCT_NIRF
-        nirfCompCoeffs[0] = settings.value("nirfCompCoeffs_a").toFloat();
-        nirfCompCoeffs[1] = settings.value("nirfCompCoeffs_b").toFloat();
-        nirfCompCoeffs[2] = settings.value("nirfCompCoeffs_c").toFloat();
-        nirfCompCoeffs[3] = settings.value("nirfCompCoeffs_d").toFloat();
+        nirfCompCoeffs_a = settings.value("nirfCompCoeffs_a").toFloat();
+        nirfCompCoeffs_b = settings.value("nirfCompCoeffs_b").toFloat();
+        nirfCompCoeffs_c = settings.value("nirfCompCoeffs_c").toFloat();
+        nirfCompCoeffs_d = settings.value("nirfCompCoeffs_d").toFloat();
 
         nirfFactorThres = settings.value("nirfFactorThres").toFloat();
         nirfFactorPropConst = settings.value("nirfFactorPropConst").toFloat();
@@ -465,10 +464,10 @@ public:
 #endif
         // NIRF distance compensation
 #ifdef OCT_NIRF
-        settings.setValue("nirfCompCoeffs_a", QString::number(nirfCompCoeffs[0], 'f', 10));
-        settings.setValue("nirfCompCoeffs_b", QString::number(nirfCompCoeffs[1], 'f', 10));
-        settings.setValue("nirfCompCoeffs_c", QString::number(nirfCompCoeffs[2], 'f', 10));
-        settings.setValue("nirfCompCoeffs_d", QString::number(nirfCompCoeffs[3], 'f', 10));
+        settings.setValue("nirfCompCoeffs_a", QString::number(nirfCompCoeffs_a, 'f', 10));
+        settings.setValue("nirfCompCoeffs_b", QString::number(nirfCompCoeffs_b, 'f', 10));
+        settings.setValue("nirfCompCoeffs_c", QString::number(nirfCompCoeffs_c, 'f', 10));
+        settings.setValue("nirfCompCoeffs_d", QString::number(nirfCompCoeffs_d, 'f', 10));
 
         settings.setValue("nirfFactorThres", QString::number(nirfFactorThres, 'f', 1));
         settings.setValue("nirfFactorPropConst", QString::number(nirfFactorPropConst, 'f', 3));
@@ -607,7 +606,10 @@ public:
 
 #ifdef OCT_NIRF
     // NIRF ditance compensation
-    float nirfCompCoeffs[4];
+    float nirfCompCoeffs_a;
+	float nirfCompCoeffs_b;
+	float nirfCompCoeffs_c;
+	float nirfCompCoeffs_d;
     float nirfFactorThres;
     float nirfFactorPropConst;
     float nirfDistPropConst;
