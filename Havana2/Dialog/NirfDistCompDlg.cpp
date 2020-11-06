@@ -20,49 +20,49 @@
 
 #ifdef OCT_NIRF
 NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
-    QDialog(parent), m_bCanBeClosed(true), nirfBg(0), tbrBg(0)
+	QDialog(parent), m_bCanBeClosed(true), nirfBg(0), tbrBg(0)
 {
-    // Set default size & frame
-    setFixedSize(380, 380);
-    setWindowFlags(Qt::Tool);
+	// Set default size & frame
+	setFixedSize(380, 550);
+	setWindowFlags(Qt::Tool);
 	setWindowTitle("NIRF Distance Compensation");
 
-    // Set main window objects
-    m_pResultTab = (QResultTab*)parent;
-    m_pMainWnd = m_pResultTab->getMainWnd();
+	// Set main window objects
+	m_pResultTab = (QResultTab*)parent;
+	m_pMainWnd = m_pResultTab->getMainWnd();
 	m_pConfig = m_pMainWnd->m_pConfiguration;
 
 	// Set compensation data
 	compMap = np::FloatArray2();
-    distDecayCurve = np::FloatArray(m_pConfig->circRadius);
+	distDecayCurve = np::FloatArray(m_pConfig->circRadius);
 	compCurve = np::FloatArray(m_pConfig->circRadius);
-	
+
 	// Create widgets for data loading & compensation
 	m_pPushButton_LoadDistanceMap = new QPushButton(this);
-    m_pPushButton_LoadDistanceMap->setText("Load Distance Map");
+	m_pPushButton_LoadDistanceMap->setText("Load Distance Map");
 
 	m_pPushButton_LoadNirfBackground = new QPushButton(this);
-    m_pPushButton_LoadNirfBackground->setText("Load NIRF Background");
+	m_pPushButton_LoadNirfBackground->setText("Load NIRF Background");
 
 	m_pToggleButton_Compensation = new QPushButton(this);
 	m_pToggleButton_Compensation->setText("Compensation On");
 	m_pToggleButton_Compensation->setCheckable(true);
-    m_pToggleButton_Compensation->setDisabled(true);
-	
+	m_pToggleButton_Compensation->setDisabled(true);
+
 	m_pToggleButton_TBRMode = new QPushButton(this);
 	m_pToggleButton_TBRMode->setText("TBR Converting On");
 	m_pToggleButton_TBRMode->setCheckable(true);
 	m_pToggleButton_TBRMode->setDisabled(true);
-	
+
 	// Create widgets for compensation details
 	m_pRenderArea_DistanceDecayCurve = new QRenderArea(this);
 	m_pRenderArea_DistanceDecayCurve->setSize({ 0, (double)m_pConfig->circRadius }, { 0, 1 });
 	m_pRenderArea_DistanceDecayCurve->setMinimumHeight(80);
 	m_pRenderArea_DistanceDecayCurve->setGrid(4, 8, 1);
-	
+
 	m_pLabel_DistanceDecayCurve = new QLabel("Distance Decay Curve ([0, 1])", this);
 	m_pLabel_DistanceDecayCurve->setBuddy(m_pRenderArea_DistanceDecayCurve);
-	
+
 	m_pRenderArea_CompensationCurve = new QRenderArea(this);
 	m_pRenderArea_CompensationCurve->setSize({ 0, (double)m_pConfig->circRadius }, { 0, round(m_pConfig->nirfFactorThres * 1.1) });
 	m_pRenderArea_CompensationCurve->setMinimumHeight(80);
@@ -70,17 +70,26 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 
 	m_pLabel_CompensationCurve = new QLabel(QString("Compensation Curve ([0, %1])").arg((int)round(m_pConfig->nirfFactorThres * 1.1)), this);
 	m_pLabel_CompensationCurve->setBuddy(m_pRenderArea_CompensationCurve);
-		
-	for (int i = 0; i < 4; i++)
-	{
-		m_pLineEdit_CompensationCoeff[i] = new QLineEdit(this);
-		m_pLineEdit_CompensationCoeff[i]->setFixedWidth(70);
-		m_pLineEdit_CompensationCoeff[i]->setAlignment(Qt::AlignCenter);
-	}
-	m_pLineEdit_CompensationCoeff[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
-	m_pLineEdit_CompensationCoeff[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
-	m_pLineEdit_CompensationCoeff[2]->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
-	m_pLineEdit_CompensationCoeff[3]->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
+
+	m_pLineEdit_CompensationCoeff_a = new QLineEdit(this);
+	m_pLineEdit_CompensationCoeff_a->setFixedWidth(70);
+	m_pLineEdit_CompensationCoeff_a->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_CompensationCoeff_a->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
+
+	m_pLineEdit_CompensationCoeff_b = new QLineEdit(this);
+	m_pLineEdit_CompensationCoeff_b->setFixedWidth(70);
+	m_pLineEdit_CompensationCoeff_b->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_CompensationCoeff_b->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
+
+	m_pLineEdit_CompensationCoeff_c = new QLineEdit(this);
+	m_pLineEdit_CompensationCoeff_c->setFixedWidth(70);
+	m_pLineEdit_CompensationCoeff_c->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_CompensationCoeff_c->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
+
+	m_pLineEdit_CompensationCoeff_d = new QLineEdit(this);
+	m_pLineEdit_CompensationCoeff_d->setFixedWidth(70);
+	m_pLineEdit_CompensationCoeff_d->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_CompensationCoeff_d->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
 
 	m_pLabel_CompensationCoeff = new QLabel("Compensation Coefficient\n((a*exp(b*x)+c*exp(d*x))/(a+c))");
 
@@ -111,42 +120,42 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLabel_DistPropConst->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_DistPropConst->setBuddy(m_pLineEdit_DistPropConst);
 
-    // Create widgets for zero point setting
+	// Create widgets for zero point setting
 	m_pSpinBox_LumenContourOffset = new QSpinBox(this);
-    m_pSpinBox_LumenContourOffset->setFixedWidth(45);
+	m_pSpinBox_LumenContourOffset->setFixedWidth(45);
 	m_pSpinBox_LumenContourOffset->setRange(0, m_pConfig->circRadius);
 	m_pSpinBox_LumenContourOffset->setSingleStep(1);
 	m_pSpinBox_LumenContourOffset->setValue(m_pConfig->nirfLumContourOffset);
 	m_pSpinBox_LumenContourOffset->setAlignment(Qt::AlignCenter);
-    m_pSpinBox_LumenContourOffset->setDisabled(true);
+	m_pSpinBox_LumenContourOffset->setDisabled(true);
 
-    m_pLabel_LumenContourOffset = new QLabel("   Lumen Contour Offset  ");
+	m_pLabel_LumenContourOffset = new QLabel("   Lumen Contour Offset  ");
 	m_pLabel_LumenContourOffset->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_LumenContourOffset->setBuddy(m_pSpinBox_LumenContourOffset);
-    m_pLabel_LumenContourOffset->setDisabled(true);
+	m_pLabel_LumenContourOffset->setDisabled(true);
 
 	m_pSpinBox_OuterSheathPosition = new QSpinBox(this);
-    m_pSpinBox_OuterSheathPosition->setFixedWidth(45);
+	m_pSpinBox_OuterSheathPosition->setFixedWidth(45);
 	m_pSpinBox_OuterSheathPosition->setRange(0, m_pConfig->circRadius);
 	m_pSpinBox_OuterSheathPosition->setSingleStep(1);
 	m_pSpinBox_OuterSheathPosition->setValue(m_pConfig->nirfOuterSheathPos);
 	m_pSpinBox_OuterSheathPosition->setAlignment(Qt::AlignCenter);
-    m_pSpinBox_OuterSheathPosition->setDisabled(true);
-	
-    m_pLabel_OuterSheathPosition = new QLabel("   Outer Sheath Position");
+	m_pSpinBox_OuterSheathPosition->setDisabled(true);
+
+	m_pLabel_OuterSheathPosition = new QLabel("   Outer Sheath Position");
 	m_pLabel_OuterSheathPosition->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_OuterSheathPosition->setBuddy(m_pSpinBox_OuterSheathPosition);
-    m_pLabel_OuterSheathPosition->setDisabled(true);
+	m_pLabel_OuterSheathPosition->setDisabled(true);
 
-    // Create widgets for TBR mode
-    m_pCheckBox_Filtering = new QCheckBox(this);
-    m_pCheckBox_Filtering->setText("Filtering On  ");
+	// Create widgets for TBR mode
+	m_pCheckBox_Filtering = new QCheckBox(this);
+	m_pCheckBox_Filtering->setText("Filtering On  ");
 
 	m_pCheckBox_ZeroTBRDefinition = new QCheckBox(this);
 	m_pCheckBox_ZeroTBRDefinition->setText("Zero TBR Definition");
 	m_pCheckBox_ZeroTBRDefinition->setChecked(true);
 	m_pCheckBox_ZeroTBRDefinition->setDisabled(true);
-	
+
 	m_pLineEdit_NIRF_Background = new QLineEdit(this);
 	m_pLineEdit_NIRF_Background->setFixedWidth(35);
 	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
@@ -157,30 +166,34 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLabel_NIRF_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_NIRF_Background->setBuddy(m_pLineEdit_NIRF_Background);
 	m_pLabel_NIRF_Background->setDisabled(true);
-	
-    m_pLineEdit_TBR_Background = new QLineEdit(this);
+
+	m_pLineEdit_TBR_Background = new QLineEdit(this);
 	m_pLineEdit_TBR_Background->setFixedWidth(35);
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
 	m_pLineEdit_TBR_Background->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_TBR_Background->setDisabled(true);
 
-    m_pLabel_TBR_Background =  new QLabel("   TBR Background   ");
+	m_pLabel_TBR_Background = new QLabel("   TBR Background   ");
 	m_pLabel_TBR_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_TBR_Background->setBuddy(m_pLineEdit_TBR_Background);
 	m_pLabel_TBR_Background->setDisabled(true);
-	
+
 	// Create widgets for guide line indicator
 	m_pCheckBox_ShowLumenContour = new QCheckBox(this);
 	m_pCheckBox_ShowLumenContour->setText("Show Lumen Contour  ");
 	m_pCheckBox_ShowLumenContour->setChecked(true);
+	
+	// Create widgets for compensation results - distance dependency check
+	m_pRenderArea_Correlation = new QRenderArea(this);
+	m_pRenderArea_Correlation->m_bScattered = true;
+	m_pRenderArea_Correlation->m_bMaskUse = true;
+	m_pRenderArea_Correlation->setSize({ 0, (double)m_pConfig->circRadius / 1.5 }, { 0, 2 * m_pConfig->nirfRange.max }, m_pResultTab->m_nirfMap.length());
+	m_pRenderArea_Correlation->setMinimumHeight(150);
+	m_pRenderArea_Correlation->setGrid(4, 8, 1);
 
-	
-    // Initialization
-    loadDistanceMap();
-    loadNirfBackground();
-    changeCompensationCurve();
-    changeZeroPointSetting();
-	
+	m_pCheckBox_Correlation = new QCheckBox(this);
+	m_pCheckBox_Correlation->setText("DIST-NIRF Correlation ");
+	m_pCheckBox_Correlation->setChecked(false);	
 
 	// Create layout
 	QGridLayout *pGridLayout_Buttons = new QGridLayout;
@@ -204,36 +217,38 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 
 	pGridLayout_CompCoeffs->addWidget(m_pLabel_CompensationCoeff, 0, 0, 1, 5);
 	pGridLayout_CompCoeffs->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
-	for (int i = 0; i < 4; i++)
-		pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff[i], 1, i + 1);
-	
+	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_a, 1, 1);
+	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_b, 1, 2);
+	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_c, 1, 3);
+	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_d, 1, 4);
+
 	QGridLayout *pGridLayout_CompConsts = new QGridLayout;
 	pGridLayout_CompConsts->setSpacing(1);
-	
+
 	pGridLayout_CompConsts->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0);
 	pGridLayout_CompConsts->addWidget(m_pLabel_FactorThreshold, 0, 1);
 	pGridLayout_CompConsts->addWidget(m_pLineEdit_FactorThreshold, 0, 2);
-    pGridLayout_CompConsts->addWidget(m_pLabel_LumenContourOffset, 0, 3);
-    pGridLayout_CompConsts->addWidget(m_pSpinBox_LumenContourOffset, 0, 4);
+	pGridLayout_CompConsts->addWidget(m_pLabel_LumenContourOffset, 0, 3);
+	pGridLayout_CompConsts->addWidget(m_pSpinBox_LumenContourOffset, 0, 4);
 
 	pGridLayout_CompConsts->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
 	pGridLayout_CompConsts->addWidget(m_pLabel_FactorPropConst, 1, 1);
 	pGridLayout_CompConsts->addWidget(m_pLineEdit_FactorPropConst, 1, 2);
-    pGridLayout_CompConsts->addWidget(m_pLabel_OuterSheathPosition, 1, 3);
-    pGridLayout_CompConsts->addWidget(m_pSpinBox_OuterSheathPosition, 1, 4);
+	pGridLayout_CompConsts->addWidget(m_pLabel_OuterSheathPosition, 1, 3);
+	pGridLayout_CompConsts->addWidget(m_pSpinBox_OuterSheathPosition, 1, 4);
 
 	pGridLayout_CompConsts->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
 	pGridLayout_CompConsts->addWidget(m_pLabel_DistPropConst, 2, 1);
 	pGridLayout_CompConsts->addWidget(m_pLineEdit_DistPropConst, 2, 2);
 
-    QHBoxLayout *pHBoxLayout_TBR = new QHBoxLayout;
-    pHBoxLayout_TBR->setSpacing(1);
+	QHBoxLayout *pHBoxLayout_TBR = new QHBoxLayout;
+	pHBoxLayout_TBR->setSpacing(1);
 
-    pHBoxLayout_TBR->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	pHBoxLayout_TBR->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	pHBoxLayout_TBR->addWidget(m_pLabel_NIRF_Background);
 	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background);
-    pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
-    pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background);
+	pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background);
 
 	QHBoxLayout *pHBoxLayout_TBR_Option = new QHBoxLayout;
 	pHBoxLayout_TBR_Option->setSpacing(1);
@@ -243,7 +258,12 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_Filtering);
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_ZeroTBRDefinition);
 
+	QGridLayout *pGridLayout_Correlation = new QGridLayout;
+	pGridLayout_Correlation->setSpacing(2);
 
+	pGridLayout_Correlation->addWidget(m_pCheckBox_Correlation, 0, 0, 1, 2);
+	pGridLayout_Correlation->addWidget(m_pRenderArea_Correlation, 1, 0, 1, 2);
+		
 
 	m_pVBoxLayout = new QVBoxLayout;
 	m_pVBoxLayout->setSpacing(5);
@@ -251,37 +271,49 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pVBoxLayout->addItem(pGridLayout_Buttons);
 	m_pVBoxLayout->addItem(pGridLayout_CompCurves);
 	m_pVBoxLayout->addItem(pGridLayout_CompCoeffs);
-    m_pVBoxLayout->addItem(pGridLayout_CompConsts);
-    m_pVBoxLayout->addItem(pHBoxLayout_TBR);
+	m_pVBoxLayout->addItem(pGridLayout_CompConsts);
+	m_pVBoxLayout->addItem(pHBoxLayout_TBR);
 	m_pVBoxLayout->addItem(pHBoxLayout_TBR_Option);
-	
+	m_pVBoxLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+	m_pVBoxLayout->addItem(pGridLayout_Correlation);
+
 	// Set layout
 	this->setLayout(m_pVBoxLayout);
 
 	// Connect
 	connect(m_pPushButton_LoadDistanceMap, SIGNAL(clicked(bool)), this, SLOT(loadDistanceMap()));
 	connect(m_pPushButton_LoadNirfBackground, SIGNAL(clicked(bool)), this, SLOT(loadNirfBackground()));
-    connect(m_pToggleButton_Compensation, SIGNAL(toggled(bool)), this, SLOT(compensation(bool)));
+	connect(m_pToggleButton_Compensation, SIGNAL(toggled(bool)), this, SLOT(compensation(bool)));
 	connect(m_pToggleButton_TBRMode, SIGNAL(toggled(bool)), this, SLOT(tbrConvering(bool)));
-	connect(m_pLineEdit_CompensationCoeff[0], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
-	connect(m_pLineEdit_CompensationCoeff[1], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
-	connect(m_pLineEdit_CompensationCoeff[2], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
-	connect(m_pLineEdit_CompensationCoeff[3], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+	connect(m_pLineEdit_CompensationCoeff_a, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+	connect(m_pLineEdit_CompensationCoeff_b, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+	connect(m_pLineEdit_CompensationCoeff_c, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+	connect(m_pLineEdit_CompensationCoeff_d, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_FactorThreshold, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_FactorPropConst, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_DistPropConst, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
-    connect(m_pSpinBox_LumenContourOffset, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
-    connect(m_pSpinBox_OuterSheathPosition, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
-    connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
+	connect(m_pSpinBox_LumenContourOffset, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
+	connect(m_pSpinBox_OuterSheathPosition, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
+	connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
 	connect(m_pCheckBox_ZeroTBRDefinition, SIGNAL(toggled(bool)), this, SLOT(tbrZeroDefinition(bool)));
 	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
-    connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
+	connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
 	connect(m_pCheckBox_ShowLumenContour, SIGNAL(toggled(bool)), this, SLOT(showLumenContour(bool)));
+	connect(m_pCheckBox_Correlation, SIGNAL(toggled(bool)), this, SLOT(showCorrelationPlot(bool)));
 	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
+
+	// Initialization
+	loadDistanceMap();
+	loadNirfBackground();
 
 	// Get Log file
 	QString infopath = m_pResultTab->m_path + QString("/dist_comp_info.log");
-	if (QFileInfo::exists(infopath)) getCompInfo(infopath);
+	if (QFileInfo::exists(infopath))
+		getCompInfo(infopath);
+
+	// Initialization
+	changeCompensationCurve();
+	changeZeroPointSetting();
 }
 
 NirfDistCompDlg::~NirfDistCompDlg()
@@ -317,9 +349,14 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 	m_pRenderArea_DistanceDecayCurve->setEnabled(enabled);
 	m_pRenderArea_CompensationCurve->setEnabled(enabled);
 
+	m_pCheckBox_Correlation->setEnabled(enabled);
+	m_pRenderArea_Correlation->setEnabled(enabled);
+
 	m_pLabel_CompensationCoeff->setEnabled(enabled);
-	for (int i = 0; i < 4; i++)
-		m_pLineEdit_CompensationCoeff[i]->setEnabled(enabled);
+	m_pLineEdit_CompensationCoeff_a->setEnabled(enabled);
+	m_pLineEdit_CompensationCoeff_b->setEnabled(enabled);
+	m_pLineEdit_CompensationCoeff_c->setEnabled(enabled);
+	m_pLineEdit_CompensationCoeff_d->setEnabled(enabled);
 
 	m_pLabel_FactorThreshold->setEnabled(enabled);
 	m_pLineEdit_FactorThreshold->setEnabled(enabled);
@@ -375,6 +412,8 @@ void NirfDistCompDlg::loadDistanceMap()
         m_pPushButton_LoadDistanceMap->setDisabled(true);
         if (!m_pPushButton_LoadDistanceMap->isEnabled() && !m_pPushButton_LoadNirfBackground->isEnabled())
             m_pToggleButton_Compensation->setEnabled(true);
+
+		m_pCheckBox_Correlation->setChecked(true);
     }
 }
 
@@ -457,10 +496,10 @@ void NirfDistCompDlg::tbrConvering(bool toggled)
 void NirfDistCompDlg::changeCompensationCurve()
 {
     // Get and update values
-	float a = m_pLineEdit_CompensationCoeff[0]->text().toFloat();
-	float b = m_pLineEdit_CompensationCoeff[1]->text().toFloat();
-	float c = m_pLineEdit_CompensationCoeff[2]->text().toFloat();
-	float d = m_pLineEdit_CompensationCoeff[3]->text().toFloat();
+	float a = m_pLineEdit_CompensationCoeff_a->text().toFloat();
+	float b = m_pLineEdit_CompensationCoeff_b->text().toFloat();
+	float c = m_pLineEdit_CompensationCoeff_c->text().toFloat();
+	float d = m_pLineEdit_CompensationCoeff_d->text().toFloat();
 
 	float factor_thres = m_pLineEdit_FactorThreshold->text().toFloat();
 	float factor_prop_const = m_pLineEdit_FactorPropConst->text().toFloat();
@@ -499,7 +538,7 @@ void NirfDistCompDlg::changeCompensationCurve()
 	memcpy(m_pRenderArea_CompensationCurve->m_pData, compCurve.raw_ptr(), sizeof(float) * compCurve.length());
 	m_pRenderArea_DistanceDecayCurve->update();
 	m_pRenderArea_CompensationCurve->update();    
-
+	
     // Update compensation map
     if (isCompensating()) calculateCompMap();
 
@@ -525,7 +564,7 @@ void NirfDistCompDlg::changeZeroPointSetting()
 
 void NirfDistCompDlg::calculateCompMap()
 {
-    np::Uint16Array2 distOffsetMap(distMap.size(0), distMap.size(1));
+    distOffsetMap = np::Uint16Array2(distMap.size(0), distMap.size(1));
     memcpy(distOffsetMap.raw_ptr(), distMap.raw_ptr(), sizeof(uint16_t) * distMap.length());
     ippsAddC_16u_ISfs(m_pConfig->nirfLumContourOffset, distOffsetMap.raw_ptr(), distOffsetMap.length(), 0);
     ippsSubC_16u_ISfs(m_pConfig->nirfOuterSheathPos, distOffsetMap.raw_ptr(), distOffsetMap.length(), 0);
@@ -544,6 +583,63 @@ void NirfDistCompDlg::calculateCompMap()
             }
         }
     });
+}
+
+void NirfDistCompDlg::updateCorrelation(int frame)
+{
+	if (m_pCheckBox_Correlation->isChecked())
+	{
+		// Distance
+		np::FloatArray dist_data(distOffsetMap.length());
+		ippsConvert_16u32f(distOffsetMap.raw_ptr(), dist_data, distOffsetMap.length());
+		float max_lim; ippsMax_32f(dist_data, dist_data.length(), &max_lim);
+		m_pRenderArea_Correlation->setSize({ 0, (double)max_lim }, { 0, 2 * m_pConfig->nirfRange.max }, m_pResultTab->m_nirfMap0.length());
+		memcpy(m_pRenderArea_Correlation->m_pDataX, dist_data, sizeof(float) * dist_data.length());
+
+		// NIRF data at current setting
+		memcpy(m_pRenderArea_Correlation->m_pData, m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * m_pResultTab->m_nirfMap0.length());
+
+		// Current frame NIRF data
+		ippsSet_32f(1.0f, m_pRenderArea_Correlation->m_pMask, m_pRenderArea_Correlation->m_buff_len);
+		ippsSet_32f(0.0f, &m_pRenderArea_Correlation->m_pMask[distOffsetMap.size(0) * frame], distOffsetMap.size(0));
+
+		// Get correlation coefficient - total
+		Ipp32f x_mean, x_std;
+		Ipp32f y_mean, y_std;
+		ippsMeanStdDev_32f(dist_data, dist_data.length(), &x_mean, &x_std, ippAlgHintFast);
+		ippsMeanStdDev_32f(m_pResultTab->m_nirfMap0, m_pResultTab->m_nirfMap0.length(), &y_mean, &y_std, ippAlgHintFast);
+		
+		np::FloatArray dist_temp(dist_data.length()), nirf_temp(m_pResultTab->m_nirfMap0.length());
+		np::FloatArray comul_temp(dist_temp.length());
+		ippsSubC_32f(dist_data, x_mean, dist_temp, dist_data.length());
+		ippsSubC_32f(m_pResultTab->m_nirfMap0, y_mean, nirf_temp, m_pResultTab->m_nirfMap0.length());
+		ippsMul_32f_I(nirf_temp, dist_temp, dist_temp.length());
+
+		Ipp32f cov;
+		ippsSum_32f(dist_temp, dist_temp.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_temp.length() - 1);
+
+		float r_total = cov / x_std / y_std;
+
+		// Get correlation coefficient - frame
+		ippsMeanStdDev_32f(&dist_data(distOffsetMap.size(0) * frame), distOffsetMap.size(0), &x_mean, &x_std, ippAlgHintFast);
+		ippsMeanStdDev_32f(&m_pResultTab->m_nirfMap0(0, frame), m_pResultTab->m_nirfMap0.size(0), &y_mean, &y_std, ippAlgHintFast);
+
+		np::FloatArray dist_frame(distOffsetMap.size(0)), nirf_frame(m_pResultTab->m_nirfMap0.size(0));
+		np::FloatArray comul_frame(dist_frame.length());
+		ippsSubC_32f(&dist_data(distOffsetMap.size(0) * frame), x_mean, dist_frame, distOffsetMap.size(0));
+		ippsSubC_32f(&m_pResultTab->m_nirfMap0(0, frame), y_mean, nirf_frame, m_pResultTab->m_nirfMap0.size(0));
+		ippsMul_32f_I(nirf_frame, dist_frame, dist_frame.length());
+
+		ippsSum_32f(dist_frame, dist_frame.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_frame.length() - 1);
+
+		float r_frame = cov / x_std / y_std;
+
+		// Update
+		m_pRenderArea_Correlation->update();
+		m_pCheckBox_Correlation->setText(QString("DIST-NIRF Correlation (r_total = %1 / r_frame = %2)").arg(r_total, 4, 'f', 3).arg(r_frame, 4, 'f', 3));
+	}
 }
 
 void NirfDistCompDlg::filtering(bool toggled)
@@ -587,6 +683,27 @@ void NirfDistCompDlg::showLumenContour(bool)
 	m_pResultTab->invalidate();
 }
 
+void NirfDistCompDlg::showCorrelationPlot(bool toggled)
+{
+	if (toggled)
+		updateCorrelation(m_pResultTab->getCurrentFrame());
+	else
+	{
+		// Distance		
+		memset(m_pRenderArea_Correlation->m_pDataX, 0, sizeof(float) * distOffsetMap.length());
+
+		// NIRF data at current setting
+		memset(m_pRenderArea_Correlation->m_pData, 0, sizeof(float) * m_pResultTab->m_nirfMap0.length());
+
+		// Current frame NIRF data
+		ippsSet_32f(1.0f, m_pRenderArea_Correlation->m_pMask, m_pRenderArea_Correlation->m_buff_len);
+
+		// Update
+		m_pRenderArea_Correlation->update();
+		m_pCheckBox_Correlation->setText("DIST-NIRF Correlation ");
+	}
+}
+
 
 void NirfDistCompDlg::getCompInfo(const QString &infopath)
 {
@@ -598,27 +715,22 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	m_pResultTab->setNirfOffset(nirfOffset);
 
 	m_pConfig->nirfCompCoeffs_a = settings.value("nirfCompCoeffs_a").toFloat();
+	m_pLineEdit_CompensationCoeff_a->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
 	m_pConfig->nirfCompCoeffs_b = settings.value("nirfCompCoeffs_b").toFloat();
+	m_pLineEdit_CompensationCoeff_b->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
 	m_pConfig->nirfCompCoeffs_c = settings.value("nirfCompCoeffs_c").toFloat();
+	m_pLineEdit_CompensationCoeff_c->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
 	m_pConfig->nirfCompCoeffs_d = settings.value("nirfCompCoeffs_d").toFloat();
-
-	m_pLineEdit_CompensationCoeff[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
-	m_pLineEdit_CompensationCoeff[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_b));
-	m_pLineEdit_CompensationCoeff[2]->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
-	m_pLineEdit_CompensationCoeff[3]->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
+	m_pLineEdit_CompensationCoeff_d->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
 
 	m_pConfig->nirfFactorThres = settings.value("nirfFactorThres").toFloat();
 	m_pLineEdit_FactorThreshold->setText(QString::number(m_pConfig->nirfFactorThres));
-
 	m_pConfig->nirfFactorPropConst = settings.value("nirfFactorPropConst").toFloat();
 	m_pLineEdit_FactorPropConst->setText(QString::number(m_pConfig->nirfFactorPropConst));
-
 	m_pConfig->nirfDistPropConst = settings.value("nirfDistPropConst").toFloat();
 	m_pLineEdit_DistPropConst->setText(QString::number(m_pConfig->nirfDistPropConst));
-
 	m_pConfig->nirfLumContourOffset = settings.value("nirfLumContourOffset").toInt();
 	m_pSpinBox_LumenContourOffset->setValue(m_pConfig->nirfLumContourOffset);
-
 	m_pConfig->nirfOuterSheathPos = settings.value("nirfOuterSheathPos").toInt();
 	m_pSpinBox_OuterSheathPosition->setValue(m_pConfig->nirfOuterSheathPos);
 
@@ -630,13 +742,16 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	tbrBg = settings.value("tbrBg").toFloat();;
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
 
-	m_pCheckBox_Filtering->setChecked(true);
+	if (distMap.length() > 0)
+	{
+		m_pCheckBox_Filtering->setChecked(true);
 
-	m_pToggleButton_Compensation->setChecked(true);
-	m_pToggleButton_TBRMode->setChecked(true);
+		m_pToggleButton_Compensation->setChecked(true);
+		m_pToggleButton_TBRMode->setChecked(true);
 
-	bool isZeroTbr = settings.value("zeroTbrDefinition").toBool();
-	m_pCheckBox_ZeroTBRDefinition->setChecked(isZeroTbr);
+		bool isZeroTbr = settings.value("zeroTbrDefinition").toBool();
+		m_pCheckBox_ZeroTBRDefinition->setChecked(isZeroTbr);
+	}
 
 	settings.endGroup();
 }

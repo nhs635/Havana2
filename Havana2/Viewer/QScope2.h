@@ -7,6 +7,8 @@
 
 #include "QScope.h"
 
+#include <Common/callback.h>
+
 class QRenderArea2;
 
 class QScope2 : public QDialog
@@ -62,6 +64,16 @@ public:
 protected:
     void paintEvent(QPaintEvent *);
 
+	void mousePressEvent(QMouseEvent *);
+	void mouseMoveEvent(QMouseEvent *);
+	void mouseReleaseEvent(QMouseEvent *);
+
+public:
+	void setSize(QRange xRange, QRange yRange);
+
+public: // callback
+	callback<void> DidMouseEvent;
+
 public:
     float* m_pData1;
 	float* m_pData2;
@@ -75,6 +87,13 @@ public:
 
 	int *m_pVLineInd;
 	int m_vLineLen;
+
+	bool m_bSelectionAvailable;
+	bool m_bMousePressed;
+	bool m_bIsLeftButton;
+	int m_selected[2];
+	int m_start, m_end;
+	uint8_t *m_pSelectedRegion;
 };
 
 

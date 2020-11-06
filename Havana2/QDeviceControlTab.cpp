@@ -935,6 +935,9 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 	// Initializing
 	if (!m_pNirfEmission->initialize()) // || !m_pNirfEmission->initialize()) Trigger
 		return false;
+
+	// Apply PMT gain voltage
+	m_pCheckBox_PmtGainControl->setChecked(true);
 #endif
 
 	return true;
@@ -1384,6 +1387,9 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 	}
 	else
 	{
+		// Stop applying PMT gain voltage
+		m_pCheckBox_PmtGainControl->setChecked(false);
+
 		// Close NIRF emission profile dialog
 		if (m_pMainWnd->m_pStreamTab->getNirfEmissionProfileDlg())
 			m_pMainWnd->m_pStreamTab->getNirfEmissionProfileDlg()->close();

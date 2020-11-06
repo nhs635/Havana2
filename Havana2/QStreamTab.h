@@ -40,7 +40,6 @@ class FLIMProcess;
 class ThreadManager;
 
 class OctCalibDlg;
-class OctIntensityHistDlg;
 #ifdef OCT_FLIM
 class FlimCalibDlg;
 #endif
@@ -65,7 +64,6 @@ protected:
 public:
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
 	inline OctCalibDlg* getOctCalibDlg() const { return m_pOctCalibDlg; }
-	inline OctIntensityHistDlg* getOctIntensityHistDlg() const { return m_pOctIntensityHistDlg; }
 #ifdef OCT_FLIM
 	inline FlimCalibDlg* getFlimCalibDlg() const { return m_pFlimCalibDlg; }
 	inline QScope* getPulseScope() const { return m_pScope_FlimPulse; }
@@ -188,8 +186,6 @@ private slots:
 	void adjustOctContrast();	
 	void createOctCalibDlg();
 	void deleteOctCalibDlg();
-	void createOctIntensityHistDlg();
-	void deleteOctIntensityHistDlg();
 
 signals:
 #ifdef OCT_FLIM
@@ -400,10 +396,7 @@ private:
 
 	QPushButton *m_pPushButton_OctCalibration;
     OctCalibDlg *m_pOctCalibDlg;
-
-	QPushButton *m_pPushButton_OctIntensityHistogram;
-	OctIntensityHistDlg *m_pOctIntensityHistDlg;
-
+	
     QCheckBox *m_pCheckBox_CircularizeImage;
     QCheckBox *m_pCheckBox_ShowBgRemovedSignal;
 

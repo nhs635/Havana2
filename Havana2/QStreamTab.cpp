@@ -28,7 +28,6 @@
 #include <DataProcess/ThreadManager.h>
 
 #include <Havana2/Dialog/OctCalibDlg.h>
-#include <Havana2/Dialog/OctIntensityHistDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/FlimCalibDlg.h>
 #endif
@@ -38,7 +37,7 @@
 
 
 QStreamTab::QStreamTab(QWidget *parent) :
-    QDialog(parent), m_pOctCalibDlg(nullptr), m_pOctIntensityHistDlg(nullptr),
+    QDialog(parent), m_pOctCalibDlg(nullptr), 
 	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr),
 	m_pCirc(nullptr), m_pMedfilt(nullptr)
 #ifdef OCT_FLIM
@@ -233,7 +232,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
     m_pScope_OctFringe->setMinimumSize(600, 250);
     m_pScope_OctDepthProfile = new QScope({ 0, (double)m_pConfig->n2ScansFFT }, {(double)m_pConfig->octDbRange.min, (double)m_pConfig->octDbRange.max}, 2, 2, 1, 1, 0, 0, "", "dB");
     m_pScope_OctDepthProfile->setMinimumSize(600, 250);
-	m_pScope_OctDepthProfile->setWindowLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
+	//m_pScope_OctDepthProfile->setWindowLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
 	m_pScope_OctDepthProfile->getRender()->update();
 #elif defined (STANDALONE_OCT)
 	m_pScope_OctFringe = new QScope2({ 0, (double)m_pConfig->nScans }, { -POWER_2(15), POWER_2(15) }, 2, 3, 1, voltageCh1 / (double)POWER_2(16), 0, 0, "", "V");
@@ -689,11 +688,7 @@ void QStreamTab::createOctVisualizationOptionTab()
 	// Create widgets for OCT calibration
 	m_pPushButton_OctCalibration = new QPushButton(this);
 	m_pPushButton_OctCalibration->setText("OCT Calibration...");
-
-	// Create widgets for OCT Intensity Histogram
-	m_pPushButton_OctIntensityHistogram = new QPushButton(this);
-	m_pPushButton_OctIntensityHistogram->setText("OCT Intensity Histogram...");
-
+	
     // Create widgets for OCT visualization
     m_pCheckBox_CircularizeImage = new QCheckBox(this);
     m_pCheckBox_CircularizeImage->setText("Circularize Image");
@@ -764,10 +759,7 @@ void QStreamTab::createOctVisualizationOptionTab()
     // Set layout
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0);
 	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctCalibration, 0, 3, 1, 2);
-
-	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);	
-	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctIntensityHistogram, 1, 3, 1, 2);
-
+	
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
 	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
 
@@ -821,7 +813,6 @@ void QStreamTab::createOctVisualizationOptionTab()
 	connect(m_pLineEdit_OctDbMin, SIGNAL(textEdited(const QString &)), this, SLOT(adjustOctContrast()));
 
 	connect(m_pPushButton_OctCalibration, SIGNAL(clicked(bool)), this, SLOT(createOctCalibDlg()));
-	connect(m_pPushButton_OctIntensityHistogram, SIGNAL(clicked(bool)), this, SLOT(createOctIntensityHistDlg()));
 }
 
 
@@ -948,18 +939,12 @@ void QStreamTab::setNirfAcquisitionCallback()
 				if (m_pNirfEmissionProfileDlg)
 				{
 #ifndef TWO_CHANNEL_NIRF
-					m_pNirfEmissionProfileDlg->getScope()->drawData(data);
-					Ipp64f mean, std;
-					ippsMeanStdDev_64f(data, m_pConfig->nAlines, &mean, &std);
-
-					m_pNirfEmissionProfileDlg->setTitle(QString("NIRF Emission Profile (%1 + %2)").arg(mean, 3, 'f', 4).arg(std, 3, 'f', 4));
+					m_pNirfEmissionProfileDlg->drawData((double*)data);
 #else
-					m_pNirfEmissionProfileDlg->getScope()->drawData(data, data + m_pConfig->nAlines);
-					Ipp64f mean[2], std[2];
-					ippsMeanStdDev_64f(data, m_pConfig->nAlines, &mean[0], &std[0]);
-					ippsMeanStdDev_64f(data + m_pConfig->nAlines, m_pConfig->nAlines, &mean[1], &std[1]);
+					np::DoubleArray data1(m_pConfig->nAlines), data2(m_pConfig->nAlines);
+					ippsCplxToReal_64fc((const Ipp64fc*)data, data1, data2, m_pConfig->nAlines);
 
-					m_pNirfEmissionProfileDlg->setTitle(QString("NIRF Emission Profile (Ch1: %1 + %2 / Ch2: %3 + %4)").arg(mean[0], 3, 'f', 4).arg(std[0], 3, 'f', 4).arg(mean[1], 3, 'f', 4).arg(std[1], 3, 'f', 4));
+					m_pNirfEmissionProfileDlg->drawData((double*)data1, (double*)data2);					
 #endif
 				}
 
@@ -1644,11 +1629,7 @@ void QStreamTab::visualizeImage(float* res1, float* res2, double* res3) // OCT-N
 	}
 #endif
 	(*m_pMedfilt)(m_pImgObjRectImage->arr.raw_ptr());	
-
-	// OCT Intensity Histogram
-	if (m_pOctIntensityHistDlg)
-		emit m_pOctIntensityHistDlg->plotHistogram(res1);
-
+	
 #ifdef OCT_FLIM
 	// FLIM Visualization
 	IppiSize roi_flim = { m_pConfig->n4Alines, 1 };
@@ -2245,13 +2226,6 @@ void QStreamTab::changeOctColorTable(int ctable_ind)
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
-		if (m_pOctIntensityHistDlg)
-#ifdef OCT_FLIM
-			emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
-#elif defined (STANDALONE_OCT)
-			emit m_pOctIntensityHistDlg->plotHistogram(m_visImage1.raw_ptr());
-#endif
-
 	}
 }
 
@@ -2280,12 +2254,6 @@ void QStreamTab::adjustOctContrast()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
 #endif
-		if (m_pOctIntensityHistDlg)
-#ifdef OCT_FLIM
-			emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
-#elif defined (STANDALONE_OCT)
-		emit m_pOctIntensityHistDlg->plotHistogram(m_visImage1.raw_ptr());
-#endif
 	}
 }
 
@@ -2305,28 +2273,4 @@ void QStreamTab::deleteOctCalibDlg()
 {
 	m_pOctCalibDlg->deleteLater();
 	m_pOctCalibDlg = nullptr;
-}
-
-void QStreamTab::createOctIntensityHistDlg()
-{
-	if (m_pOctIntensityHistDlg == nullptr)
-	{
-		m_pOctIntensityHistDlg = new OctIntensityHistDlg(true, this);
-		connect(m_pOctIntensityHistDlg, SIGNAL(finished(int)), this, SLOT(deleteOctIntensityHistDlg()));
-		m_pOctIntensityHistDlg->show();
-	}
-	m_pOctIntensityHistDlg->raise();
-	m_pOctIntensityHistDlg->activateWindow();
-
-#ifdef OCT_FLIM
-	emit m_pOctIntensityHistDlg->plotHistogram(m_visImage.raw_ptr());
-#elif defined (STANDALONE_OCT)
-	emit m_pOctIntensityHistDlg->plotHistogram(m_visImage1.raw_ptr());
-#endif
-}
-
-void QStreamTab::deleteOctIntensityHistDlg()
-{
-	m_pOctIntensityHistDlg->deleteLater();
-	m_pOctIntensityHistDlg = nullptr;
 }

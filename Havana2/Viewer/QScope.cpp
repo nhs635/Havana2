@@ -42,10 +42,14 @@ QScope::~QScope()
 {
 	if (m_pRenderArea->m_pData)
 		delete[] m_pRenderArea->m_pData;
+	if (m_pRenderArea->m_pDataX)
+		delete[] m_pRenderArea->m_pDataX;
 	if (m_pRenderArea->m_pMask)
 		delete[] m_pRenderArea->m_pMask;
 	if (m_pRenderArea->m_pData64)
 		delete[] m_pRenderArea->m_pData64;
+	if (m_pRenderArea->m_pSelectedRegion)
+		delete[] m_pRenderArea->m_pSelectedRegion;
 }
 
 void QScope::keyPressEvent(QKeyEvent * e)
@@ -183,7 +187,17 @@ void QScope::setMeanDelayLine(int len, ...)
 void QScope::drawData(const float* pData)
 {
 	if (m_pRenderArea->m_pData != nullptr)
-		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_buff_len);
+
+	m_pRenderArea->update();
+}
+
+void QScope::drawData(const float* pData, const float* pDataX, bool foo)
+{
+	if (m_pRenderArea->m_pData != nullptr)
+		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_buff_len);
+	if (m_pRenderArea->m_pDataX != nullptr)
+		memcpy(m_pRenderArea->m_pDataX, pDataX, sizeof(float) * (int)m_pRenderArea->m_buff_len);
 
 	m_pRenderArea->update();
 }
@@ -192,10 +206,10 @@ void QScope::drawData(const float* pData)
 void QScope::drawData(const float* pData, const float* pMask)
 {
 	if (m_pRenderArea->m_pData != nullptr)
-		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+		memcpy(m_pRenderArea->m_pData, pData, sizeof(float) * (int)m_pRenderArea->m_buff_len);
 
 	if (m_pRenderArea->m_pMask != nullptr)
-		memcpy(m_pRenderArea->m_pMask, pMask, sizeof(float) * (int)m_pRenderArea->m_sizeGraph.width());
+		memcpy(m_pRenderArea->m_pMask, pMask, sizeof(float) * (int)m_pRenderArea->m_buff_len);
 
 	m_pRenderArea->update();
 }
@@ -203,7 +217,7 @@ void QScope::drawData(const float* pData, const float* pMask)
 void QScope::drawData(const double* pData64)
 {
 	if (m_pRenderArea->m_pData64 != nullptr)
-		memcpy(m_pRenderArea->m_pData64, pData64, sizeof(double) * (int)m_pRenderArea->m_sizeGraph.width());
+		memcpy(m_pRenderArea->m_pData64, pData64, sizeof(double) * (int)m_pRenderArea->m_buff_len);
 
 	m_pRenderArea->update();
 }
@@ -211,9 +225,9 @@ void QScope::drawData(const double* pData64)
 
 
 QRenderArea::QRenderArea(QWidget *parent) :
-    QWidget(parent), m_pData(nullptr), m_pMask(nullptr), m_pData64(nullptr),
-	m_bSelectionAvailable(false), m_bMaskUse(false), m_b64Use(false), m_winLineLen(0), m_mdLineLen(0),
-	m_nHMajorGrid(8), m_nHMinorGrid(64), m_nVMajorGrid(4), m_bZeroLine(false)
+    QWidget(parent), m_pData(nullptr), m_pDataX(nullptr), m_pMask(nullptr), m_pData64(nullptr), m_pSelectedRegion(nullptr),
+	m_bSelectionAvailable(false), m_bMaskUse(false), m_b64Use(false), m_buff_len(0), m_winLineLen(0), m_mdLineLen(0),
+	m_nHMajorGrid(8), m_nHMinorGrid(64), m_nVMajorGrid(4), m_bZeroLine(false), m_bScattered(false)
 {
     QPalette pal = this->palette();
     pal.setColor(QPalette::Background, QColor(0x282d30));
@@ -232,7 +246,7 @@ QRenderArea::~QRenderArea()
 	delete[] m_pMdLineInd;
 }
 
-void QRenderArea::setSize(QRange xRange, QRange yRange)
+void QRenderArea::setSize(QRange xRange, QRange yRange, int len)
 {
 	// Set range
 	m_xRange = xRange;
@@ -241,25 +255,36 @@ void QRenderArea::setSize(QRange xRange, QRange yRange)
 	// Set graph size
 	m_sizeGraph = { m_xRange.max - m_xRange.min , m_yRange.max - m_yRange.min };
 
+	// Buffer length
+	m_buff_len = (len != 0) ? len : m_sizeGraph.width();
+
 	// Allocate data buffer
 	if (!m_b64Use)
 	{
 		if (m_pData) { delete[] m_pData; m_pData = nullptr; }
-		m_pData = new float[(int)m_sizeGraph.width()];
-		memset(m_pData, 0, sizeof(float) * (int)m_sizeGraph.width());
+		m_pData = new float[m_buff_len];
+		memset(m_pData, 0, sizeof(float) * m_buff_len);
+
+		if (m_pDataX) { delete[] m_pDataX; m_pDataX = nullptr; }
+		m_pDataX = new float[m_buff_len];
+		memset(m_pDataX, 0, sizeof(float) * m_buff_len);
 	}
 	else
 	{
 		if (m_pData64) { delete[] m_pData64; m_pData64 = nullptr; }
-		m_pData64 = new double[(int)m_sizeGraph.width()];
-		memset(m_pData64, 0, sizeof(double) * (int)m_sizeGraph.width());
+		m_pData64 = new double[m_buff_len];
+		memset(m_pData64, 0, sizeof(double) * m_buff_len);
 	}
 
+	if (m_pSelectedRegion) { delete[] m_pSelectedRegion; m_pSelectedRegion = nullptr; }
+	m_pSelectedRegion = new uint8_t[m_buff_len];
+	memset(m_pSelectedRegion, 0, sizeof(uint8_t) * m_buff_len);
+	
 	if (m_bMaskUse)
 	{
 		if (m_pMask) { delete[] m_pMask; m_pMask = nullptr; }
-		m_pMask = new float[(int)m_sizeGraph.width()];
-		memset(m_pMask, 0, sizeof(float) * (int)m_sizeGraph.width());
+		m_pMask = new float[m_buff_len];
+		memset(m_pMask, 0, sizeof(float) * m_buff_len);
 	}
 
 	this->update();
@@ -300,21 +325,34 @@ void QRenderArea::paintEvent(QPaintEvent *)
     if (m_pData != nullptr) // single case
     {        
 		painter.setPen(QColor(0xfff65d)); // data graph (yellow)
-		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		for (int i = 0; i < m_buff_len - 1; i++)
 		{			
-			QPointF x0, x1;						
-			x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
-            x0.setY((float)(m_yRange.max - m_pData[i    ]) * (float)h / (float)(m_yRange.max - m_yRange.min));
-            x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
-            x1.setY((float)(m_yRange.max - m_pData[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));			
+			QPointF x0, x1;		
+			if (!m_bScattered)
+			{
+				x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
+				x0.setY((float)(m_yRange.max - m_pData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+				x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
+				x1.setY((float)(m_yRange.max - m_pData[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));
 
-			painter.drawLine(x0, x1);			
+				painter.drawLine(x0, x1);
+			}
+			else
+			{
+				if (m_pDataX != nullptr)
+				{
+					x0.setX((float)(m_pDataX[i]) * (float)w / (float)(m_xRange.max - m_xRange.min));
+					x0.setY((float)(m_yRange.max - m_pData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+
+					painter.drawPoint(x0);
+				}
+			}
         }
     }
 	if (m_pData64 != nullptr) // double case
 	{
 		painter.setPen(QColor(0xfff65d)); // data graph (yellow)
-		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		for (int i = 0; i < m_buff_len - 1; i++)
 		{
 			QPointF x0, x1;
 			x0.setX((double)(i) / (double)m_sizeGraph.width() * w);
@@ -322,16 +360,52 @@ void QRenderArea::paintEvent(QPaintEvent *)
 			x1.setX((double)(i + 1) / (double)m_sizeGraph.width() * w);
 			x1.setY((double)(m_yRange.max - m_pData64[i + 1]) * (double)h / (double)(m_yRange.max - m_yRange.min));
 
-			painter.drawLine(x0, x1);
+			if (!m_bScattered)
+				painter.drawLine(x0, x1);
+			else
+				painter.drawPoint(x0);
 		}
 	}
 	
 	if (m_bMaskUse && (m_pMask != nullptr))
 	{
-		painter.setPen(QColor(0xff0080)); // mask region (hot pink)
-		for (int i = (int)(m_xRange.min); i < (int)(m_xRange.max - 1); i++)
+		QPen pen(QColor(0xff0080)); // mask region (hot pink)
+		pen.setWidth(2);
+		painter.setPen(pen);		
+		for (int i = 0; i < m_buff_len - 1; i++)
 		{
 			if (m_pMask[i] == 0)
+			{
+				QPointF x0, x1;
+				if (!m_bScattered)
+				{
+					x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
+					x0.setY((float)(m_yRange.max - m_pData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+					x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
+					x1.setY((float)(m_yRange.max - m_pData[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+
+					painter.drawLine(x0, x1);
+				}
+				else
+				{
+					if (m_pDataX != nullptr)
+					{
+						x0.setX((float)(m_pDataX[i]) * (float)w / (float)(m_xRange.max - m_xRange.min));
+						x0.setY((float)(m_yRange.max - m_pData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
+
+						painter.drawPoint(x0);
+					}
+				}
+			}
+		}
+	}	
+	if (m_bSelectionAvailable)
+	{
+		QPen pen(QColor(0xff6666)); pen.setWidth(3); // selected region (light pink)					
+		painter.setPen(pen);
+		for (int i = 0; i < m_buff_len - 1; i++)
+		{			
+			if (m_pSelectedRegion[i] == 1)
 			{
 				QPointF x0, x1;
 				x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
@@ -342,23 +416,7 @@ void QRenderArea::paintEvent(QPaintEvent *)
 				painter.drawLine(x0, x1);
 			}
 		}
-	}	
-	if (m_bSelectionAvailable)
-	{
-		QPen pen(QColor(0xff6666)); pen.setWidth(3); // selected region (light pink)					
-		painter.setPen(pen);
-		for (int i = m_start; i < m_end; i++)
-		{			
-			QPointF x0, x1;
-			x0.setX((float)(i) / (float)m_sizeGraph.width() * w);
-			x0.setY((float)(m_yRange.max - m_pData[i]) * (float)h / (float)(m_yRange.max - m_yRange.min));
-			x1.setX((float)(i + 1) / (float)m_sizeGraph.width() * w);
-			x1.setY((float)(m_yRange.max - m_pData[i + 1]) * (float)h / (float)(m_yRange.max - m_yRange.min));
-
-			painter.drawLine(x0, x1);	
-		}
 	}
-
 
 	// Draw vertical lines...
 	for (int i = 0; i < m_mdLineLen; i++)
@@ -392,13 +450,23 @@ void QRenderArea::mousePressEvent(QMouseEvent *e)
 		m_bMousePressed = true;
 
 		QPoint p = e->pos();
+		auto button = e->button();
 		if ((p.x() > 0) && (p.y() > 0) && (p.x() < this->width()) && (p.y() < this->height()))
 		{
 			int x = (double)p.x() / (double)this->width() * (double)m_sizeGraph.width();
+			
 			m_selected[0] = x;
 			m_selected[1] = x;
+
+			m_bIsLeftButton = button == Qt::LeftButton;
+			if (m_bIsLeftButton)
+				memset(m_pSelectedRegion, 0, sizeof(uint8_t) * (int)m_sizeGraph.width());
+			
+			memset(&m_pSelectedRegion[x], 1, 1);
+
 			//printf("[%d %d]\n", m_selected[0], m_selected[1]);
-			this->update();
+			//this->update();
+			DidMouseEvent();
 		}
 	}
 }
@@ -410,6 +478,7 @@ void QRenderArea::mouseMoveEvent(QMouseEvent *e)
 		if (m_bMousePressed)
 		{
 			QPoint p = e->pos();
+			auto button = e->button();
 			if ((p.x() > 0) && (p.y() > 0) && (p.x() < this->width()) && (p.y() < this->height()))
 			{
 				int x = (double)p.x() / (double)this->width() * (double)m_sizeGraph.width();
@@ -423,8 +492,13 @@ void QRenderArea::mouseMoveEvent(QMouseEvent *e)
 					m_end = m_selected[0];
 				}
 
-				//printf("[%d %d]\n", m_selected[0], m_selected[1]);
-				this->update();
+				if (m_bIsLeftButton)
+					memset(m_pSelectedRegion, 0, sizeof(uint8_t) * (int)m_sizeGraph.width());
+				memset(&m_pSelectedRegion[m_start], 1, sizeof(uint8_t) * (m_end - m_start));
+
+				//printf("[%d %d]\n", m_start, m_end);
+				//this->update();
+				DidMouseEvent();
 			}
 		}
 	}
@@ -435,8 +509,9 @@ void QRenderArea::mouseReleaseEvent(QMouseEvent *e)
 	if (m_bSelectionAvailable)
 	{
 		m_bMousePressed = false;
-
+		
 		QPoint p = e->pos();
+		auto button = e->button();
 		if ((p.x() > 0) && (p.y() > 0) && (p.x() < this->width()) && (p.y() < this->height()))
 		{
 			int x = (double)p.x() / (double)this->width() * (double)m_sizeGraph.width();
@@ -450,8 +525,13 @@ void QRenderArea::mouseReleaseEvent(QMouseEvent *e)
 				m_end = m_selected[0];
 			}
 
+			if (m_bIsLeftButton)
+				memset(m_pSelectedRegion, 0, sizeof(uint8_t) * (int)m_sizeGraph.width());
+			memset(&m_pSelectedRegion[m_start], 1, sizeof(uint8_t) * (m_end - m_start));
+
 			//printf("[%d %d]\n", m_selected[0], m_selected[1]);
-			this->update();
+			//this->update();
+			DidMouseEvent();
 		}
 	}
 }

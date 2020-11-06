@@ -28,7 +28,6 @@ class MemoryBuffer;
 class QImageView;
 
 class SaveResultDlg;
-class OctIntensityHistDlg;
 class LongitudinalViewDlg;
 #ifdef OCT_FLIM
 class PulseReviewDlg;
@@ -67,7 +66,6 @@ public:
 	inline MainWindow* getMainWnd() const { return m_pMainWnd; }
 	inline Configuration* getConfigTemp() const { return m_pConfigTemp; }
 	inline SaveResultDlg* getSaveResultDlg() const { return m_pSaveResultDlg; }
-	inline OctIntensityHistDlg* getOctIntensityHistDlg() const { return m_pOctIntensityHistDlg; }
 	inline LongitudinalViewDlg* getLongitudinalViewDlg() const { return m_pLongitudinalViewDlg; }
 #ifdef OCT_FLIM
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
@@ -114,8 +112,6 @@ private slots: // widget operation
 	void changeDataSelection(int id);
 	void createSaveResultDlg();
 	void deleteSaveResultDlg();
-	void createOctIntensityHistDlg();
-	void deleteOctIntensityHistDlg();
 	void createLongitudinalViewDlg();
 	void deleteLongitudinalViewDlg();
 #ifdef OCT_FLIM
@@ -419,10 +415,7 @@ private:
 	QPushButton *m_pPushButton_NirfCrossTalkCompensation;
 	NirfCrossTalkCompDlg *m_pNirfCrossTalkCompDlg;
 #endif
-#endif
-	QPushButton *m_pPushButton_OctIntensityHistogram;
-	OctIntensityHistDlg *m_pOctIntensityHistDlg;
-	
+#endif	
 	QPushButton *m_pPushButton_LongitudinalView;
 	LongitudinalViewDlg *m_pLongitudinalViewDlg;
 

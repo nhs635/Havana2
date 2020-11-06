@@ -23,7 +23,7 @@ NirfCrossTalkCompDlg::NirfCrossTalkCompDlg(QWidget *parent) :
     // Set default size & frame
     setFixedSize(360, 230);
     setWindowFlags(Qt::Tool);
-	setWindowTitle("2Ch NIRF Cross Talk Compensation");
+	setWindowTitle("2Ch NIRF Cross Talk Correction");
 
     // Set main window objects
     m_pResultTab = (QResultTab*)parent;

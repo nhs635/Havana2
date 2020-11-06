@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.7.1"
+#define VERSION						"1.2.7.2"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -37,10 +37,10 @@
 #endif
 #else
 #define PROGRAMMATIC_GAIN_CONTROL
-#define TWO_CHANNEL_NIRF
+//#define TWO_CHANNEL_NIRF
 #endif
-#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+//#define GALVANO_MIRROR
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -124,7 +124,7 @@
 #define N_CUDA_PARTITIONS			4
 #endif
 
-//#define FREQ_SHIFTING               
+#define FREQ_SHIFTING               
 
 //#define OCT_VERTICAL_MIRRORING
 

@@ -53,6 +53,7 @@ private slots:
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
 	void showLumenContour(bool);
+	void showCorrelationPlot(bool);
 
 public:
 	void getCompInfo(const QString &);
@@ -63,6 +64,9 @@ signals:
 
 private:
     void calculateCompMap();
+
+public:
+	void updateCorrelation(int frame);
 
 // Variables ////////////////////////////////////////////
 private:	
@@ -79,6 +83,7 @@ private:
 
 public:
     np::Uint16Array2 distMap;
+	np::Uint16Array2 distOffsetMap;
     float nirfBg;
     np::FloatArray2 compMap;
     float tbrBg;
@@ -102,7 +107,10 @@ private:
 	QRenderArea *m_pRenderArea_CompensationCurve;
 	
 	QLabel *m_pLabel_CompensationCoeff;
-	QLineEdit *m_pLineEdit_CompensationCoeff[4];
+	QLineEdit *m_pLineEdit_CompensationCoeff_a;
+	QLineEdit *m_pLineEdit_CompensationCoeff_b;
+	QLineEdit *m_pLineEdit_CompensationCoeff_c;
+	QLineEdit *m_pLineEdit_CompensationCoeff_d;
 
 	QLabel *m_pLabel_FactorThreshold;
 	QLineEdit *m_pLineEdit_FactorThreshold;
@@ -132,6 +140,10 @@ private:
 
 	// Widgets for indicator
 	QCheckBox *m_pCheckBox_ShowLumenContour;
+
+	// Widgets for compensation results - distance dependency check
+	QCheckBox *m_pCheckBox_Correlation;
+	QRenderArea *m_pRenderArea_Correlation;
 #endif
 };
 

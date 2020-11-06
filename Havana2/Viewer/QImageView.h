@@ -57,7 +57,7 @@ public:
 	void setVerticalLine(int len, ...);
 	void setCircle(int len, ...);
 	void setHorizontalLineColor(int len, ...);
-    void setContour(int len, uint16_t* pContour);
+	void setContour(int len, uint16_t* pContour, uint8_t* pSelected = nullptr);
 	void setMagnDefault();
 
 	void setHLineChangeCallback(const std::function<void(int)> &slot);
@@ -103,7 +103,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent *);
 	void mouseReleaseEvent(QMouseEvent *);
 	void wheelEvent(QWheelEvent *);
-	
+
 public:
     QImage *m_pImage;
 
@@ -121,6 +121,7 @@ public:
 
 	int m_contour_offset;
     np::Uint16Array m_contour;
+	uint8_t* m_pSelected;
 
 	bool m_bRectDrawing;
 	bool m_bMeasureDistance;

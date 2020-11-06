@@ -103,3 +103,5 @@ Havana2.VC*
   (CUDA-enabled)
 - Havana2 v1.2.7.1
   (CUDA-enabled modification & 2ch-NIRF modification)
+- Havana2 v1.2.7.2
+  (minor modification)

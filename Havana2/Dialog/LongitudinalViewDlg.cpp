@@ -250,7 +250,7 @@ void LongitudinalViewDlg::drawLongitudinalImage(int aline)
 		for (size_t i = r.begin(); i != r.end(); ++i)
 		{
 			int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
-				(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 4) + m_pResultTab->m_polishedSurface((int)i) - m_pConfig->ballRadius;
+				(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface((int)i) - m_pConfig->ballRadius;
 			memcpy(&longi_temp(0, (int)i), &m_pResultTab->m_vectorOctImage.at((int)i)(center, aline1), sizeof(float) * m_pResultTab->getConfigTemp()->circRadius);
 			memcpy(&longi_temp(m_pResultTab->getConfigTemp()->circRadius, (int)i), &m_pResultTab->m_vectorOctImage.at((int)i)(center, m_pResultTab->getConfigTemp()->nAlines / 2 + aline1), sizeof(float) * m_pResultTab->getConfigTemp()->circRadius);
 			ippsFlip_32f_I(&longi_temp(0, (int)i), m_pResultTab->getConfigTemp()->circRadius);

@@ -7,6 +7,8 @@
 
 #include <stdarg.h>
 
+#include <Common/callback.h>
+
 struct QRange {
     double min;
     double max;
@@ -49,6 +51,7 @@ public:
 
 public slots:
     void drawData(const float* pData);
+	void drawData(const float* pData, const float* pDataX, bool foo);
 	void drawData(const float* pData, const float* pMask);
 	void drawData(const double* pData64);
 
@@ -77,11 +80,15 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *);
 
 public:
-	void setSize(QRange xRange, QRange yRange);
+	void setSize(QRange xRange, QRange yRange, int len = 0);
 	void setGrid(int nHMajorGrid, int nHMinorGrid, int nVMajorGrid, bool zeroLine = false);
+
+public: // callback
+	callback<void> DidMouseEvent;
 
 public:
     float* m_pData;
+	float* m_pDataX;
 	float* m_pMask;
 	double* m_pData64;
 	bool m_bMaskUse;
@@ -90,6 +97,7 @@ public:
     QRange m_xRange;
     QRange m_yRange;
     QSizeF m_sizeGraph;
+	int m_buff_len;
 
 	int *m_pWinLineInd;
 	float *m_pMdLineInd;
@@ -104,8 +112,12 @@ public:
 
 	bool m_bSelectionAvailable;
 	bool m_bMousePressed;
+	bool m_bIsLeftButton;
 	int m_selected[2];
 	int m_start, m_end;
+	uint8_t *m_pSelectedRegion;
+
+	bool m_bScattered;
 };
 
 

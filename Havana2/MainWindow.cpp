@@ -11,7 +11,6 @@
 
 #include <Havana2/Dialog/DigitizerSetupDlg.h>
 #include <Havana2/Dialog/OctCalibDlg.h>
-#include <Havana2/Dialog/OctIntensityHistDlg.h>
 #include <Havana2/Dialog/LongitudinalViewDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/FlimCalibDlg.h>
@@ -177,8 +176,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
 		m_pOperationTab->getDigitizerSetupDlg()->close();
 	if (m_pStreamTab->getOctCalibDlg())
 		m_pStreamTab->getOctCalibDlg()->close();
-	if (m_pStreamTab->getOctIntensityHistDlg())
-		m_pStreamTab->getOctIntensityHistDlg()->close();
 #ifdef OCT_FLIM
 	if (m_pStreamTab->getFlimCalibDlg())
 		m_pStreamTab->getFlimCalibDlg()->close();
@@ -192,8 +189,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
 #endif
 	if (m_pResultTab->getSaveResultDlg())
 		m_pResultTab->getSaveResultDlg()->close();
-	if (m_pResultTab->getOctIntensityHistDlg())
-		m_pResultTab->getOctIntensityHistDlg()->close();
 	if (m_pResultTab->getLongitudinalViewDlg())
 		m_pResultTab->getLongitudinalViewDlg()->close();
 #ifdef OCT_NIRF
@@ -257,8 +252,6 @@ void MainWindow::changedTab(int index)
 			m_pOperationTab->getDigitizerSetupDlg()->close();
 		if (m_pStreamTab->getOctCalibDlg())
 			m_pStreamTab->getOctCalibDlg()->close();
-		if (m_pStreamTab->getOctIntensityHistDlg())
-			m_pStreamTab->getOctIntensityHistDlg()->close();
 #ifdef OCT_FLIM
 		if (m_pStreamTab->getFlimCalibDlg())
 			m_pStreamTab->getFlimCalibDlg()->close();
@@ -292,8 +285,6 @@ void MainWindow::changedTab(int index)
 
 		if (m_pResultTab->getSaveResultDlg())
 			m_pResultTab->getSaveResultDlg()->close();
-		if (m_pResultTab->getOctIntensityHistDlg())
-			m_pResultTab->getOctIntensityHistDlg()->close();
 		if (m_pResultTab->getLongitudinalViewDlg())
 			m_pResultTab->getLongitudinalViewDlg()->close();
 #ifdef OCT_FLIM
