@@ -1834,8 +1834,22 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 						if (m_pNirfDistCompDlg->isZeroTbr())
 	                        ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
                         ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+
+						if (m_pNirfDistCompDlg->compConst != 1.0f)
+						{
+							ippsSubC_32f_I(1.0f, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+							ippsMulC_32f_I(m_pNirfDistCompDlg->compConst, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+							ippsAddC_32f_I(1.0f, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+						}
                     }
                 }
+				if (m_pNirfDistCompDlg->isGwMasked())
+				{
+					if (m_pNirfDistCompDlg->gwMap.raw_ptr())
+					{
+						ippsMul_32f_I(m_pNirfDistCompDlg->gwMap, m_nirfMap0.raw_ptr(), m_nirfMap0.length());
+					}
+				}
 #else
 				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // BG subtraction
 				if (m_pNirfDistCompDlg->isCompensating())
@@ -1847,6 +1861,20 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 						if (m_pNirfDistCompDlg->isZeroTbr())
 							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
 						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+
+						if (m_pNirfDistCompDlg->compConst != 1.0f)
+						{
+							ippsSubC_32f_I(1.0f, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+							ippsMulC_32f_I(m_pNirfDistCompDlg->compConst, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+							ippsAddC_32f_I(1.0f, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+						}
+					}
+				}
+				if (m_pNirfDistCompDlg->isGwMasked())
+				{
+					if (m_pNirfDistCompDlg->gwMap.raw_ptr())
+					{
+						ippsMul_32f_I(m_pNirfDistCompDlg->gwMap, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
 					}
 				}
 
@@ -1860,6 +1888,20 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 						if (m_pNirfDistCompDlg->isZeroTbr())
 							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
 						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+
+						if (m_pNirfDistCompDlg->compConst != 1.0f)
+						{
+							ippsSubC_32f_I(1.0f, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+							ippsMulC_32f_I(m_pNirfDistCompDlg->compConst, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+							ippsAddC_32f_I(1.0f, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+						}
+					}
+				}
+				if (m_pNirfDistCompDlg->isGwMasked())
+				{
+					if (m_pNirfDistCompDlg->gwMap.raw_ptr())
+					{
+						ippsMul_32f_I(m_pNirfDistCompDlg->gwMap, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
 					}
 				}
 #endif

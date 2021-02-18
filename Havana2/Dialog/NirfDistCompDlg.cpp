@@ -20,10 +20,10 @@
 
 #ifdef OCT_NIRF
 NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
-	QDialog(parent), m_bCanBeClosed(true), nirfBg(0), tbrBg(0)
+	QDialog(parent), m_bCanBeClosed(true), nirfBg(0.0), tbrBg(0.0), compConst(1.0)
 {
 	// Set default size & frame
-	setFixedSize(380, 550);
+	setFixedSize(380, 565);
 	setWindowFlags(Qt::Tool);
 	setWindowTitle("NIRF Distance Compensation");
 
@@ -53,6 +53,10 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pToggleButton_TBRMode->setText("TBR Converting On");
 	m_pToggleButton_TBRMode->setCheckable(true);
 	m_pToggleButton_TBRMode->setDisabled(true);
+
+	m_pPushButton_ExportTBR = new QPushButton(this);
+	m_pPushButton_ExportTBR->setText("Export TBR Data");
+	m_pPushButton_ExportTBR->setDisabled(true);
 
 	// Create widgets for compensation details
 	m_pRenderArea_DistanceDecayCurve = new QRenderArea(this);
@@ -153,30 +157,46 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 
 	m_pCheckBox_ZeroTBRDefinition = new QCheckBox(this);
 	m_pCheckBox_ZeroTBRDefinition->setText("Zero TBR Definition");
-	m_pCheckBox_ZeroTBRDefinition->setChecked(true);
+	//m_pCheckBox_ZeroTBRDefinition->setChecked(true);
 	m_pCheckBox_ZeroTBRDefinition->setDisabled(true);
+	m_pCheckBox_ZeroTBRDefinition->setVisible(false);
+
+	m_pCheckBox_GwMasking = new QCheckBox(this);
+	m_pCheckBox_GwMasking->setText("GW Masking");
+	m_pCheckBox_GwMasking->setDisabled(true);
 
 	m_pLineEdit_NIRF_Background = new QLineEdit(this);
-	m_pLineEdit_NIRF_Background->setFixedWidth(35);
+	m_pLineEdit_NIRF_Background->setFixedWidth(45);
 	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
 	m_pLineEdit_NIRF_Background->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_NIRF_Background->setDisabled(true);
 
-	m_pLabel_NIRF_Background = new QLabel("NIRF Background   ");
+	m_pLabel_NIRF_Background = new QLabel("NIRF BG   ");
 	m_pLabel_NIRF_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_NIRF_Background->setBuddy(m_pLineEdit_NIRF_Background);
 	m_pLabel_NIRF_Background->setDisabled(true);
 
 	m_pLineEdit_TBR_Background = new QLineEdit(this);
-	m_pLineEdit_TBR_Background->setFixedWidth(35);
+	m_pLineEdit_TBR_Background->setFixedWidth(45);
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
 	m_pLineEdit_TBR_Background->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_TBR_Background->setDisabled(true);
 
-	m_pLabel_TBR_Background = new QLabel("   TBR Background   ");
+	m_pLabel_TBR_Background = new QLabel("   TBR BG   ");
 	m_pLabel_TBR_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_TBR_Background->setBuddy(m_pLineEdit_TBR_Background);
 	m_pLabel_TBR_Background->setDisabled(true);
+
+	m_pLineEdit_Compensation = new QLineEdit(this);
+	m_pLineEdit_Compensation->setFixedWidth(45);
+	m_pLineEdit_Compensation->setText(QString::number(compConst, 'f', 4));
+	m_pLineEdit_Compensation->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_Compensation->setDisabled(true);
+
+	m_pLabel_Compensation = new QLabel("   Comp Const   ");
+	m_pLabel_Compensation->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+	m_pLabel_Compensation->setBuddy(m_pLineEdit_Compensation);
+	m_pLabel_Compensation->setDisabled(true);
 
 	// Create widgets for guide line indicator
 	m_pCheckBox_ShowLumenContour = new QCheckBox(this);
@@ -203,6 +223,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pGridLayout_Buttons->addWidget(m_pPushButton_LoadNirfBackground, 0, 1);
 	pGridLayout_Buttons->addWidget(m_pToggleButton_Compensation, 1, 0, 1, 2);
 	pGridLayout_Buttons->addWidget(m_pToggleButton_TBRMode, 2, 0, 1, 2);
+	pGridLayout_Buttons->addWidget(m_pPushButton_ExportTBR, 3, 0, 1, 2);
 
 	QGridLayout *pGridLayout_CompCurves = new QGridLayout;
 	pGridLayout_CompCurves->setSpacing(2);
@@ -249,6 +270,8 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background);
 	pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
 	pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background);
+	pHBoxLayout_TBR->addWidget(m_pLabel_Compensation);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_Compensation);
 
 	QHBoxLayout *pHBoxLayout_TBR_Option = new QHBoxLayout;
 	pHBoxLayout_TBR_Option->setSpacing(1);
@@ -256,7 +279,8 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pHBoxLayout_TBR_Option->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_ShowLumenContour);
 	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_Filtering);
-	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_ZeroTBRDefinition);
+	pHBoxLayout_TBR_Option->addWidget(m_pCheckBox_GwMasking);
+	///pGridLayout_TBR_Option->addWidget(m_pCheckBox_ZeroTBRDefinition, 1, 2);
 
 	QGridLayout *pGridLayout_Correlation = new QGridLayout;
 	pGridLayout_Correlation->setSpacing(2);
@@ -285,6 +309,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pPushButton_LoadNirfBackground, SIGNAL(clicked(bool)), this, SLOT(loadNirfBackground()));
 	connect(m_pToggleButton_Compensation, SIGNAL(toggled(bool)), this, SLOT(compensation(bool)));
 	connect(m_pToggleButton_TBRMode, SIGNAL(toggled(bool)), this, SLOT(tbrConvering(bool)));
+	connect(m_pPushButton_ExportTBR, SIGNAL(clicked(bool)), this, SLOT(exportTbrData()));
 	connect(m_pLineEdit_CompensationCoeff_a, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff_b, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff_c, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
@@ -296,8 +321,10 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pSpinBox_OuterSheathPosition, SIGNAL(valueChanged(int)), this, SLOT(changeZeroPointSetting()));
 	connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
 	connect(m_pCheckBox_ZeroTBRDefinition, SIGNAL(toggled(bool)), this, SLOT(tbrZeroDefinition(bool)));
+	connect(m_pCheckBox_GwMasking, SIGNAL(toggled(bool)), this, SLOT(gwMasking(bool)));
 	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
 	connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
+	connect(m_pLineEdit_Compensation, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompConstant(const QString &)));
 	connect(m_pCheckBox_ShowLumenContour, SIGNAL(toggled(bool)), this, SLOT(showLumenContour(bool)));
 	connect(m_pCheckBox_Correlation, SIGNAL(toggled(bool)), this, SLOT(showCorrelationPlot(bool)));
 	connect(this, SIGNAL(setWidgets(bool)), this, SLOT(setWidgetEnabled(bool)));
@@ -339,9 +366,11 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 {
 	m_pPushButton_LoadDistanceMap->setEnabled(enabled && !(compMap.raw_ptr()));
 	m_pPushButton_LoadNirfBackground->setEnabled(enabled && !(nirfBg > 0));
-
+	
 	m_pToggleButton_Compensation->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
 	m_pToggleButton_TBRMode->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
+
+	m_pPushButton_ExportTBR->setEnabled(enabled && (compMap.raw_ptr()) && (gwMap.raw_ptr()));
 
 	m_pLabel_DistanceDecayCurve->setEnabled(enabled);
 	m_pLabel_CompensationCurve->setEnabled(enabled);
@@ -374,6 +403,7 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 	m_pSpinBox_OuterSheathPosition->setEnabled(enabled && (compMap.raw_ptr()));
 
 	m_pCheckBox_Filtering->setEnabled(enabled);
+	m_pCheckBox_GwMasking->setEnabled(enabled && (gwMap.raw_ptr()));
 
 	m_pLabel_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
 	m_pLineEdit_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
@@ -381,11 +411,18 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 	m_pLabel_TBR_Background->setEnabled(enabled && (nirfBg > 0));
 	m_pLineEdit_TBR_Background->setEnabled(enabled && (nirfBg > 0));
 
+	m_pLabel_Compensation->setEnabled(enabled && (nirfBg > 0));
+	m_pLineEdit_Compensation->setEnabled(enabled && (nirfBg > 0));
+
+	m_pCheckBox_ShowLumenContour->setEnabled(enabled);
+	m_pCheckBox_ZeroTBRDefinition->setEnabled(false);
+
 	//zero tbr ฐüทร...
 }
 
 void NirfDistCompDlg::loadDistanceMap()
 {
+	// Get distance map
     QString distMapName = m_pResultTab->m_path + "/dist_map.bin";
 
     QFile file(distMapName);
@@ -415,6 +452,26 @@ void NirfDistCompDlg::loadDistanceMap()
 
 		m_pCheckBox_Correlation->setChecked(true);
     }
+
+	// Get guide-wire map (if required)
+	QString gwMapName = m_pResultTab->m_path + "/gw_map.bin";
+
+	QFile file_gw(gwMapName);
+	if (false == file_gw.open(QFile::ReadOnly))
+		printf("[ERROR] Invalid external data or there is no such a file (gw_map.bin)!\n");
+	else
+	{
+#ifndef TWO_CHANNEL_NIRF
+		gwMap = np::FloatArray2(m_pResultTab->m_nirfMap.size(0), m_pResultTab->m_nirfMap.size(1));
+#else
+		gwMap = np::FloatArray2(m_pResultTab->m_nirfMap1.size(0), m_pResultTab->m_nirfMap1.size(1));
+#endif
+		file_gw.read(reinterpret_cast<char*>(gwMap.raw_ptr()), sizeof(float) * gwMap.length());
+		file_gw.close();
+
+		// Update widgets states
+		m_pCheckBox_GwMasking->setEnabled(true);
+	}
 }
 
 void NirfDistCompDlg::loadNirfBackground()
@@ -454,6 +511,8 @@ void NirfDistCompDlg::compensation(bool toggled)
         m_pToggleButton_TBRMode->setEnabled(true);
         m_pLabel_TBR_Background->setEnabled(true);
         m_pLineEdit_TBR_Background->setEnabled(true);
+		m_pLabel_Compensation->setEnabled(true);
+		m_pLineEdit_Compensation->setEnabled(true);
     }
     else
     {
@@ -463,6 +522,8 @@ void NirfDistCompDlg::compensation(bool toggled)
 		m_pToggleButton_TBRMode->setDisabled(true);
         m_pLabel_TBR_Background->setDisabled(true);
         m_pLineEdit_TBR_Background->setDisabled(true);
+		m_pLabel_Compensation->setDisabled(true);
+		m_pLineEdit_Compensation->setDisabled(true);
     }
 
     // Update compensation map
@@ -478,19 +539,67 @@ void NirfDistCompDlg::tbrConvering(bool toggled)
 	{
 		m_pToggleButton_TBRMode->setText("TBR Converting Off");
 
-		m_pCheckBox_ZeroTBRDefinition->setEnabled(true);
+		m_pPushButton_ExportTBR->setEnabled(true && (gwMap.raw_ptr()) && (m_pCheckBox_GwMasking->isChecked()));
+		//m_pCheckBox_ZeroTBRDefinition->setEnabled(true);
 	}
 	else
 	{
 		m_pToggleButton_TBRMode->setText("TBR Converting On");
 
-		m_pCheckBox_ZeroTBRDefinition->setDisabled(true);
+		m_pPushButton_ExportTBR->setEnabled(false);
+		//m_pCheckBox_ZeroTBRDefinition->setDisabled(true);
 	}
 
 	tbrBg = m_pLineEdit_TBR_Background->text().toFloat();
 
 	// Invalidate
 	m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::exportTbrData()
+{
+	QFile file(m_pResultTab->m_path + "/TBR_data.csv");
+	if (file.open(QFile::WriteOnly))
+	{
+		{
+			QTextStream stream(&file);
+			stream << "Frame#" << "\t" << "mTBR" << "\t" << "pTBR" << "\n";
+		}
+
+		for (int i = 0; i < m_pResultTab->m_nirfMap0.size(1); i++)
+		{
+			// Copy original NIRF data
+			const float* data = &m_pResultTab->m_nirfMap0(0, i);
+			np::FloatArray data0(m_pResultTab->m_nirfMap.size(0)), mask(m_pResultTab->m_nirfMap.size(0));
+			memcpy(data0, data, sizeof(float) * data0.length());
+
+			// Excluding GW region
+			np::Uint8Array valid_region_8u(m_pResultTab->m_nirfMap.size(0));
+			ippiCompareC_32f_C1R(data0.raw_ptr(), data0.size(0), 0.0f, valid_region_8u.raw_ptr(), valid_region_8u.size(0), { data0.size(0), 1 }, ippCmpEq);
+			ippsConvert_8u32f(valid_region_8u, mask, mask.length());
+			ippsDivC_32f_I(255.0f, mask, mask.length());
+			ippsSubCRev_32f_I(1.0f, mask, mask.length());
+
+			// Get MASK length
+			Ipp32f mean, std, maxi, mask_len;
+			ippsSum_32f(mask.raw_ptr(), mask.length(), &mask_len, ippAlgHintFast);
+
+			// Masking the NIRF data
+			ippsMul_32f_I(mask.raw_ptr(), data0.raw_ptr(), data0.length());
+			ippsMeanStdDev_32f(data0.raw_ptr(), data0.length(), &mean, &std, ippAlgHintFast);
+			ippsMax_32f(data0.raw_ptr(), data0.length(), &maxi);
+
+			// Compensation of GW artifact
+			mean = mean * data0.length() / mask_len;
+
+			// Write to the CSV file
+			QTextStream stream(&file);
+			stream << i + 1 << "\t" << mean << "\t" << maxi << "\n";
+		}
+
+		QDesktopServices::openUrl(QUrl("file:///" + m_pResultTab->m_path));
+	}
+	file.close();
 }
 
 void NirfDistCompDlg::changeCompensationCurve()
@@ -589,6 +698,8 @@ void NirfDistCompDlg::updateCorrelation(int frame)
 {
 	if (m_pCheckBox_Correlation->isChecked())
 	{
+		// GW artifact region should be excluded...
+
 		// Distance
 		np::FloatArray dist_data(distOffsetMap.length());
 		ippsConvert_16u32f(distOffsetMap.raw_ptr(), dist_data, distOffsetMap.length());
@@ -653,6 +764,14 @@ void NirfDistCompDlg::filtering(bool toggled)
     m_pResultTab->invalidate();
 }
 
+void NirfDistCompDlg::gwMasking(bool toggled)
+{
+	m_pPushButton_ExportTBR->setEnabled(toggled && (gwMap.raw_ptr()) && m_pToggleButton_TBRMode->isChecked());
+
+	// Invalidate
+	m_pResultTab->invalidate();	
+}
+
 void NirfDistCompDlg::tbrZeroDefinition(bool toggled)
 {
 	// Invalidate
@@ -675,6 +794,14 @@ void NirfDistCompDlg::changeTbrBackground(const QString &str)
 
     // Invalidate
     m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::changeCompConstant(const QString &str)
+{
+	compConst = str.toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
 }
 
 void NirfDistCompDlg::showLumenContour(bool)
@@ -742,6 +869,10 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	tbrBg = settings.value("tbrBg").toFloat();;
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
 
+	compConst = settings.value("compConst").toFloat();
+	if (compConst == 0.0f) compConst = 1.0f;
+	m_pLineEdit_Compensation->setText(QString::number(compConst));
+
 	if (distMap.length() > 0)
 	{
 		m_pCheckBox_Filtering->setChecked(true);
@@ -782,8 +913,9 @@ void NirfDistCompDlg::setCompInfo(const QString &infopath)
 	settings.setValue("nirfLumContourOffset", m_pConfig->nirfLumContourOffset);
 	settings.setValue("nirfOuterSheathPos", m_pConfig->nirfOuterSheathPos);
 
-	settings.setValue("nirfBg", QString::number(nirfBg, 'f', 3));
-	settings.setValue("tbrBg", QString::number(tbrBg, 'f', 3));
+	settings.setValue("nirfBg", QString::number(nirfBg, 'f', 4));
+	settings.setValue("tbrBg", QString::number(tbrBg, 'f', 4));
+	settings.setValue("compConst", QString::number(compConst, 'f', 4));
 
 	if (!m_pResultTab->getPolishedSurfaceFindingStatus())
 		settings.setValue("circCenter", QString::number(m_pConfig->circCenter));

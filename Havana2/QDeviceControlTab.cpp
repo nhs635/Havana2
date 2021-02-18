@@ -1677,8 +1677,8 @@ void QDeviceControlTab::scanAdjusting(int horizontalShift)
 	}
 	else // Result Tab
 	{
-		/*str.sprintf("Fast Scan Adjustment  %d / %d", horizontalShift,
-			(m_pMainWnd->m_pResultTab->m_pCirc ? m_pMainWnd->m_pResultTab->m_pCirc->alines : m_pConfig->nAlines) - 1);*/
+		//str.sprintf("Fast Scan Adjustment  %d / %d", horizontalShift,
+			//(m_pMainWnd->m_pResultTab->m_pCirc ? m_pMainWnd->m_pResultTab->m_pCirc->alines : m_pConfig->nAlines) - 1);
 		m_pMainWnd->m_pResultTab->invalidate();
 	}
 

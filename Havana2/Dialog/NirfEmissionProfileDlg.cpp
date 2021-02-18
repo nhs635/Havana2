@@ -4,6 +4,7 @@
 #include <Havana2/MainWindow.h>
 #include <Havana2/QStreamTab.h>
 #include <Havana2/QResultTab.h>
+#include <Havana2/Dialog/NirfDistCompDlg.h>
 
 #include <iostream>
 #include <thread>
@@ -111,12 +112,29 @@ void NirfEmissionProfileDlg::drawData(void* data1, void* data2)
 		np::FloatArray data0(m_pResultTab->m_nirfMap.size(0)), mask(m_pResultTab->m_nirfMap.size(0));
 		memcpy(data0, data, sizeof(float) * data0.length());
 		ippsConvert_8u32f(m_pScope->getRender()->m_pSelectedRegion, mask.raw_ptr(), mask.length());
-		
-		Ipp32f mean, std, mask_len;
+				
+		Ipp32f mean, std, maxi, mask_len;
 		ippsSum_32f(mask.raw_ptr(), mask.length(), &mask_len, ippAlgHintFast);
-		
+
+		{
+			np::Uint8Array valid_region_8u(m_pResultTab->m_nirfMap.size(0));
+			np::FloatArray valid_region_32f(m_pResultTab->m_nirfMap.size(0));
+			ippiCompareC_32f_C1R(data0.raw_ptr(), data0.size(0), 0.0f, valid_region_8u.raw_ptr(), valid_region_8u.size(0), { data0.size(0), 1 }, ippCmpEq);
+			ippsConvert_8u32f(valid_region_8u, valid_region_32f, valid_region_32f.length());
+			ippsDivC_32f_I(255.0f, valid_region_32f, valid_region_32f.length());
+			ippsSubCRev_32f_I(1.0f, valid_region_32f, valid_region_32f.length());
+
+			if (mask_len == 0.0f)
+				memcpy(mask, valid_region_32f, sizeof(float) * mask.length());
+			else
+				ippsMul_32f_I(valid_region_32f, mask, mask.length());
+		}
+
+		ippsSum_32f(mask.raw_ptr(), mask.length(), &mask_len, ippAlgHintFast);
+				
 		if (mask_len > 0) ippsMul_32f_I(mask.raw_ptr(), data0.raw_ptr(), data0.length());
 		ippsMeanStdDev_32f(data0.raw_ptr(), data0.length(), &mean, &std, ippAlgHintFast);
+		ippsMax_32f(data0.raw_ptr(), data0.length(), &maxi);
 		if (mask_len > 0)
 		{
 			mean = mean * data0.length() / mask_len;
@@ -125,8 +143,10 @@ void NirfEmissionProfileDlg::drawData(void* data1, void* data2)
 			ippsSum_32f(data0.raw_ptr(), data0.length(), &std, ippAlgHintFast);
 			std = sqrt(std / mask_len - mean * mean);
 		}
+		if (mask_len == 0)
+			mean = 0, std = 0, maxi = 0;
 
-		setWindowTitle(QString("NIRF Emission Profile (%1 + %2)").arg(mean, 3, 'f', 4).arg(std, 3, 'f', 4));
+		setWindowTitle(QString("NIRF Emission Profile (%1 + %2 / %3)").arg(mean, 3, 'f', 4).arg(std, 3, 'f', 4).arg(maxi, 3, 'f', 4));
 #else
 		m_pScope->drawData((float*)data1, (float*)data2);
 		

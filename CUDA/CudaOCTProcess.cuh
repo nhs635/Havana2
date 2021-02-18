@@ -8,8 +8,8 @@
 #include <DataProcess/OCTProcess/OCTProcess.h>
 
 #include <iostream>
-#include <cuda_runtime.h>
-#include <cufft.h>
+#include <cuda/cuda_runtime.h>
+#include <cuda/cufft.h>
 
 #include <QString>
 #include <QFile>

@@ -5,8 +5,8 @@
 #include <queue>
 #include <mutex>
 
-#include <cuda_runtime.h>
-#include <cufft.h>
+#include <cuda/cuda_runtime.h>
+#include <cuda/cufft.h>
 
 #include <Common/Queue.h>
 

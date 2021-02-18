@@ -37,6 +37,7 @@ public:
     inline bool isFiltered() const { return m_pCheckBox_Filtering->isChecked(); }
 	inline bool isZeroTbr() const { return m_pCheckBox_ZeroTBRDefinition->isChecked(); }
 	inline bool isShowLumContour() const { return m_pCheckBox_ShowLumenContour->isChecked(); }
+	inline bool isGwMasked() const { return m_pCheckBox_GwMasking->isChecked(); }
 	
 public slots:
 	void setWidgetEnabled(bool enabled);
@@ -46,12 +47,15 @@ private slots:
 	void loadNirfBackground();
     void compensation(bool);
 	void tbrConvering(bool);
+	void exportTbrData();
 	void changeCompensationCurve();
     void changeZeroPointSetting();
     void filtering(bool);
+	void gwMasking(bool);
 	void tbrZeroDefinition(bool);
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
+	void changeCompConstant(const QString &);
 	void showLumenContour(bool);
 	void showCorrelationPlot(bool);
 
@@ -84,9 +88,11 @@ private:
 public:
     np::Uint16Array2 distMap;
 	np::Uint16Array2 distOffsetMap;
+	np::FloatArray2 gwMap;
     float nirfBg;
     np::FloatArray2 compMap;
     float tbrBg;
+	float compConst;
 
 private:
 	// Layout
@@ -98,6 +104,7 @@ private:
 
 	QPushButton *m_pToggleButton_Compensation;
 	QPushButton *m_pToggleButton_TBRMode;
+	QPushButton *m_pPushButton_ExportTBR;
 
 	// Widgets for compensation details
 	QLabel *m_pLabel_DistanceDecayCurve;
@@ -131,12 +138,16 @@ private:
     // Widgets for TBR mode
     QCheckBox *m_pCheckBox_Filtering;
 	QCheckBox *m_pCheckBox_ZeroTBRDefinition;
+	QCheckBox *m_pCheckBox_GwMasking;
 
 	QLabel *m_pLabel_NIRF_Background;
 	QLineEdit *m_pLineEdit_NIRF_Background;
 
     QLabel *m_pLabel_TBR_Background;
     QLineEdit *m_pLineEdit_TBR_Background;
+
+	QLabel *m_pLabel_Compensation;
+	QLineEdit *m_pLineEdit_Compensation;
 
 	// Widgets for indicator
 	QCheckBox *m_pCheckBox_ShowLumenContour;

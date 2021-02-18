@@ -6,7 +6,7 @@
 #ifdef CUDA_ENABLED
 
 #include <iostream>
-#include <cuda_runtime.h>
+#include <cuda/cuda_runtime.h>
 
 #define N_THREADS 16
 

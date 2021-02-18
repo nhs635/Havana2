@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.7.2"
+#define VERSION						"1.2.7.3"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -39,7 +39,7 @@
 #define PROGRAMMATIC_GAIN_CONTROL
 //#define TWO_CHANNEL_NIRF
 #endif
-//#define GALVANO_MIRROR
+#define GALVANO_MIRROR
 //#define PULLBACK_DEVICE
 
 
@@ -116,7 +116,7 @@
 #endif
 
 //////////////////////// Processing /////////////////////////
-//#define CUDA_ENABLED				// Only valid in visual studio environment
+#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
 #define N_CUDA_THREADS				32
