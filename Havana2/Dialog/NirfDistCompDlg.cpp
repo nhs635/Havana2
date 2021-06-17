@@ -20,10 +20,19 @@
 
 #ifdef OCT_NIRF
 NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
-	QDialog(parent), m_bCanBeClosed(true), nirfBg(0.0), tbrBg(0.0), compConst(1.0)
+	QDialog(parent), m_bCanBeClosed(true), compConst(1.0)
+#ifndef TWO_CHANNEL_NIRF
+	, nirfBg(0.0), tbrBg(0.0)
+#else
+	, crossTalkRatio(0.0)
+#endif
 {
 	// Set default size & frame
+#ifndef TWO_CHANNEL_NIRF
 	setFixedSize(380, 565);
+#else
+	setFixedSize(380, 605);
+#endif
 	setWindowFlags(Qt::Tool);
 	setWindowTitle("NIRF Distance Compensation");
 
@@ -33,9 +42,19 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pConfig = m_pMainWnd->m_pConfiguration;
 
 	// Set compensation data
+#ifndef TWO_CHANNEL_NIRF
 	compMap = np::FloatArray2();
 	distDecayCurve = np::FloatArray(m_pConfig->circRadius);
 	compCurve = np::FloatArray(m_pConfig->circRadius);
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		compMap[i] = np::FloatArray2();
+		distDecayCurve[i] = np::FloatArray(m_pConfig->circRadius);
+		compCurve[i] = np::FloatArray(m_pConfig->circRadius);
+		nirfBg[i] = 0.0f; tbrBg[i] = 0.0f;
+	}
+#endif
 
 	// Create widgets for data loading & compensation
 	m_pPushButton_LoadDistanceMap = new QPushButton(this);
@@ -59,7 +78,11 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pPushButton_ExportTBR->setDisabled(true);
 
 	// Create widgets for compensation details
+#ifndef TWO_CHANNEL_NIRF
 	m_pRenderArea_DistanceDecayCurve = new QRenderArea(this);
+#else
+	m_pRenderArea_DistanceDecayCurve = new QRenderArea2(this);
+#endif
 	m_pRenderArea_DistanceDecayCurve->setSize({ 0, (double)m_pConfig->circRadius }, { 0, 1 });
 	m_pRenderArea_DistanceDecayCurve->setMinimumHeight(80);
 	m_pRenderArea_DistanceDecayCurve->setGrid(4, 8, 1);
@@ -67,7 +90,11 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLabel_DistanceDecayCurve = new QLabel("Distance Decay Curve ([0, 1])", this);
 	m_pLabel_DistanceDecayCurve->setBuddy(m_pRenderArea_DistanceDecayCurve);
 
+#ifndef TWO_CHANNEL_NIRF
 	m_pRenderArea_CompensationCurve = new QRenderArea(this);
+#else
+	m_pRenderArea_CompensationCurve = new QRenderArea2(this);
+#endif
 	m_pRenderArea_CompensationCurve->setSize({ 0, (double)m_pConfig->circRadius }, { 0, round(m_pConfig->nirfFactorThres * 1.1) });
 	m_pRenderArea_CompensationCurve->setMinimumHeight(80);
 	m_pRenderArea_CompensationCurve->setGrid(4, 8, 1);
@@ -75,6 +102,7 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLabel_CompensationCurve = new QLabel(QString("Compensation Curve ([0, %1])").arg((int)round(m_pConfig->nirfFactorThres * 1.1)), this);
 	m_pLabel_CompensationCurve->setBuddy(m_pRenderArea_CompensationCurve);
 
+#ifndef TWO_CHANNEL_NIRF
 	m_pLineEdit_CompensationCoeff_a = new QLineEdit(this);
 	m_pLineEdit_CompensationCoeff_a->setFixedWidth(70);
 	m_pLineEdit_CompensationCoeff_a->setAlignment(Qt::AlignCenter);
@@ -94,6 +122,30 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLineEdit_CompensationCoeff_d->setFixedWidth(70);
 	m_pLineEdit_CompensationCoeff_d->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_CompensationCoeff_d->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		m_pLineEdit_CompensationCoeff_a[i] = new QLineEdit(this);
+		m_pLineEdit_CompensationCoeff_a[i]->setFixedWidth(70);
+		m_pLineEdit_CompensationCoeff_a[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_CompensationCoeff_a[i]->setText(QString::number(m_pConfig->nirfCompCoeffs_a[i]));
+
+		m_pLineEdit_CompensationCoeff_b[i] = new QLineEdit(this);
+		m_pLineEdit_CompensationCoeff_b[i]->setFixedWidth(70);
+		m_pLineEdit_CompensationCoeff_b[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_CompensationCoeff_b[i]->setText(QString::number(m_pConfig->nirfCompCoeffs_b[i]));
+
+		m_pLineEdit_CompensationCoeff_c[i] = new QLineEdit(this);
+		m_pLineEdit_CompensationCoeff_c[i]->setFixedWidth(70);
+		m_pLineEdit_CompensationCoeff_c[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_CompensationCoeff_c[i]->setText(QString::number(m_pConfig->nirfCompCoeffs_c[i]));
+
+		m_pLineEdit_CompensationCoeff_d[i] = new QLineEdit(this);
+		m_pLineEdit_CompensationCoeff_d[i]->setFixedWidth(70);
+		m_pLineEdit_CompensationCoeff_d[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_CompensationCoeff_d[i]->setText(QString::number(m_pConfig->nirfCompCoeffs_d[i]));
+	}
+#endif
 
 	m_pLabel_CompensationCoeff = new QLabel("Compensation Coefficient\n((a*exp(b*x)+c*exp(d*x))/(a+c))");
 
@@ -164,27 +216,42 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pCheckBox_GwMasking = new QCheckBox(this);
 	m_pCheckBox_GwMasking->setText("GW Masking");
 	m_pCheckBox_GwMasking->setDisabled(true);
-
+	
+#ifndef TWO_CHANNEL_NIRF
 	m_pLineEdit_NIRF_Background = new QLineEdit(this);
 	m_pLineEdit_NIRF_Background->setFixedWidth(45);
 	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
 	m_pLineEdit_NIRF_Background->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_NIRF_Background->setDisabled(true);
 
-	m_pLabel_NIRF_Background = new QLabel("NIRF BG   ");
-	m_pLabel_NIRF_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-	m_pLabel_NIRF_Background->setBuddy(m_pLineEdit_NIRF_Background);
-	m_pLabel_NIRF_Background->setDisabled(true);
-
 	m_pLineEdit_TBR_Background = new QLineEdit(this);
 	m_pLineEdit_TBR_Background->setFixedWidth(45);
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
 	m_pLineEdit_TBR_Background->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_TBR_Background->setDisabled(true);
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		m_pLineEdit_NIRF_Background[i] = new QLineEdit(this);
+		m_pLineEdit_NIRF_Background[i]->setFixedWidth(45);
+		m_pLineEdit_NIRF_Background[i]->setText(QString::number(nirfBg[i]));
+		m_pLineEdit_NIRF_Background[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_NIRF_Background[i]->setDisabled(true);
+
+		m_pLineEdit_TBR_Background[i] = new QLineEdit(this);
+		m_pLineEdit_TBR_Background[i]->setFixedWidth(45);
+		m_pLineEdit_TBR_Background[i]->setText(QString::number(tbrBg[i]));
+		m_pLineEdit_TBR_Background[i]->setAlignment(Qt::AlignCenter);
+		m_pLineEdit_TBR_Background[i]->setDisabled(true);
+	}
+#endif
+
+	m_pLabel_NIRF_Background = new QLabel("NIRF BG   ");
+	m_pLabel_NIRF_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+	m_pLabel_NIRF_Background->setDisabled(true);
 
 	m_pLabel_TBR_Background = new QLabel("   TBR BG   ");
 	m_pLabel_TBR_Background->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-	m_pLabel_TBR_Background->setBuddy(m_pLineEdit_TBR_Background);
 	m_pLabel_TBR_Background->setDisabled(true);
 
 	m_pLineEdit_Compensation = new QLineEdit(this);
@@ -193,10 +260,23 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pLineEdit_Compensation->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_Compensation->setDisabled(true);
 
-	m_pLabel_Compensation = new QLabel("   Comp Const   ");
+	m_pLabel_Compensation = new QLabel("   Comp Constant");
 	m_pLabel_Compensation->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	m_pLabel_Compensation->setBuddy(m_pLineEdit_Compensation);
 	m_pLabel_Compensation->setDisabled(true);
+
+#ifdef TWO_CHANNEL_NIRF	
+	m_pLineEdit_CrossTalkRatio = new QLineEdit(this);
+	m_pLineEdit_CrossTalkRatio->setFixedWidth(45);
+	m_pLineEdit_CrossTalkRatio->setText(QString::number(crossTalkRatio, 'f', 4));
+	m_pLineEdit_CrossTalkRatio->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_CrossTalkRatio->setDisabled(true);
+
+	m_pLabel_CrossTalkRatio = new QLabel("   Crosstalk Ratio (Ch2 = Ch2 - r*Ch1)   ");
+	m_pLabel_CrossTalkRatio->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+	m_pLabel_CrossTalkRatio->setBuddy(m_pLineEdit_CrossTalkRatio);
+	m_pLabel_CrossTalkRatio->setDisabled(true);
+#endif
 
 	// Create widgets for guide line indicator
 	m_pCheckBox_ShowLumenContour = new QCheckBox(this);
@@ -204,10 +284,18 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	m_pCheckBox_ShowLumenContour->setChecked(true);
 	
 	// Create widgets for compensation results - distance dependency check
+#ifndef TWO_CHANNEL_NIRF
 	m_pRenderArea_Correlation = new QRenderArea(this);
+#else
+	m_pRenderArea_Correlation = new QRenderArea2(this);
+#endif
 	m_pRenderArea_Correlation->m_bScattered = true;
 	m_pRenderArea_Correlation->m_bMaskUse = true;
+#ifndef TWO_CHANNEL_NIRF
 	m_pRenderArea_Correlation->setSize({ 0, (double)m_pConfig->circRadius / 1.5 }, { 0, 2 * m_pConfig->nirfRange.max }, m_pResultTab->m_nirfMap.length());
+#else
+	m_pRenderArea_Correlation->setSize({ 0, (double)m_pConfig->circRadius / 1.5 }, { 0, 2 * max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) }, m_pResultTab->m_nirfMap1.length());
+#endif
 	m_pRenderArea_Correlation->setMinimumHeight(150);
 	m_pRenderArea_Correlation->setGrid(4, 8, 1);
 
@@ -237,11 +325,22 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pGridLayout_CompCoeffs->setSpacing(1);
 
 	pGridLayout_CompCoeffs->addWidget(m_pLabel_CompensationCoeff, 0, 0, 1, 5);
+#ifndef TWO_CHANNEL_NIRF
 	pGridLayout_CompCoeffs->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0);
 	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_a, 1, 1);
 	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_b, 1, 2);
 	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_c, 1, 3);
 	pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_d, 1, 4);
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		pGridLayout_CompCoeffs->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), i + 1, 0);
+		pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_a[i], i + 1, 1);
+		pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_b[i], i + 1, 2);
+		pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_c[i], i + 1, 3);
+		pGridLayout_CompCoeffs->addWidget(m_pLineEdit_CompensationCoeff_d[i], i + 1, 4);
+	}
+#endif
 
 	QGridLayout *pGridLayout_CompConsts = new QGridLayout;
 	pGridLayout_CompConsts->setSpacing(1);
@@ -261,17 +360,32 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	pGridLayout_CompConsts->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
 	pGridLayout_CompConsts->addWidget(m_pLabel_DistPropConst, 2, 1);
 	pGridLayout_CompConsts->addWidget(m_pLineEdit_DistPropConst, 2, 2);
+	pGridLayout_CompConsts->addWidget(m_pLabel_Compensation, 2, 3);
+	pGridLayout_CompConsts->addWidget(m_pLineEdit_Compensation, 2, 4);
+
+#ifdef TWO_CHANNEL_NIRF
+	pGridLayout_CompConsts->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);	
+	pGridLayout_CompConsts->addWidget(m_pLabel_CrossTalkRatio, 3, 1, 1, 3);
+	pGridLayout_CompConsts->addWidget(m_pLineEdit_CrossTalkRatio, 3, 4);
+#endif
 
 	QHBoxLayout *pHBoxLayout_TBR = new QHBoxLayout;
 	pHBoxLayout_TBR->setSpacing(1);
 
 	pHBoxLayout_TBR->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+#ifndef TWO_CHANNEL_NIRF
 	pHBoxLayout_TBR->addWidget(m_pLabel_NIRF_Background);
 	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background);
 	pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
 	pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background);
-	pHBoxLayout_TBR->addWidget(m_pLabel_Compensation);
-	pHBoxLayout_TBR->addWidget(m_pLineEdit_Compensation);
+#else
+	pHBoxLayout_TBR->addWidget(m_pLabel_NIRF_Background);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background[0]);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_NIRF_Background[1]);
+	pHBoxLayout_TBR->addWidget(m_pLabel_TBR_Background);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background[0]);
+	pHBoxLayout_TBR->addWidget(m_pLineEdit_TBR_Background[1]);
+#endif
 
 	QHBoxLayout *pHBoxLayout_TBR_Option = new QHBoxLayout;
 	pHBoxLayout_TBR_Option->setSpacing(1);
@@ -310,10 +424,20 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pToggleButton_Compensation, SIGNAL(toggled(bool)), this, SLOT(compensation(bool)));
 	connect(m_pToggleButton_TBRMode, SIGNAL(toggled(bool)), this, SLOT(tbrConvering(bool)));
 	connect(m_pPushButton_ExportTBR, SIGNAL(clicked(bool)), this, SLOT(exportTbrData()));
+#ifndef TWO_CHANNEL_NIRF
 	connect(m_pLineEdit_CompensationCoeff_a, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff_b, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff_c, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_CompensationCoeff_d, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		connect(m_pLineEdit_CompensationCoeff_a[i], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+		connect(m_pLineEdit_CompensationCoeff_b[i], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+		connect(m_pLineEdit_CompensationCoeff_c[i], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+		connect(m_pLineEdit_CompensationCoeff_d[i], SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
+	}
+#endif
 	connect(m_pLineEdit_FactorThreshold, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_FactorPropConst, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
 	connect(m_pLineEdit_DistPropConst, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompensationCurve()));
@@ -322,8 +446,16 @@ NirfDistCompDlg::NirfDistCompDlg(QWidget *parent) :
 	connect(m_pCheckBox_Filtering, SIGNAL(toggled(bool)), this, SLOT(filtering(bool)));
 	connect(m_pCheckBox_ZeroTBRDefinition, SIGNAL(toggled(bool)), this, SLOT(tbrZeroDefinition(bool)));
 	connect(m_pCheckBox_GwMasking, SIGNAL(toggled(bool)), this, SLOT(gwMasking(bool)));
+#ifndef TWO_CHANNEL_NIRF
 	connect(m_pLineEdit_NIRF_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground(const QString &)));
 	connect(m_pLineEdit_TBR_Background, SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground(const QString &)));
+#else
+	connect(m_pLineEdit_CrossTalkRatio, SIGNAL(textChanged(const QString &)), this, SLOT(changeCrossTalkRatio(const QString &)));
+	connect(m_pLineEdit_NIRF_Background[0], SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground1(const QString &)));
+	connect(m_pLineEdit_NIRF_Background[1], SIGNAL(textChanged(const QString &)), this, SLOT(changeNirfBackground2(const QString &)));
+	connect(m_pLineEdit_TBR_Background[0], SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground1(const QString &)));
+	connect(m_pLineEdit_TBR_Background[1], SIGNAL(textChanged(const QString &)), this, SLOT(changeTbrBackground2(const QString &)));
+#endif
 	connect(m_pLineEdit_Compensation, SIGNAL(textChanged(const QString &)), this, SLOT(changeCompConstant(const QString &)));
 	connect(m_pCheckBox_ShowLumenContour, SIGNAL(toggled(bool)), this, SLOT(showLumenContour(bool)));
 	connect(m_pCheckBox_Correlation, SIGNAL(toggled(bool)), this, SLOT(showCorrelationPlot(bool)));
@@ -364,13 +496,24 @@ void NirfDistCompDlg::keyPressEvent(QKeyEvent *e)
 
 void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 {
+#ifndef TWO_CHANNEL_NIRF
 	m_pPushButton_LoadDistanceMap->setEnabled(enabled && !(compMap.raw_ptr()));
+#else
+	m_pPushButton_LoadDistanceMap->setEnabled(enabled && !(compMap[0].raw_ptr()) && !(compMap[1].raw_ptr()));
+#endif
 	m_pPushButton_LoadNirfBackground->setEnabled(enabled && !(nirfBg > 0));
 	
+#ifndef TWO_CHANNEL_NIRF
 	m_pToggleButton_Compensation->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
 	m_pToggleButton_TBRMode->setEnabled(enabled && (compMap.raw_ptr()) && (nirfBg > 0));
 
 	m_pPushButton_ExportTBR->setEnabled(enabled && (compMap.raw_ptr()) && (gwMap.raw_ptr()));
+#else
+	m_pToggleButton_Compensation->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()) && (nirfBg > 0));
+	m_pToggleButton_TBRMode->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()) && (nirfBg > 0));
+
+	m_pPushButton_ExportTBR->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()) && (gwMap.raw_ptr()));
+#endif
 
 	m_pLabel_DistanceDecayCurve->setEnabled(enabled);
 	m_pLabel_CompensationCurve->setEnabled(enabled);
@@ -382,10 +525,21 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 	m_pRenderArea_Correlation->setEnabled(enabled);
 
 	m_pLabel_CompensationCoeff->setEnabled(enabled);
+
+#ifndef TWO_CHANNEL_NIRF
 	m_pLineEdit_CompensationCoeff_a->setEnabled(enabled);
 	m_pLineEdit_CompensationCoeff_b->setEnabled(enabled);
 	m_pLineEdit_CompensationCoeff_c->setEnabled(enabled);
 	m_pLineEdit_CompensationCoeff_d->setEnabled(enabled);
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		m_pLineEdit_CompensationCoeff_a[i]->setEnabled(enabled);
+		m_pLineEdit_CompensationCoeff_b[i]->setEnabled(enabled);
+		m_pLineEdit_CompensationCoeff_c[i]->setEnabled(enabled);
+		m_pLineEdit_CompensationCoeff_d[i]->setEnabled(enabled);
+	}
+#endif
 
 	m_pLabel_FactorThreshold->setEnabled(enabled);
 	m_pLineEdit_FactorThreshold->setEnabled(enabled);
@@ -396,15 +550,24 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 	m_pLabel_DistPropConst->setEnabled(enabled);
 	m_pLineEdit_DistPropConst->setEnabled(enabled);
 		
+#ifndef TWO_CHANNEL_NIRF
 	m_pLabel_LumenContourOffset->setEnabled(enabled && (compMap.raw_ptr()));
 	m_pSpinBox_LumenContourOffset->setEnabled(enabled && (compMap.raw_ptr()));
 
 	m_pLabel_OuterSheathPosition->setEnabled(enabled && (compMap.raw_ptr()));
 	m_pSpinBox_OuterSheathPosition->setEnabled(enabled && (compMap.raw_ptr()));
+#else
+	m_pLabel_LumenContourOffset->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()));
+	m_pSpinBox_LumenContourOffset->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()));
+
+	m_pLabel_OuterSheathPosition->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()));
+	m_pSpinBox_OuterSheathPosition->setEnabled(enabled && (compMap[0].raw_ptr()) && (compMap[1].raw_ptr()));
+#endif
 
 	m_pCheckBox_Filtering->setEnabled(enabled);
 	m_pCheckBox_GwMasking->setEnabled(enabled && (gwMap.raw_ptr()));
 
+#ifndef TWO_CHANNEL_NIRF
 	m_pLabel_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
 	m_pLineEdit_NIRF_Background->setEnabled(enabled && (nirfBg > 0));
 
@@ -413,6 +576,21 @@ void NirfDistCompDlg::setWidgetEnabled(bool enabled)
 
 	m_pLabel_Compensation->setEnabled(enabled && (nirfBg > 0));
 	m_pLineEdit_Compensation->setEnabled(enabled && (nirfBg > 0));
+#else
+	m_pLabel_NIRF_Background->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_NIRF_Background[0]->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_NIRF_Background[1]->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+
+	m_pLabel_TBR_Background->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_TBR_Background[0]->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_TBR_Background[1]->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+
+	m_pLabel_Compensation->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_Compensation->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	
+	m_pLabel_CrossTalkRatio->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+	m_pLineEdit_CrossTalkRatio->setEnabled(enabled && (nirfBg[0] > 0) && (nirfBg[1] > 0));
+#endif
 
 	m_pCheckBox_ShowLumenContour->setEnabled(enabled);
 	m_pCheckBox_ZeroTBRDefinition->setEnabled(false);
@@ -438,7 +616,12 @@ void NirfDistCompDlg::loadDistanceMap()
         file.read(reinterpret_cast<char*>(distMap.raw_ptr()), sizeof(uint16_t) * distMap.length());
         file.close();
 
+#ifndef TWO_CHANNEL_NIRF
         compMap = np::FloatArray2((int)m_pResultTab->m_vectorOctImage.at(0).size(1), (int)m_pResultTab->m_vectorOctImage.size());
+#else
+		compMap[0] = np::FloatArray2((int)m_pResultTab->m_vectorOctImage.at(0).size(1), (int)m_pResultTab->m_vectorOctImage.size());
+		compMap[1] = np::FloatArray2((int)m_pResultTab->m_vectorOctImage.at(0).size(1), (int)m_pResultTab->m_vectorOctImage.size());
+#endif
 
         // Update widgets states
         m_pSpinBox_LumenContourOffset->setEnabled(true);
@@ -483,6 +666,7 @@ void NirfDistCompDlg::loadNirfBackground()
         printf("[ERROR] Invalid external data or there is no such a file (nirf_bg.bin)!\n");
     else
     {
+#ifndef TWO_CHANNEL_NIRF
         np::DoubleArray nirfBgMap((int)file.size() / sizeof(double));
         file.read(reinterpret_cast<char*>(nirfBgMap.raw_ptr()), sizeof(double) * nirfBgMap.length());
         file.close();
@@ -491,12 +675,35 @@ void NirfDistCompDlg::loadNirfBackground()
         ippsMean_64f(nirfBgMap.raw_ptr(), nirfBgMap.length(), &temp_bg);
 
         nirfBg = temp_bg;
+#else
+		np::DoubleArray nirfBgMap((int)file.size() / sizeof(double));
+		np::DoubleArray nirfBgMap1((int)file.size() / 2 / sizeof(double));
+		np::DoubleArray nirfBgMap2((int)file.size() / 2 / sizeof(double));
+		file.read(reinterpret_cast<char*>(nirfBgMap.raw_ptr()), sizeof(double) * nirfBgMap.length());
+		file.close();
+
+		double temp_bg1, temp_bg2;
+		ippsCplxToReal_64fc((const Ipp64fc*)nirfBgMap.raw_ptr(), nirfBgMap1, nirfBgMap2, nirfBgMap2.length());
+
+		ippsMean_64f(nirfBgMap1.raw_ptr(), nirfBgMap1.length(), &temp_bg1);
+		ippsMean_64f(nirfBgMap2.raw_ptr(), nirfBgMap2.length(), &temp_bg2);
+
+		nirfBg[0] = temp_bg1;
+		nirfBg[1] = temp_bg2;
+#endif
 
         // Update widgets states
         m_pPushButton_LoadNirfBackground->setDisabled(true);
 		m_pLabel_NIRF_Background->setEnabled(true);
+#ifndef TWO_CHANNEL_NIRF
 		m_pLineEdit_NIRF_Background->setEnabled(true);
 		m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg, 'f', 3));
+#else
+		m_pLineEdit_NIRF_Background[0]->setEnabled(true);
+		m_pLineEdit_NIRF_Background[1]->setEnabled(true);
+		m_pLineEdit_NIRF_Background[0]->setText(QString::number(nirfBg[0], 'f', 3));
+		m_pLineEdit_NIRF_Background[1]->setText(QString::number(nirfBg[1], 'f', 3));
+#endif
         if (!m_pPushButton_LoadDistanceMap->isEnabled() && !m_pPushButton_LoadNirfBackground->isEnabled())
             m_pToggleButton_Compensation->setEnabled(true);
     }
@@ -510,9 +717,18 @@ void NirfDistCompDlg::compensation(bool toggled)
 
         m_pToggleButton_TBRMode->setEnabled(true);
         m_pLabel_TBR_Background->setEnabled(true);
+#ifndef TWO_CHANNEL_NIRF
         m_pLineEdit_TBR_Background->setEnabled(true);
+#else
+		m_pLineEdit_TBR_Background[0]->setEnabled(true);
+		m_pLineEdit_TBR_Background[1]->setEnabled(true);
+#endif
 		m_pLabel_Compensation->setEnabled(true);
 		m_pLineEdit_Compensation->setEnabled(true);
+#ifdef TWO_CHANNEL_NIRF
+		m_pLabel_CrossTalkRatio->setEnabled(true);
+		m_pLineEdit_CrossTalkRatio->setEnabled(true);
+#endif
     }
     else
     {
@@ -521,9 +737,18 @@ void NirfDistCompDlg::compensation(bool toggled)
 		m_pToggleButton_TBRMode->setChecked(false);
 		m_pToggleButton_TBRMode->setDisabled(true);
         m_pLabel_TBR_Background->setDisabled(true);
+#ifndef TWO_CHANNEL_NIRF
         m_pLineEdit_TBR_Background->setDisabled(true);
+#else
+		m_pLineEdit_TBR_Background[0]->setDisabled(true);
+		m_pLineEdit_TBR_Background[1]->setDisabled(true);
+#endif
 		m_pLabel_Compensation->setDisabled(true);
 		m_pLineEdit_Compensation->setDisabled(true);
+#ifdef TWO_CHANNEL_NIRF
+		m_pLabel_CrossTalkRatio->setDisabled(true);
+		m_pLineEdit_CrossTalkRatio->setDisabled(true);
+#endif
     }
 
     // Update compensation map
@@ -550,7 +775,12 @@ void NirfDistCompDlg::tbrConvering(bool toggled)
 		//m_pCheckBox_ZeroTBRDefinition->setDisabled(true);
 	}
 
+#ifndef TWO_CHANNEL_NIRF
 	tbrBg = m_pLineEdit_TBR_Background->text().toFloat();
+#else
+	tbrBg[0] = m_pLineEdit_TBR_Background[0]->text().toFloat();
+	tbrBg[1] = m_pLineEdit_TBR_Background[1]->text().toFloat();
+#endif
 
 	// Invalidate
 	m_pResultTab->invalidate();
@@ -566,6 +796,7 @@ void NirfDistCompDlg::exportTbrData()
 			stream << "Frame#" << "\t" << "mTBR" << "\t" << "pTBR" << "\n";
 		}
 
+#ifndef TWO_CHANNEL_NIRF
 		for (int i = 0; i < m_pResultTab->m_nirfMap0.size(1); i++)
 		{
 			// Copy original NIRF data
@@ -596,6 +827,9 @@ void NirfDistCompDlg::exportTbrData()
 			QTextStream stream(&file);
 			stream << i + 1 << "\t" << mean << "\t" << maxi << "\n";
 		}
+#else
+
+#endif
 
 		QDesktopServices::openUrl(QUrl("file:///" + m_pResultTab->m_path));
 	}
@@ -605,19 +839,34 @@ void NirfDistCompDlg::exportTbrData()
 void NirfDistCompDlg::changeCompensationCurve()
 {
     // Get and update values
+#ifndef TWO_CHANNEL_NIRF
 	float a = m_pLineEdit_CompensationCoeff_a->text().toFloat();
 	float b = m_pLineEdit_CompensationCoeff_b->text().toFloat();
 	float c = m_pLineEdit_CompensationCoeff_c->text().toFloat();
 	float d = m_pLineEdit_CompensationCoeff_d->text().toFloat();
 
-	float factor_thres = m_pLineEdit_FactorThreshold->text().toFloat();
-	float factor_prop_const = m_pLineEdit_FactorPropConst->text().toFloat();
-	float dist_prop_const = m_pLineEdit_DistPropConst->text().toFloat();
-
 	m_pConfig->nirfCompCoeffs_a = a;
 	m_pConfig->nirfCompCoeffs_b = b;
 	m_pConfig->nirfCompCoeffs_c = c;
 	m_pConfig->nirfCompCoeffs_d = d;
+#else
+	for (int i = 0; i < 2; i++)
+	{
+		float a = m_pLineEdit_CompensationCoeff_a[i]->text().toFloat();
+		float b = m_pLineEdit_CompensationCoeff_b[i]->text().toFloat();
+		float c = m_pLineEdit_CompensationCoeff_c[i]->text().toFloat();
+		float d = m_pLineEdit_CompensationCoeff_d[i]->text().toFloat();
+
+		m_pConfig->nirfCompCoeffs_a[i] = a;
+		m_pConfig->nirfCompCoeffs_b[i] = b;
+		m_pConfig->nirfCompCoeffs_c[i] = c;
+		m_pConfig->nirfCompCoeffs_d[i] = d;
+	}
+#endif
+
+	float factor_thres = m_pLineEdit_FactorThreshold->text().toFloat();
+	float factor_prop_const = m_pLineEdit_FactorPropConst->text().toFloat();
+	float dist_prop_const = m_pLineEdit_DistPropConst->text().toFloat();
 
 	m_pConfig->nirfFactorThres = factor_thres;
 	m_pConfig->nirfFactorPropConst = factor_prop_const;
@@ -629,9 +878,11 @@ void NirfDistCompDlg::changeCompensationCurve()
 	
 	for (int i = 0; i < m_pConfig->circRadius; i++)
 	{
-		if ((a + c) != 0)
+#ifndef TWO_CHANNEL_NIRF
+		if ((m_pConfig->nirfCompCoeffs_a + m_pConfig->nirfCompCoeffs_c) != 0)
 		{
-			distDecayCurve[i] = (a * expf(b * dist_prop_const * (float)i) + c * expf(d * dist_prop_const * (float)i)) / (a + c);
+			distDecayCurve[i] = (m_pConfig->nirfCompCoeffs_a * expf(m_pConfig->nirfCompCoeffs_b * dist_prop_const * (float)i) 
+									+ m_pConfig->nirfCompCoeffs_c * expf(m_pConfig->nirfCompCoeffs_d * dist_prop_const * (float)i)) / (m_pConfig->nirfCompCoeffs_a + m_pConfig->nirfCompCoeffs_c);
 			compCurve[i] = (i < 20) ? 1.0f : 1 / distDecayCurve[i] / factor_prop_const;
 			if (compCurve[i] < 1.0f) compCurve[i] = 1.0f;
             if (compCurve[i] > factor_thres) compCurve[i] = factor_thres;
@@ -641,10 +892,35 @@ void NirfDistCompDlg::changeCompensationCurve()
 			distDecayCurve[i] = 0.0f;
 			compCurve[i] = 1.0f;
 		}
+#else
+		for (int j = 0; j < 2; j++)
+		{
+			if ((m_pConfig->nirfCompCoeffs_a[j] + m_pConfig->nirfCompCoeffs_c[j]) != 0)
+			{
+				distDecayCurve[j][i] = (m_pConfig->nirfCompCoeffs_a[j] * expf(m_pConfig->nirfCompCoeffs_b[j] * dist_prop_const * (float)i)
+					+ m_pConfig->nirfCompCoeffs_c[j] * expf(m_pConfig->nirfCompCoeffs_d[j] * dist_prop_const * (float)i)) / (m_pConfig->nirfCompCoeffs_a[j] + m_pConfig->nirfCompCoeffs_c[j]);
+				compCurve[j][i] = (i < 20) ? 1.0f : 1 / distDecayCurve[j][i] / factor_prop_const;
+				if (compCurve[j][i] < 1.0f) compCurve[j][i] = 1.0f;
+				if (compCurve[j][i] > factor_thres) compCurve[j][i] = factor_thres;
+			}
+			else
+			{
+				distDecayCurve[j][i] = 0.0f;
+				compCurve[j][i] = 1.0f;
+			}
+		}
+#endif
 	}
 
+#ifndef TWO_CHANNEL_NIRF
 	memcpy(m_pRenderArea_DistanceDecayCurve->m_pData, distDecayCurve.raw_ptr(), sizeof(float) * distDecayCurve.length());
 	memcpy(m_pRenderArea_CompensationCurve->m_pData, compCurve.raw_ptr(), sizeof(float) * compCurve.length());
+#else
+	memcpy(m_pRenderArea_DistanceDecayCurve->m_pData1, distDecayCurve[0].raw_ptr(), sizeof(float) * distDecayCurve[0].length());
+	memcpy(m_pRenderArea_DistanceDecayCurve->m_pData2, distDecayCurve[1].raw_ptr(), sizeof(float) * distDecayCurve[1].length());
+	memcpy(m_pRenderArea_CompensationCurve->m_pData1, compCurve[0].raw_ptr(), sizeof(float) * compCurve[0].length());
+	memcpy(m_pRenderArea_CompensationCurve->m_pData2, compCurve[1].raw_ptr(), sizeof(float) * compCurve[1].length());
+#endif
 	m_pRenderArea_DistanceDecayCurve->update();
 	m_pRenderArea_CompensationCurve->update();    
 	
@@ -678,7 +954,12 @@ void NirfDistCompDlg::calculateCompMap()
     ippsAddC_16u_ISfs(m_pConfig->nirfLumContourOffset, distOffsetMap.raw_ptr(), distOffsetMap.length(), 0);
     ippsSubC_16u_ISfs(m_pConfig->nirfOuterSheathPos, distOffsetMap.raw_ptr(), distOffsetMap.length(), 0);
 
+#ifndef TWO_CHANNEL_NIRF
     memset(compMap.raw_ptr(), 0, sizeof(float) * compMap.length());
+#else
+	memset(compMap[0].raw_ptr(), 0, sizeof(float) * compMap[0].length());
+	memset(compMap[1].raw_ptr(), 0, sizeof(float) * compMap[1].length());
+#endif
     tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)distOffsetMap.size(1)),
         [&](const tbb::blocked_range<size_t>& r) {
         for (size_t i = r.begin(); i != r.end(); ++i)
@@ -688,7 +969,12 @@ void NirfDistCompDlg::calculateCompMap()
                 if (distOffsetMap(j, (int)i) > m_pConfig->circRadius)
                     distOffsetMap(j, (int)i) = m_pConfig->circRadius - 1;
 
+#ifndef TWO_CHANNEL_NIRF
                 compMap(j, (int)i) = compCurve[distOffsetMap(j, (int)i)];
+#else
+				compMap[0](j, (int)i) = compCurve[0][distOffsetMap(j, (int)i)];
+				compMap[1](j, (int)i) = compCurve[1][distOffsetMap(j, (int)i)];
+#endif
             }
         }
     });
@@ -704,16 +990,26 @@ void NirfDistCompDlg::updateCorrelation(int frame)
 		np::FloatArray dist_data(distOffsetMap.length());
 		ippsConvert_16u32f(distOffsetMap.raw_ptr(), dist_data, distOffsetMap.length());
 		float max_lim; ippsMax_32f(dist_data, dist_data.length(), &max_lim);
-		m_pRenderArea_Correlation->setSize({ 0, (double)max_lim }, { 0, 2 * m_pConfig->nirfRange.max }, m_pResultTab->m_nirfMap0.length());
+#ifndef TWO_CHANNEL_NIRF
+		m_pRenderArea_Correlation->setSize({ 0, (double)max_lim }, { 0, 2 * m_pConfig->nirfRange.max }, m_pResultTab->m_nirfMap0.length());		
+#else
+		m_pRenderArea_Correlation->setSize({ 0, (double)max_lim }, { 0, 2 * max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) }, m_pResultTab->m_nirfMap1_0.length());
+#endif
 		memcpy(m_pRenderArea_Correlation->m_pDataX, dist_data, sizeof(float) * dist_data.length());
 
 		// NIRF data at current setting
+#ifndef TWO_CHANNEL_NIRF
 		memcpy(m_pRenderArea_Correlation->m_pData, m_pResultTab->m_nirfMap0.raw_ptr(), sizeof(float) * m_pResultTab->m_nirfMap0.length());
+#else
+		memcpy(m_pRenderArea_Correlation->m_pData1, m_pResultTab->m_nirfMap1_0.raw_ptr(), sizeof(float) * m_pResultTab->m_nirfMap1_0.length());
+		memcpy(m_pRenderArea_Correlation->m_pData2, m_pResultTab->m_nirfMap2_0.raw_ptr(), sizeof(float) * m_pResultTab->m_nirfMap2_0.length());
+#endif
 
 		// Current frame NIRF data
 		ippsSet_32f(1.0f, m_pRenderArea_Correlation->m_pMask, m_pRenderArea_Correlation->m_buff_len);
 		ippsSet_32f(0.0f, &m_pRenderArea_Correlation->m_pMask[distOffsetMap.size(0) * frame], distOffsetMap.size(0));
 
+#ifndef TWO_CHANNEL_NIRF
 		// Get correlation coefficient - total
 		Ipp32f x_mean, x_std;
 		Ipp32f y_mean, y_std;
@@ -750,6 +1046,64 @@ void NirfDistCompDlg::updateCorrelation(int frame)
 		// Update
 		m_pRenderArea_Correlation->update();
 		m_pCheckBox_Correlation->setText(QString("DIST-NIRF Correlation (r_total = %1 / r_frame = %2)").arg(r_total, 4, 'f', 3).arg(r_frame, 4, 'f', 3));
+#else
+		// Get correlation coefficient - total
+		Ipp32f x_mean, x_std;
+		Ipp32f y_mean[2], y_std[2];
+		ippsMeanStdDev_32f(dist_data, dist_data.length(), &x_mean, &x_std, ippAlgHintFast);
+		ippsMeanStdDev_32f(m_pResultTab->m_nirfMap1_0, m_pResultTab->m_nirfMap1_0.length(), &y_mean[0], &y_std[0], ippAlgHintFast);
+		ippsMeanStdDev_32f(m_pResultTab->m_nirfMap2_0, m_pResultTab->m_nirfMap2_0.length(), &y_mean[1], &y_std[1], ippAlgHintFast);
+
+		np::FloatArray dist_temp(dist_data.length()), nirf_temp(m_pResultTab->m_nirfMap1_0.length());
+		np::FloatArray comul_temp(dist_temp.length());
+		ippsSubC_32f(dist_data, x_mean, dist_temp, dist_data.length());
+		ippsSubC_32f(m_pResultTab->m_nirfMap1_0, y_mean[0], nirf_temp, m_pResultTab->m_nirfMap1_0.length());
+		ippsMul_32f_I(nirf_temp, dist_temp, dist_temp.length());
+
+		Ipp32f cov;
+		ippsSum_32f(dist_temp, dist_temp.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_temp.length() - 1);
+
+		float r_total1 = cov / x_std / y_std[0];
+
+		ippsSubC_32f(dist_data, x_mean, dist_temp, dist_data.length());
+		ippsSubC_32f(m_pResultTab->m_nirfMap2_0, y_mean[1], nirf_temp, m_pResultTab->m_nirfMap2_0.length());
+		ippsMul_32f_I(nirf_temp, dist_temp, dist_temp.length());
+
+		ippsSum_32f(dist_temp, dist_temp.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_temp.length() - 1);
+
+		float r_total2 = cov / x_std / y_std[1];		
+
+		// Get correlation coefficient - frame
+		ippsMeanStdDev_32f(&dist_data(distOffsetMap.size(0) * frame), distOffsetMap.size(0), &x_mean, &x_std, ippAlgHintFast);
+		ippsMeanStdDev_32f(&m_pResultTab->m_nirfMap1_0(0, frame), m_pResultTab->m_nirfMap1_0.size(0), &y_mean[0], &y_std[0], ippAlgHintFast);
+		ippsMeanStdDev_32f(&m_pResultTab->m_nirfMap2_0(0, frame), m_pResultTab->m_nirfMap2_0.size(0), &y_mean[1], &y_std[1], ippAlgHintFast);
+
+		np::FloatArray dist_frame(distOffsetMap.size(0)), nirf_frame(m_pResultTab->m_nirfMap1_0.size(0));
+		np::FloatArray comul_frame(dist_frame.length());
+		ippsSubC_32f(&dist_data(distOffsetMap.size(0) * frame), x_mean, dist_frame, distOffsetMap.size(0));
+		ippsSubC_32f(&m_pResultTab->m_nirfMap1_0(0, frame), y_mean[0], nirf_frame, m_pResultTab->m_nirfMap1_0.size(0));
+		ippsMul_32f_I(nirf_frame, dist_frame, dist_frame.length());
+
+		ippsSum_32f(dist_frame, dist_frame.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_frame.length() - 1);
+
+		float r_frame1 = cov / x_std / y_std[0];
+
+		ippsSubC_32f(&dist_data(distOffsetMap.size(0) * frame), x_mean, dist_frame, distOffsetMap.size(0));
+		ippsSubC_32f(&m_pResultTab->m_nirfMap2_0(0, frame), y_mean[1], nirf_frame, m_pResultTab->m_nirfMap2_0.size(0));
+		ippsMul_32f_I(nirf_frame, dist_frame, dist_frame.length());
+
+		ippsSum_32f(dist_frame, dist_frame.length(), &cov, ippAlgHintFast);
+		cov = cov / (dist_frame.length() - 1);
+
+		float r_frame2 = cov / x_std / y_std[1];
+
+		// Update
+		m_pRenderArea_Correlation->update();
+		m_pCheckBox_Correlation->setText(QString("DIST-NIRF Correlation (r_t = [%1, %2] / r_f = [%3, %4])").arg(r_total1, 4, 'f', 3).arg(r_total2, 4, 'f', 3).arg(r_frame1, 4, 'f', 3).arg(r_frame2, 4, 'f', 3));
+#endif
 	}
 }
 
@@ -780,6 +1134,7 @@ void NirfDistCompDlg::tbrZeroDefinition(bool toggled)
 	(void)toggled;
 }
 
+#ifndef TWO_CHANNEL_NIRF
 void NirfDistCompDlg::changeNirfBackground(const QString &str)
 {
 	nirfBg = str.toFloat();
@@ -795,6 +1150,39 @@ void NirfDistCompDlg::changeTbrBackground(const QString &str)
     // Invalidate
     m_pResultTab->invalidate();
 }
+#else
+void NirfDistCompDlg::changeNirfBackground1(const QString &str)
+{
+	nirfBg[0] = m_pLineEdit_NIRF_Background[0]->text().toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::changeNirfBackground2(const QString &str)
+{
+	nirfBg[1] = m_pLineEdit_NIRF_Background[1]->text().toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::changeTbrBackground1(const QString &str)
+{
+	tbrBg[0] = m_pLineEdit_TBR_Background[0]->text().toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
+}
+
+void NirfDistCompDlg::changeTbrBackground2(const QString &str)
+{
+	tbrBg[1] = m_pLineEdit_TBR_Background[1]->text().toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
+}
+#endif
 
 void NirfDistCompDlg::changeCompConstant(const QString &str)
 {
@@ -803,6 +1191,16 @@ void NirfDistCompDlg::changeCompConstant(const QString &str)
 	// Invalidate
 	m_pResultTab->invalidate();
 }
+
+#ifdef TWO_CHANNEL_NIRF
+void NirfDistCompDlg::changeCrossTalkRatio(const QString &str)
+{
+	crossTalkRatio = str.toFloat();
+
+	// Invalidate
+	m_pResultTab->invalidate();
+}
+#endif
 
 void NirfDistCompDlg::showLumenContour(bool)
 {
@@ -820,8 +1218,12 @@ void NirfDistCompDlg::showCorrelationPlot(bool toggled)
 		memset(m_pRenderArea_Correlation->m_pDataX, 0, sizeof(float) * distOffsetMap.length());
 
 		// NIRF data at current setting
+#ifndef TWO_CHANNEL_NIRF
 		memset(m_pRenderArea_Correlation->m_pData, 0, sizeof(float) * m_pResultTab->m_nirfMap0.length());
-
+#else
+		memset(m_pRenderArea_Correlation->m_pData1, 0, sizeof(float) * m_pResultTab->m_nirfMap1_0.length());
+		memset(m_pRenderArea_Correlation->m_pData2, 0, sizeof(float) * m_pResultTab->m_nirfMap2_0.length());
+#endif
 		// Current frame NIRF data
 		ippsSet_32f(1.0f, m_pRenderArea_Correlation->m_pMask, m_pRenderArea_Correlation->m_buff_len);
 
@@ -841,6 +1243,7 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	int nirfOffset = settings.value("nirfOffset").toInt();
 	m_pResultTab->setNirfOffset(nirfOffset);
 
+#ifndef TWO_CHANNEL_NIRF
 	m_pConfig->nirfCompCoeffs_a = settings.value("nirfCompCoeffs_a").toFloat();
 	m_pLineEdit_CompensationCoeff_a->setText(QString::number(m_pConfig->nirfCompCoeffs_a));
 	m_pConfig->nirfCompCoeffs_b = settings.value("nirfCompCoeffs_b").toFloat();
@@ -849,6 +1252,25 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 	m_pLineEdit_CompensationCoeff_c->setText(QString::number(m_pConfig->nirfCompCoeffs_c));
 	m_pConfig->nirfCompCoeffs_d = settings.value("nirfCompCoeffs_d").toFloat();
 	m_pLineEdit_CompensationCoeff_d->setText(QString::number(m_pConfig->nirfCompCoeffs_d));
+#else
+	m_pConfig->nirfCompCoeffs_a[0] = settings.value("nirfCompCoeffs_a1").toFloat();
+	m_pLineEdit_CompensationCoeff_a[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_a[0]));
+	m_pConfig->nirfCompCoeffs_b[0] = settings.value("nirfCompCoeffs_b1").toFloat();
+	m_pLineEdit_CompensationCoeff_b[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_b[0]));
+	m_pConfig->nirfCompCoeffs_c[0] = settings.value("nirfCompCoeffs_c1").toFloat();
+	m_pLineEdit_CompensationCoeff_c[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_c[0]));
+	m_pConfig->nirfCompCoeffs_d[0] = settings.value("nirfCompCoeffs_d1").toFloat();
+	m_pLineEdit_CompensationCoeff_d[0]->setText(QString::number(m_pConfig->nirfCompCoeffs_d[0]));
+	
+	m_pConfig->nirfCompCoeffs_a[1] = settings.value("nirfCompCoeffs_a2").toFloat();
+	m_pLineEdit_CompensationCoeff_a[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_a[1]));
+	m_pConfig->nirfCompCoeffs_b[1] = settings.value("nirfCompCoeffs_b2").toFloat();
+	m_pLineEdit_CompensationCoeff_b[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_b[1]));
+	m_pConfig->nirfCompCoeffs_c[1] = settings.value("nirfCompCoeffs_c2").toFloat();
+	m_pLineEdit_CompensationCoeff_c[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_c[1]));
+	m_pConfig->nirfCompCoeffs_d[1] = settings.value("nirfCompCoeffs_d2").toFloat();
+	m_pLineEdit_CompensationCoeff_d[1]->setText(QString::number(m_pConfig->nirfCompCoeffs_d[1]));
+#endif
 
 	m_pConfig->nirfFactorThres = settings.value("nirfFactorThres").toFloat();
 	m_pLineEdit_FactorThreshold->setText(QString::number(m_pConfig->nirfFactorThres));
@@ -863,11 +1285,28 @@ void NirfDistCompDlg::getCompInfo(const QString &infopath)
 
 	calculateCompMap();
 
+#ifndef TWO_CHANNEL_NIRF
 	nirfBg = settings.value("nirfBg").toFloat();;
 	m_pLineEdit_NIRF_Background->setText(QString::number(nirfBg));
 
 	tbrBg = settings.value("tbrBg").toFloat();;
 	m_pLineEdit_TBR_Background->setText(QString::number(tbrBg));
+#else
+	crossTalkRatio = settings.value("crossTalkRatio").toFloat();
+	m_pLineEdit_CrossTalkRatio->setText(QString::number(crossTalkRatio));
+
+	nirfBg[0] = settings.value("nirfBg1").toFloat();;
+	m_pLineEdit_NIRF_Background[0]->setText(QString::number(nirfBg[0]));
+
+	tbrBg[0] = settings.value("tbrBg1").toFloat();;
+	m_pLineEdit_TBR_Background[0]->setText(QString::number(tbrBg[0]));
+
+	nirfBg[1] = settings.value("nirfBg2").toFloat();;
+	m_pLineEdit_NIRF_Background[1]->setText(QString::number(nirfBg[1]));
+
+	tbrBg[1] = settings.value("tbrBg2").toFloat();;
+	m_pLineEdit_TBR_Background[1]->setText(QString::number(tbrBg[1]));
+#endif
 
 	compConst = settings.value("compConst").toFloat();
 	if (compConst == 0.0f) compConst = 1.0f;
@@ -901,10 +1340,24 @@ void NirfDistCompDlg::setCompInfo(const QString &infopath)
 
 	settings.setValue("nirfOffset", m_pResultTab->getCurrentNirfOffset());
 	
+#ifndef TWO_CHANNEL_NIRF
 	settings.setValue("nirfCompCoeffs_a", QString::number(m_pConfig->nirfCompCoeffs_a, 'f', 10));
 	settings.setValue("nirfCompCoeffs_b", QString::number(m_pConfig->nirfCompCoeffs_b, 'f', 10));
 	settings.setValue("nirfCompCoeffs_c", QString::number(m_pConfig->nirfCompCoeffs_c, 'f', 10));
 	settings.setValue("nirfCompCoeffs_d", QString::number(m_pConfig->nirfCompCoeffs_d, 'f', 10));
+#else
+	settings.setValue("nirfCompCoeffs_a1", QString::number(m_pConfig->nirfCompCoeffs_a[0], 'f', 10));
+	settings.setValue("nirfCompCoeffs_b1", QString::number(m_pConfig->nirfCompCoeffs_b[0], 'f', 10));
+	settings.setValue("nirfCompCoeffs_c1", QString::number(m_pConfig->nirfCompCoeffs_c[0], 'f', 10));
+	settings.setValue("nirfCompCoeffs_d1", QString::number(m_pConfig->nirfCompCoeffs_d[0], 'f', 10));
+
+	settings.setValue("nirfCompCoeffs_a2", QString::number(m_pConfig->nirfCompCoeffs_a[1], 'f', 10));
+	settings.setValue("nirfCompCoeffs_b2", QString::number(m_pConfig->nirfCompCoeffs_b[1], 'f', 10));
+	settings.setValue("nirfCompCoeffs_c2", QString::number(m_pConfig->nirfCompCoeffs_c[1], 'f', 10));
+	settings.setValue("nirfCompCoeffs_d2", QString::number(m_pConfig->nirfCompCoeffs_d[1], 'f', 10));
+
+	settings.setValue("crossTalkRatio", QString::number(crossTalkRatio, 'f', 4));
+#endif
 	
 	settings.setValue("nirfFactorThres", QString::number(m_pConfig->nirfFactorThres, 'f', 1));
 	settings.setValue("nirfFactorPropConst", QString::number(m_pConfig->nirfFactorPropConst, 'f', 3));
@@ -913,8 +1366,15 @@ void NirfDistCompDlg::setCompInfo(const QString &infopath)
 	settings.setValue("nirfLumContourOffset", m_pConfig->nirfLumContourOffset);
 	settings.setValue("nirfOuterSheathPos", m_pConfig->nirfOuterSheathPos);
 
+#ifndef TWO_CHANNEL_NIRF
 	settings.setValue("nirfBg", QString::number(nirfBg, 'f', 4));
 	settings.setValue("tbrBg", QString::number(tbrBg, 'f', 4));
+#else
+	settings.setValue("nirfBg1", QString::number(nirfBg[0], 'f', 4));
+	settings.setValue("tbrBg1", QString::number(tbrBg[0], 'f', 4));
+	settings.setValue("nirfBg2", QString::number(nirfBg[1], 'f', 4));
+	settings.setValue("tbrBg2", QString::number(tbrBg[1], 'f', 4));
+#endif
 	settings.setValue("compConst", QString::number(compConst, 'f', 4));
 
 	if (!m_pResultTab->getPolishedSurfaceFindingStatus())

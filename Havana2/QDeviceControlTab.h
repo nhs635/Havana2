@@ -51,7 +51,11 @@ class GalvoScan;
 #endif
 #endif
 #ifdef PULLBACK_DEVICE
+#if not ZABER_NEW_STAGE
 class ZaberStage;
+#else
+class ZaberStage2;
+#endif
 class FaulhaberMotor;
 #endif
 
@@ -93,7 +97,11 @@ public: ////////////////////////////////////////////////////////////////////////
 	inline QCheckBox* getEnableGalvanoMirrorControl() const { return m_pCheckBox_GalvanoMirrorControl; }
 #endif
 #ifdef PULLBACK_DEVICE
+#if not ZABER_NEW_STAGE
 	inline ZaberStage* getZaberStage() const { return m_pZaberStage; }
+#else
+	inline ZaberStage2* getZaberStage() const { return m_pZaberStage; }
+#endif
 	inline FaulhaberMotor* getFaulhaberMotor() const { return m_pFaulhaberMotor; }
 #endif
 
@@ -278,7 +286,11 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
+#if not ZABER_NEW_STAGE
 	ZaberStage* m_pZaberStage;
+#else
+	ZaberStage2* m_pZaberStage;
+#endif
 	// Faulhaber Motor Control
 	FaulhaberMotor* m_pFaulhaberMotor;
 #endif
@@ -292,7 +304,8 @@ public: ////////////////////////////////////////////////////////////////////////
 	std::condition_variable m_cvRpeakDetected;
 #endif
 #endif
-	
+	QTimer* m_pZaberMonitorTimer;
+
 private: ////////////////////////////////////////////////////////////////////////////////////////////////
 	MainWindow* m_pMainWnd;
 	Configuration* m_pConfig;

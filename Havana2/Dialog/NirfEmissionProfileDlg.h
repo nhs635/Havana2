@@ -37,9 +37,14 @@ private:
 public:
 #ifndef TWO_CHANNEL_NIRF
     inline QScope* getScope() const { return m_pScope; }
-	void drawData(void* data);
 #else
 	inline QScope2* getScope() const { return m_pScope; }
+#endif
+
+public slots:
+#ifndef TWO_CHANNEL_NIRF
+	void drawData(void* data);
+#else
 	void drawData(void* data1, void* float2);
 #endif
 

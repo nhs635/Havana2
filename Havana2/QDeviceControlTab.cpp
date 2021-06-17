@@ -40,7 +40,11 @@
 #endif
 #endif
 #ifdef PULLBACK_DEVICE
+#if not ZABER_NEW_STAGE
 #include <DeviceControl/ZaberStage/ZaberStage.h>
+#else
+#include <DeviceControl/ZaberStage/ZaberStage2.h>
+#endif
 #include <DeviceControl/FaulhaberMotor/FaulhaberMotor.h>
 #endif
 
@@ -1690,13 +1694,14 @@ void QDeviceControlTab::scanAdjusting(int horizontalShift)
 void QDeviceControlTab::enableZaberStageControl(bool toggled)
 {
 	if (toggled)
-	{		
+	{
 		// Set text
 		m_pCheckBox_ZaberStageControl->setText("Disable Zaber Stage Control");
 
 		// Create Zaber stage control objects
+#if not ZABER_NEW_STAGE
 		m_pZaberStage = new ZaberStage;
-		
+
 		// Connect stage
 		if (!(m_pZaberStage->ConnectStage()))
 		{
@@ -1706,6 +1711,27 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 
 		// Set target speed first
 		m_pZaberStage->SetTargetSpeed(m_pLineEdit_TargetSpeed->text().toDouble());
+#else
+		m_pZaberStage = new ZaberStage2;
+
+		// Connect stage
+		if (!(m_pZaberStage->ConnectDevice()))
+		{
+			m_pCheckBox_ZaberStageControl->setChecked(false);
+			return;
+		}
+
+		m_pZaberMonitorTimer = new QTimer(this);
+		connect(m_pZaberMonitorTimer, &QTimer::timeout, [&]() 
+		{ 
+			if (m_pZaberStage->getIsMoving())
+				m_pZaberStage->GetPos(1); 
+		});
+		m_pZaberMonitorTimer->start(100);
+
+		// Set target speed first
+		m_pZaberStage->SetTargetSpeed(1, m_pLineEdit_TargetSpeed->text().toDouble());
+#endif
 
 		// Set enable true for Zaber stage control widgets
 		m_pPushButton_MoveAbsolute->setEnabled(true);
@@ -1731,11 +1757,19 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 
 		if (m_pZaberStage)
 		{
+#if not ZABER_NEW_STAGE
 			// Stop Wait Thread
 			m_pZaberStage->StopWaitThread();
 
 			// Disconnect the Stage
 			m_pZaberStage->DisconnectStage();
+#else
+			// Disconnect the Stage
+			m_pZaberStage->DisconnectDevice();
+
+			m_pZaberMonitorTimer->stop();
+			delete m_pZaberMonitorTimer;
+#endif
 
 			// Delete Zaber stage control objects
 			delete m_pZaberStage;
@@ -1748,12 +1782,20 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 
 void QDeviceControlTab::moveAbsolute()
 {
+#if not ZABER_NEW_STAGE
 	m_pZaberStage->MoveAbsoulte(m_pLineEdit_TravelLength->text().toDouble());
+#else
+	m_pZaberStage->MoveAbsolute(1, m_pLineEdit_TravelLength->text().toDouble());
+#endif
 }
 
 void QDeviceControlTab::setTargetSpeed(const QString & str)
 {
+#if not ZABER_NEW_STAGE
 	m_pZaberStage->SetTargetSpeed(str.toDouble());
+#else
+	m_pZaberStage->SetTargetSpeed(1, str.toDouble());
+#endif
 	m_pConfig->zaberPullbackSpeed = str.toInt();
 }
 
@@ -1764,12 +1806,21 @@ void QDeviceControlTab::changeZaberPullbackLength(const QString &str)
 
 void QDeviceControlTab::home()
 {
+#if not ZABER_NEW_STAGE
 	m_pZaberStage->Home();
+#else
+	m_pZaberStage->Home(1);
+#endif
 }
 
 void QDeviceControlTab::stop()
 {
+#if not ZABER_NEW_STAGE
 	m_pZaberStage->Stop();
+#else
+	m_pZaberStage->Stop(1);
+	m_pZaberStage->GetPos(1);
+#endif
 }
 
 

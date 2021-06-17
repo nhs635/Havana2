@@ -423,6 +423,7 @@ void QResultTab::createVisualizationOptionTab()
 	m_pPushButton_NirfCrossTalkCompensation = new QPushButton(this);
 	m_pPushButton_NirfCrossTalkCompensation->setText("Cross Talk Correction...");
 	m_pPushButton_NirfCrossTalkCompensation->setDisabled(true);
+	m_pPushButton_NirfCrossTalkCompensation->setVisible(false);
 #endif
 #endif
 		
@@ -572,8 +573,8 @@ void QResultTab::createVisualizationOptionTab()
 
 #ifdef OCT_NIRF
 #ifdef TWO_CHANNEL_NIRF
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
-	pGridLayout_Visualization->addWidget(m_pPushButton_NirfCrossTalkCompensation, 2, 1, 1, 2);
+	//pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0);
+	//pGridLayout_Visualization->addWidget(m_pPushButton_NirfCrossTalkCompensation, 2, 1, 1, 2);
 #endif
 	pGridLayout_Visualization->addWidget(m_pPushButton_NirfDistanceCompensation, 2, 3, 1, 2);
 #else
@@ -660,7 +661,7 @@ void QResultTab::createVisualizationOptionTab()
 #ifdef OCT_NIRF
 	connect(m_pPushButton_NirfDistanceCompensation, SIGNAL(clicked(bool)), this, SLOT(createNirfDistCompDlg()));
 #ifdef TWO_CHANNEL_NIRF
-	connect(m_pPushButton_NirfCrossTalkCompensation, SIGNAL(clicked(bool)), this, SLOT(createNirfCrossTalkCompDlg()));
+	//connect(m_pPushButton_NirfCrossTalkCompensation, SIGNAL(clicked(bool)), this, SLOT(createNirfCrossTalkCompDlg()));
 #endif
 #endif
 	connect(m_pPushButton_LongitudinalView, SIGNAL(clicked(bool)), this, SLOT(createLongitudinalViewDlg()));
@@ -1785,41 +1786,6 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 			memset(m_nirfMap2_0.raw_ptr(), 0, sizeof(float) * m_nirfMap2_0.length());
 			ippiCopy_32f_C1R(m_nirfMap2.raw_ptr(), sizeof(float) * m_nirfMap2.size(0), m_nirfMap2_0.raw_ptr(), sizeof(float) * m_nirfMap2_0.size(0), roi_proj);
 #endif
-
-#ifdef OCT_NIRF
-#ifdef TWO_CHANNEL_NIRF
-			// 2 Ch NIRF Cross-Talk Compensation
-			if (m_pNirfCrossTalkCompDlg)
-			{
-				m_nirfMap1_Raw = np::FloatArray2(roi_proj.width, roi_proj.height);
-				memcpy(m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_0.raw_ptr(), sizeof(float) * m_nirfMap1_Raw.length());
-
-				m_nirfMap2_Raw = np::FloatArray2(roi_proj.width, roi_proj.height);
-				memcpy(m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_0.raw_ptr(), sizeof(float) * m_nirfMap2_Raw.length());
-
-				ippsSubC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg1, m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_Raw.length());
-				ippsDivC_32f_I(m_pNirfCrossTalkCompDlg->gainValue1, m_nirfMap1_Raw.raw_ptr(), m_nirfMap1_Raw.length());
-
-				ippsSubC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg2, m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_Raw.length());
-				ippsDivC_32f_I(m_pNirfCrossTalkCompDlg->gainValue2, m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_Raw.length());
-
-				if (m_pNirfCrossTalkCompDlg->compensationMode == RATIO_BASED)
-				{
-					np::FloatArray2 nirfMap1_Ratio(roi_proj.width, roi_proj.height);
-					ippsMulC_32f(m_nirfMap1_Raw.raw_ptr(), m_pNirfCrossTalkCompDlg->ratio, nirfMap1_Ratio.raw_ptr(), m_nirfMap1_Raw.length());
-					ippsSub_32f(nirfMap1_Ratio.raw_ptr(), m_nirfMap2_Raw.raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
-				}
-				else if (m_pNirfCrossTalkCompDlg->compensationMode == SPECTRUM_BASED)
-				{
-					memcpy(m_nirfMap2_0.raw_ptr(), m_nirfMap2_Raw.raw_ptr(), sizeof(float) * m_nirfMap2_0.length());
-				}
-
-				ippsMulC_32f_I(m_pNirfCrossTalkCompDlg->gainValue2, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
-				ippsAddC_32f_I(m_pNirfCrossTalkCompDlg->nirfBg2, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
-			}
-#endif
-#endif
-
 			// Scaling NIRF map
             if (m_pNirfDistCompDlg)
             {
@@ -1851,16 +1817,17 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 					}
 				}
 #else
-				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // BG subtraction
+				// Ch 1
+				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg[0], m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // BG subtraction
 				if (m_pNirfDistCompDlg->isCompensating())
-					ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // Distance compensation
+					ippsMul_32f_I(m_pNirfDistCompDlg->compMap[0].raw_ptr(), m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length()); // Distance compensation
 				if (m_pNirfDistCompDlg->isTBRMode())
 				{
-					if (m_pNirfDistCompDlg->tbrBg > 0)
+					if (m_pNirfDistCompDlg->tbrBg[0] > 0)
 					{
 						if (m_pNirfDistCompDlg->isZeroTbr())
-							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
-						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg[0], m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
+						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg[0], m_nirfMap1_0.raw_ptr(), m_nirfMap1_0.length());
 
 						if (m_pNirfDistCompDlg->compConst != 1.0f)
 						{
@@ -1878,16 +1845,17 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 					}
 				}
 
-				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // BG subtraction
+				// Ch 2
+				ippsSubC_32f_I(m_pNirfDistCompDlg->nirfBg[1], m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // BG subtraction
 				if (m_pNirfDistCompDlg->isCompensating())
-					ippsMul_32f_I(m_pNirfDistCompDlg->compMap.raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // Distance compensation
+					ippsMul_32f_I(m_pNirfDistCompDlg->compMap[1].raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length()); // Distance compensation
 				if (m_pNirfDistCompDlg->isTBRMode())
 				{
-					if (m_pNirfDistCompDlg->tbrBg > 0)
+					if (m_pNirfDistCompDlg->tbrBg[1] > 0)
 					{
 						if (m_pNirfDistCompDlg->isZeroTbr())
-							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
-						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg, m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+							ippsSubC_32f_I(m_pNirfDistCompDlg->tbrBg[1], m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+						ippsDivC_32f_I(m_pNirfDistCompDlg->tbrBg[1], m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
 
 						if (m_pNirfDistCompDlg->compConst != 1.0f)
 						{
@@ -1897,6 +1865,18 @@ void QResultTab::visualizeEnFaceMap(bool scaling)
 						}
 					}
 				}
+
+				// 2 Ch NIRF Cross-Talk Compensation
+				if (m_pNirfDistCompDlg->crossTalkRatio > 0)
+				{
+					np::FloatArray2 corr_array(m_nirfMap1_0.size(0), m_nirfMap1_0.size(1));
+					memcpy(corr_array.raw_ptr(), m_nirfMap1_0.raw_ptr(), sizeof(float) * m_nirfMap1_0.length());
+					ippsMulC_32f_I(m_pNirfDistCompDlg->crossTalkRatio, corr_array.raw_ptr(), corr_array.length());
+
+					ippsSub_32f_I(corr_array.raw_ptr(), m_nirfMap2_0.raw_ptr(), m_nirfMap2_0.length());
+				}
+
+				// GW map
 				if (m_pNirfDistCompDlg->isGwMasked())
 				{
 					if (m_pNirfDistCompDlg->gwMap.raw_ptr())

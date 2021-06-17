@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.7.3"
+#define VERSION						"1.2.7.5"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -40,7 +40,7 @@
 //#define TWO_CHANNEL_NIRF
 #endif
 #define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -103,7 +103,8 @@
 #endif
 
 #ifdef PULLBACK_DEVICE
-#define ZABER_PORT					"COM6"
+#define ZABER_NEW_STAGE				false
+#define ZABER_PORT					"COM3"
 #define ZABER_MAX_MICRO_RESOLUTION  64
 #define ZABER_MICRO_RESOLUTION		32
 #define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
@@ -116,7 +117,7 @@
 #endif
 
 //////////////////////// Processing /////////////////////////
-#define CUDA_ENABLED				// Only valid in visual studio environment
+//#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
 #define N_CUDA_THREADS				32
@@ -159,13 +160,13 @@
 #endif
 
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
 #define NIRF_COLORTABLE1			5 // hot
-#ifdef TWO_CHANNEL_NIRF
+#else
+#define NIRF_COLORTABLE1			5 // hot
 #define NIRF_COLORTABLE2			18 // cyan
-
 #define CH_DIVIDING_LINE
 #endif
-
 #endif
 
 #define RENEWAL_COUNT				5
@@ -315,10 +316,22 @@ public:
 #endif
         // NIRF distance compensation
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
         nirfCompCoeffs_a = settings.value("nirfCompCoeffs_a").toFloat();
         nirfCompCoeffs_b = settings.value("nirfCompCoeffs_b").toFloat();
         nirfCompCoeffs_c = settings.value("nirfCompCoeffs_c").toFloat();
         nirfCompCoeffs_d = settings.value("nirfCompCoeffs_d").toFloat();
+#else
+		nirfCompCoeffs_a[0] = settings.value("nirfCompCoeffs_a1").toFloat();
+		nirfCompCoeffs_b[0] = settings.value("nirfCompCoeffs_b1").toFloat();
+		nirfCompCoeffs_c[0] = settings.value("nirfCompCoeffs_c1").toFloat();
+		nirfCompCoeffs_d[0] = settings.value("nirfCompCoeffs_d1").toFloat();
+
+		nirfCompCoeffs_a[1] = settings.value("nirfCompCoeffs_a2").toFloat();
+		nirfCompCoeffs_b[1] = settings.value("nirfCompCoeffs_b2").toFloat();
+		nirfCompCoeffs_c[1] = settings.value("nirfCompCoeffs_c2").toFloat();
+		nirfCompCoeffs_d[1] = settings.value("nirfCompCoeffs_d2").toFloat();
+#endif
 
         nirfFactorThres = settings.value("nirfFactorThres").toFloat();
         nirfFactorPropConst = settings.value("nirfFactorPropConst").toFloat();
@@ -464,10 +477,22 @@ public:
 #endif
         // NIRF distance compensation
 #ifdef OCT_NIRF
+#ifndef TWO_CHANNEL_NIRF
         settings.setValue("nirfCompCoeffs_a", QString::number(nirfCompCoeffs_a, 'f', 10));
         settings.setValue("nirfCompCoeffs_b", QString::number(nirfCompCoeffs_b, 'f', 10));
         settings.setValue("nirfCompCoeffs_c", QString::number(nirfCompCoeffs_c, 'f', 10));
         settings.setValue("nirfCompCoeffs_d", QString::number(nirfCompCoeffs_d, 'f', 10));
+#else
+		settings.setValue("nirfCompCoeffs_a1", QString::number(nirfCompCoeffs_a[0], 'f', 10));
+		settings.setValue("nirfCompCoeffs_b1", QString::number(nirfCompCoeffs_b[0], 'f', 10));
+		settings.setValue("nirfCompCoeffs_c1", QString::number(nirfCompCoeffs_c[0], 'f', 10));
+		settings.setValue("nirfCompCoeffs_d1", QString::number(nirfCompCoeffs_d[0], 'f', 10));
+
+		settings.setValue("nirfCompCoeffs_a2", QString::number(nirfCompCoeffs_a[1], 'f', 10));
+		settings.setValue("nirfCompCoeffs_b2", QString::number(nirfCompCoeffs_b[1], 'f', 10));
+		settings.setValue("nirfCompCoeffs_c2", QString::number(nirfCompCoeffs_c[1], 'f', 10));
+		settings.setValue("nirfCompCoeffs_d2", QString::number(nirfCompCoeffs_d[1], 'f', 10));
+#endif
 
         settings.setValue("nirfFactorThres", QString::number(nirfFactorThres, 'f', 1));
         settings.setValue("nirfFactorPropConst", QString::number(nirfFactorPropConst, 'f', 3));
@@ -606,10 +631,17 @@ public:
 
 #ifdef OCT_NIRF
     // NIRF ditance compensation
+#ifndef TWO_CHANNEL_NIRF
     float nirfCompCoeffs_a;
 	float nirfCompCoeffs_b;
 	float nirfCompCoeffs_c;
 	float nirfCompCoeffs_d;
+#else
+	float nirfCompCoeffs_a[2];
+	float nirfCompCoeffs_b[2];
+	float nirfCompCoeffs_c[2];
+	float nirfCompCoeffs_d[2];
+#endif
     float nirfFactorThres;
     float nirfFactorPropConst;
     float nirfDistPropConst;

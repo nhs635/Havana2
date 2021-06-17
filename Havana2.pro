@@ -118,6 +118,7 @@ SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
     DeviceControl/GalvoScan/GalvoScan.cpp \
     DeviceControl/ZaberStage/ZaberStage.cpp \
     DeviceControl/ZaberStage/zb_serial.cpp \
+    DeviceControl/ZaberStage/ZaberStage2.cpp \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.cpp
 
 
@@ -165,6 +166,7 @@ HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
     DeviceControl/GalvoScan/GalvoScan.h \
     DeviceControl/ZaberStage/ZaberStage.h \
     DeviceControl/ZaberStage/zb_serial.h \
+    DeviceControl/ZaberStage/ZaberStage2.h \
     DeviceControl/FaulhaberMotor/FaulhaberMotor.h \
     DeviceControl/QSerialComm.h
 

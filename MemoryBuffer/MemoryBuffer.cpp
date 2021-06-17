@@ -9,7 +9,11 @@
 #include <DeviceControl/ECGMonitoring/EcgMonitoring.h>
 #endif
 #ifdef PULLBACK_DEVICE
+#if not ZABER_NEW_STAGE
 #include <DeviceControl/ZaberStage/ZaberStage.h>
+#else
+#include <DeviceControl/ZaberStage/ZaberStage2.h>
+#endif
 #include <DeviceControl/FaulhaberMotor/FaulhaberMotor.h>
 #endif
 

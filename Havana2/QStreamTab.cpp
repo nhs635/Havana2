@@ -939,12 +939,12 @@ void QStreamTab::setNirfAcquisitionCallback()
 				if (m_pNirfEmissionProfileDlg)
 				{
 #ifndef TWO_CHANNEL_NIRF
-					m_pNirfEmissionProfileDlg->drawData((double*)data);
+					emit plotNirf((double*)data);					
 #else
 					np::DoubleArray data1(m_pConfig->nAlines), data2(m_pConfig->nAlines);
 					ippsCplxToReal_64fc((const Ipp64fc*)data, data1, data2, m_pConfig->nAlines);
 
-					m_pNirfEmissionProfileDlg->drawData((double*)data1, (double*)data2);					
+					emit plotNirf((double*)data1, (double*)data2);					
 #endif
 				}
 
@@ -1597,7 +1597,8 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #ifndef TWO_CHANNEL_NIRF
 		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 #else
-        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max });
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), 
+																				   std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 #endif
 #endif
 }
@@ -1946,7 +1947,8 @@ void QStreamTab::adjustNirfContrast1()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max });
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+																						      std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 
 void QStreamTab::adjustNirfContrast2()
@@ -1958,7 +1960,8 @@ void QStreamTab::adjustNirfContrast2()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { m_pConfig->nirfRange[1].min, m_pConfig->nirfRange[1].max });
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+																					          std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 #endif
 
@@ -1968,6 +1971,11 @@ void QStreamTab::createNirfEmissionProfileDlg()
 	{
         m_pNirfEmissionProfileDlg = new NirfEmissionProfileDlg(true, this);
 		connect(m_pNirfEmissionProfileDlg, SIGNAL(finished(int)), this, SLOT(deleteNirfEmissionProfileDlg()));
+#ifndef TWO_CHANNEL_NIRF
+		connect(this, SIGNAL(plotNirf(void*)), m_pNirfEmissionProfileDlg, SLOT(drawData(void*)));
+#else
+		connect(this, SIGNAL(plotNirf(void*, void*)), m_pNirfEmissionProfileDlg, SLOT(drawData(void*, void*)));
+#endif
 		m_pNirfEmissionProfileDlg->show();
 	}
 	m_pNirfEmissionProfileDlg->raise();

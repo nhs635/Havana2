@@ -202,8 +202,10 @@ signals:
 #else
 #ifndef TWO_CHANNEL_NIRF
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*);
+	void plotNirf(void*);
 #else
 	void makeRgb(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
+	void plotNirf(void*, void*);
 #endif
 #endif
 #endif

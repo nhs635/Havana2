@@ -41,9 +41,9 @@ NirfEmissionProfileDlg::NirfEmissionProfileDlg(bool _isStreaming, QWidget *paren
         m_pScope = new QScope({ 0, (double)m_pResultTab->m_nirfMap.size(0) }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 #else
 	if (m_bIsStreaming)
-		m_pScope = new QScope2({ 0, (double)m_pConfig->nAlines }, { m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max }, 2, 2, 1, 1, 0, 0, "", "", true);
+		m_pScope = new QScope2({ 0, (double)m_pConfig->nAlines }, { min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[0].max) }, 2, 2, 1, 1, 0, 0, "", "", true);
 	else
-		m_pScope = new QScope2({ 0, (double)m_pResultTab->m_nirfMap1.size(0) }, { m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[0].max });
+		m_pScope = new QScope2({ 0, (double)m_pResultTab->m_nirfMap1.size(0) }, { min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[0].max) });
 #endif
 	if (!m_bIsStreaming)
 	{

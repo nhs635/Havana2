@@ -6,7 +6,11 @@
 #include <QtCore>
 
 #include <Havana2/Configuration.h>
+#ifndef TWO_CHANNEL_NIRF
 #include <Havana2/Viewer/QScope.h>
+#else
+#include <Havana2/Viewer/QScope2.h>
+#endif
 
 #include <Common/array.h>
 #include <Common/callback.h>
@@ -53,9 +57,19 @@ private slots:
     void filtering(bool);
 	void gwMasking(bool);
 	void tbrZeroDefinition(bool);
+#ifndef TWO_CHANNEL_NIRF
 	void changeNirfBackground(const QString &);
     void changeTbrBackground(const QString &);
+#else
+	void changeNirfBackground1(const QString &);
+	void changeNirfBackground2(const QString &);
+	void changeTbrBackground1(const QString &);
+	void changeTbrBackground2(const QString &);
+#endif
 	void changeCompConstant(const QString &);
+#ifdef TWO_CHANNEL_NIRF
+	void changeCrossTalkRatio(const QString &);
+#endif
 	void showLumenContour(bool);
 	void showCorrelationPlot(bool);
 
@@ -82,16 +96,28 @@ private:
 	bool m_bCanBeClosed;
 	
 private:
+#ifndef TWO_CHANNEL_NIRF
 	np::FloatArray distDecayCurve;
 	np::FloatArray compCurve;
+#else
+	np::FloatArray distDecayCurve[2]; 
+	np::FloatArray compCurve[2];
+#endif
 
 public:
     np::Uint16Array2 distMap;
 	np::Uint16Array2 distOffsetMap;
 	np::FloatArray2 gwMap;
+#ifndef TWO_CHANNEL_NIRF
     float nirfBg;
     np::FloatArray2 compMap;
     float tbrBg;
+#else
+	float nirfBg[2];
+	np::FloatArray2 compMap[2];
+	float tbrBg[2];
+	float crossTalkRatio;
+#endif
 	float compConst;
 
 private:
@@ -110,14 +136,26 @@ private:
 	QLabel *m_pLabel_DistanceDecayCurve;
 	QLabel *m_pLabel_CompensationCurve;
 
+#ifndef TWO_CHANNEL_NIRF
 	QRenderArea *m_pRenderArea_DistanceDecayCurve;
 	QRenderArea *m_pRenderArea_CompensationCurve;
+#else
+	QRenderArea2 *m_pRenderArea_DistanceDecayCurve;
+	QRenderArea2 *m_pRenderArea_CompensationCurve;
+#endif
 	
 	QLabel *m_pLabel_CompensationCoeff;
+#ifndef TWO_CHANNEL_NIRF
 	QLineEdit *m_pLineEdit_CompensationCoeff_a;
 	QLineEdit *m_pLineEdit_CompensationCoeff_b;
 	QLineEdit *m_pLineEdit_CompensationCoeff_c;
 	QLineEdit *m_pLineEdit_CompensationCoeff_d;
+#else
+	QLineEdit *m_pLineEdit_CompensationCoeff_a[2];
+	QLineEdit *m_pLineEdit_CompensationCoeff_b[2];
+	QLineEdit *m_pLineEdit_CompensationCoeff_c[2];
+	QLineEdit *m_pLineEdit_CompensationCoeff_d[2];
+#endif
 
 	QLabel *m_pLabel_FactorThreshold;
 	QLineEdit *m_pLineEdit_FactorThreshold;
@@ -127,6 +165,12 @@ private:
 
 	QLabel *m_pLabel_DistPropConst;
 	QLineEdit *m_pLineEdit_DistPropConst;
+	
+#ifdef TWO_CHANNEL_NIRF
+	// Widgets for cross talk correction
+	QLabel *m_pLabel_CrossTalkRatio;
+	QLineEdit *m_pLineEdit_CrossTalkRatio;
+#endif
 
     // Widgets for zero point setting
 	QLabel *m_pLabel_LumenContourOffset;
@@ -141,10 +185,18 @@ private:
 	QCheckBox *m_pCheckBox_GwMasking;
 
 	QLabel *m_pLabel_NIRF_Background;
+#ifndef TWO_CHANNEL_NIRF
 	QLineEdit *m_pLineEdit_NIRF_Background;
+#else
+	QLineEdit *m_pLineEdit_NIRF_Background[2];
+#endif
 
     QLabel *m_pLabel_TBR_Background;
+#ifndef TWO_CHANNEL_NIRF
     QLineEdit *m_pLineEdit_TBR_Background;
+#else
+	QLineEdit *m_pLineEdit_TBR_Background[2];
+#endif
 
 	QLabel *m_pLabel_Compensation;
 	QLineEdit *m_pLineEdit_Compensation;
@@ -154,7 +206,11 @@ private:
 
 	// Widgets for compensation results - distance dependency check
 	QCheckBox *m_pCheckBox_Correlation;
+#ifndef TWO_CHANNEL_NIRF
 	QRenderArea *m_pRenderArea_Correlation;
+#else
+	QRenderArea2 *m_pRenderArea_Correlation;
+#endif
 #endif
 };
 

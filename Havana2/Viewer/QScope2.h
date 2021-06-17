@@ -69,7 +69,8 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *);
 
 public:
-	void setSize(QRange xRange, QRange yRange);
+	void setSize(QRange xRange, QRange yRange, int len = 0);
+	void setGrid(int nHMajorGrid, int nHMinorGrid, int nVMajorGrid, bool zeroLine = false);
 
 public: // callback
 	callback<void> DidMouseEvent;
@@ -77,16 +78,26 @@ public: // callback
 public:
     float* m_pData1;
 	float* m_pData2;
+	float* m_pDataX;
+	float* m_pMask;
 	double* m_pData1_64;
 	double* m_pData2_64;
+	bool m_bMaskUse;
 	bool m_b64Use;
 
     QRange m_xRange;
     QRange m_yRange;
     QSizeF m_sizeGraph;
+	int m_buff_len;
 
 	int *m_pVLineInd;
 	int m_vLineLen;
+	
+	int m_nHMajorGrid;
+	int m_nHMinorGrid;
+	int m_nVMajorGrid;
+
+	bool m_bZeroLine;
 
 	bool m_bSelectionAvailable;
 	bool m_bMousePressed;
@@ -94,6 +105,8 @@ public:
 	int m_selected[2];
 	int m_start, m_end;
 	uint8_t *m_pSelectedRegion;
+
+	bool m_bScattered;
 };
 
 
