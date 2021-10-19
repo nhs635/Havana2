@@ -1,10 +1,15 @@
 
 #include "DataAcquisition.h"
 
+#include <AlazarApi.h>
+
 
 DataAcquisition::DataAcquisition(Configuration* pConfig)
 #if PX14_ENABLE || ALAZAR_ENABLE
     : pDaq(nullptr)
+#ifdef ALAZAR_NIRF_ACQUISITION
+	, pDaqNirf(nullptr)
+#endif
 #endif
 {
 	m_pConfig = pConfig;
@@ -13,9 +18,18 @@ DataAcquisition::DataAcquisition(Configuration* pConfig)
 #endif
 #if ALAZAR_ENABLE
     pDaq = new AlazarDAQ;
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+	pDaqNirf = new AlazarDAQ;
+#endif
+
 #endif
 #if PX14_ENABLE || ALAZAR_ENABLE
 	pDaq->DidStopData += [&]() { pDaq->_running = false; };
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+	pDaqNirf->DidStopData += [&]() { pDaqNirf->_running = false; };
+#endif
 #endif
 }
 
@@ -23,6 +37,9 @@ DataAcquisition::~DataAcquisition()
 {
 #if PX14_ENABLE || ALAZAR_ENABLE
     if (pDaq) delete pDaq;
+#ifdef ALAZAR_NIRF_ACQUISITION
+	if (pDaqNirf) delete pDaqNirf;
+#endif
 #endif
 }
 
@@ -50,7 +67,8 @@ bool DataAcquisition::InitializeAcquistion()
 	return true;    
 #elif ALAZAR_ENABLE
     // Parameter settings for DAQ
-///	pDaq->AcqRate = ADC_RATE;
+	pDaq->SystemId = 1;
+	pDaq->AcqRate = SAMPLE_RATE_1000MSPS;
     pDaq->nChannels = m_pConfig->nChannels;
     pDaq->nScans = m_pConfig->nScans;
     pDaq->nAlines = m_pConfig->nAlines;
@@ -65,6 +83,29 @@ bool DataAcquisition::InitializeAcquistion()
         StopAcquisition();
         return false;
     }
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+	// Parameter settings for DAQ (NIRF)
+	pDaqNirf->SystemId = 2;
+	pDaqNirf->AcqRate = SAMPLE_RATE_50MSPS;
+#ifndef TWO_CHANNEL_NIRF
+	pDaqNirf->nChannels = 1;
+#else
+	pDaqNirf->nChannels = 2;
+#endif
+	pDaqNirf->nScans = NIRF_SCANS;
+	pDaqNirf->nAlines = m_pConfig->nAlines;
+
+	pDaqNirf->VoltRange1 = INPUT_RANGE_PM_4_V;
+	pDaqNirf->VoltRange2 = INPUT_RANGE_PM_4_V;
+
+	// Initialization for DAQ (NIRF)
+	if (!(pDaqNirf->set_init()))
+	{
+		StopAcquisition();
+		return false;
+	}
+#endif
     return true;
 #else
     return false;
@@ -98,6 +139,15 @@ bool DataAcquisition::StartAcquisition()
         StopAcquisition();
         return false;
     }
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+	if (!(pDaqNirf->startAcquisition()))
+	{
+		StopAcquisition();
+		return false;
+	}
+#endif
+
     return true;
 #else
     return false;
@@ -109,6 +159,9 @@ void DataAcquisition::StopAcquisition()
 #if PX14_ENABLE || ALAZAR_ENABLE
     // Stop thread
     pDaq->stopAcquisition();
+#ifdef ALAZAR_NIRF_ACQUISITION
+	pDaqNirf->stopAcquisition();
+#endif
 #endif
 }
 

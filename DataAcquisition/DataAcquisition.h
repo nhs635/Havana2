@@ -40,6 +40,12 @@ public:
     void ConnectDaqAcquiredData(const std::function<void(int, const np::Array<uint16_t, 2>&)> &slot) { pDaq->DidAcquireData += slot; }
     void ConnectDaqStopData(const std::function<void(void)> &slot) { pDaq->DidStopData += slot; }
     void ConnectDaqSendStatusMessage(const std::function<void(const char*)> &slot) { pDaq->SendStatusMessage += slot; }
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+	void ConnectDaqNirfAcquiredData(const std::function<void(int, const np::Array<uint16_t, 2>&)> &slot) { pDaqNirf->DidAcquireData += slot; }
+	void ConnectDaqNirfStopData(const std::function<void(void)> &slot) { pDaqNirf->DidStopData += slot; }
+	void ConnectDaqNirfSendStatusMessage(const std::function<void(const char*)> &slot) { pDaqNirf->SendStatusMessage += slot; }
+#endif
 #endif
 
 private:
@@ -49,6 +55,9 @@ private:
 #endif
 #if ALAZAR_ENABLE
     AlazarDAQ* pDaq;
+#endif
+#ifdef ALAZAR_NIRF_ACQUISITION
+	AlazarDAQ* pDaqNirf;
 #endif
 };
 

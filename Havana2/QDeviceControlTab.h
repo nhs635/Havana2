@@ -38,8 +38,13 @@ class ElforlightLaser;
 #endif
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
+#ifndef ALAZAR_NIRF_ACQUISITION
 class NirfEmissionTrigger;
 class NirfEmission;
+#endif
+#ifdef TWO_CHANNEL_NIRF
+class NirfModulation;
+#endif
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 class PmtGainControl;
 #endif
@@ -85,7 +90,9 @@ public: ////////////////////////////////////////////////////////////////////////
 #endif
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
+#ifndef ALAZAR_NIRF_ACQUISITION
 	inline NirfEmission* getNirfEmission() const { return m_pNirfEmission; }
+#endif
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	inline QCheckBox* getEnablePmtGainControl() const { return m_pCheckBox_PmtGainControl; }
 #endif
@@ -270,9 +277,14 @@ private: ///////////////////////////////////////////////////////////////////////
 #endif
 #ifdef STANDALONE_OCT
 #ifdef OCT_NIRF
+#ifndef ALAZAR_NIRF_ACQUISITION
 	// NIRF Emission
 	NirfEmissionTrigger* m_pNirfEmissionTrigger;
 	NirfEmission* m_pNirfEmission;
+#endif
+#ifdef TWO_CHANNEL_NIRF
+	NirfModulation* m_pNirfModulation;
+#endif
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 	// PMT Gain Control
 	PmtGainControl* m_pPmtGainControl;

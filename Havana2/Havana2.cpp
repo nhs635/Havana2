@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     w.show();
 	
 	// Default position
-    //w.setGeometry(w.geometry().x() + 40, w.geometry().y() - 120, w.geometry().width(), w.geometry().height());
+    w.setGeometry(w.geometry().x() + 40, w.geometry().y() - 180, w.geometry().width(), w.geometry().height());
 	
     return a.exec();
 }

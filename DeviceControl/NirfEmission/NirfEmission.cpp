@@ -6,7 +6,7 @@
 #include <Common/array.h>
 
 #ifdef OCT_NIRF
-
+#ifndef ALAZAR_NIRF_ACQUISITION
 #if NI_ENABLE
 #include <NIDAQmx.h>
 using namespace std;
@@ -200,5 +200,5 @@ int32 CVICALLBACK EveryNCallback(TaskHandle taskHandle, int32 everyNsamplesEvent
 	return 0;
 }
 #endif
-
+#endif
 #endif

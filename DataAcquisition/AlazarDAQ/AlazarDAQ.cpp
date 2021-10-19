@@ -10,11 +10,13 @@
 using namespace std;
 
 AlazarDAQ::AlazarDAQ() :
+	SystemId(1),
     nChannels(2),
     nScans(1600),
     nAlines(1024),
     VoltRange1(INPUT_RANGE_PM_500_MV),
     VoltRange2(INPUT_RANGE_PM_500_MV),
+	AcqRate(SAMPLE_RATE_500MSPS),
     TriggerDelay(0),
     UseExternalClock(false),
     UseAutoTrigger(false),
@@ -55,7 +57,7 @@ bool AlazarDAQ::initialize()
     RETURN_CODE retCode = ApiSuccess;
 
 	// Select a board
-	U32 systemId = 1;
+	U32 systemId = SystemId;
 	U32 boardId = 1;
 
 	// Get a handle to the board
@@ -68,7 +70,7 @@ bool AlazarDAQ::initialize()
 
 	// Specify the sample rate (see sample rate id below)
     // double samplesPerSec = 500.e6;
-    const U32 SamplingRate = SAMPLE_RATE_1200MSPS;  // SAMPLE_RATE_500MSPS; // only for internal clock
+	const U32 SamplingRate = AcqRate;  // SAMPLE_RATE_500MSPS; // only for internal clock
 
 	// Select clock parameters as required to generate this sample rate.
 	//
@@ -349,7 +351,7 @@ void AlazarDAQ::run()
                 ADMA_FIFO_ONLY_STREAMING |		// The ATS9360-FIFO does not have on-board memory
                 ADMA_TRADITIONAL_MODE;			// Acquire multiple records optionally with pretrigger
         }
-
+		
         // samples and record headers
         retCode =
             AlazarBeforeAsyncRead(
@@ -498,7 +500,7 @@ void AlazarDAQ::run()
                 retCode = AlazarPostAsyncBuffer(boardHandle, pBuffer, bytesPerBuffer);
                 if (retCode != ApiSuccess)
                 {
-                    dumpError(retCode, "Error: AlazarPostAsyncBuffer failed: ");
+                    dumpError(retCode, "Error: AlazarPostAsyncBuffer failed 2: ");
                     success = FALSE;
                 }
             }
@@ -541,7 +543,7 @@ void AlazarDAQ::run()
                         }
                     }
 
-                    printf("[Elapsed Time] %u:%02u:%02u [DAQ Rate] %3.2f MB/s [Frame Rate] %.2f fps \n", h, m, s,
+                    printf("[SystemId: %d][Elapsed Time] %u:%02u:%02u [DAQ Rate] %3.2f MB/s [Frame Rate] %.2f fps \n", SystemId, h, m, s,
                            dRateUpdate, (double)buffersCompletedUpdate / (double)(dwElapsedUpdate) * 1000.0);
                 }
 

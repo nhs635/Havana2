@@ -156,6 +156,7 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 
 #ifdef AXSUN_OCT_LASER
 			// Turn on Axsun OCT Laser
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			pDeviceControl->turnOnOCTLaser(true);
 #endif
 		}

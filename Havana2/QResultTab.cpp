@@ -1240,9 +1240,9 @@ void QResultTab::visualizeImage(int frame)
 		np::Uint8Array2 scale_temp(roi_oct.width, roi_oct.height);
 		ippiScale_32f8u_C1R(m_vectorOctImage.at(frame), roi_oct.width * sizeof(float),
 			scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), roi_oct, m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
-#if defined(OCT_VERTICAL_MIRRORING)
-		ippiMirror_8u_C1IR(scale_temp.raw_ptr(), sizeof(uint8_t) * roi_oct.width, roi_oct, ippAxsVertical);
-#endif
+//#if defined(OCT_VERTICAL_MIRRORING)
+//		ippiMirror_8u_C1IR(scale_temp.raw_ptr(), sizeof(uint8_t) * roi_oct.width, roi_oct, ippAxsVertical);
+//#endif
 		ippiTranspose_8u_C1R(scale_temp.raw_ptr(), roi_oct.width * sizeof(uint8_t), m_pImgObjRectImage->arr.raw_ptr(), roi_oct.height * sizeof(uint8_t), roi_oct);
 #ifdef GALVANO_MIRROR
 		if (m_pConfig->galvoHorizontalShift)
@@ -4283,6 +4283,11 @@ void QResultTab::octProcessing1(CudaOCTProcess* pOCT, Configuration* pConfig)
 					(*pOCT)(res_data, fringe_data, "linear");
 #else
 					(*pOCT)(m_vectorOctImage.at(frameCount), fringe_data);
+#if defined(OCT_VERTICAL_MIRRORING)
+					IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };
+					if (!pConfig->oldUhs)
+						ippiMirror_32f_C1IR(m_vectorOctImage.at(frameCount), sizeof(float) * roi.width, roi, ippAxsVertical);
+#endif
 					if (pConfig->erasmus)
 					{
 						IppiSize roi = { pConfig->n2ScansFFT, pConfig->nAlines };

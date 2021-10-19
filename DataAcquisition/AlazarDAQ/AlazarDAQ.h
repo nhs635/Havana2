@@ -10,7 +10,7 @@
 #include <array>
 #include <thread>
 
-#define BUFFER_COUNT 2
+#define BUFFER_COUNT 10
 #define MAX_MSG_LENGTH 2000
 
 typedef enum RETURN_CODE RETURN_CODE;
@@ -36,9 +36,10 @@ public:
     void stopAcquisition();
 
 public:
+	unsigned long SystemId;
     int nChannels, nScans, nAlines;
     unsigned long VoltRange1, VoltRange2;
-//    int AcqRate;
+    int AcqRate;
     unsigned long TriggerDelay;
     bool UseExternalClock;
     bool UseAutoTrigger;

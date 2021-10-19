@@ -26,8 +26,13 @@
 #endif
 #ifdef OCT_NIRF
 #if NI_ENABLE
+#ifndef ALAZAR_NIRF_ACQUISITION
 #include <DeviceControl/NirfEmission/NirfEmissionTrigger.h>
 #include <DeviceControl/NirfEmission/NirfEmission.h>
+#endif
+#ifdef TWO_CHANNEL_NIRF
+#include <DeviceControl/NirfModulation/NirfModulation.h>
+#endif
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 #include <DeviceControl/FLIMControl/PmtGainControl.h>
 #endif
@@ -55,7 +60,7 @@
 
 
 QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
-    QDialog(parent)
+    QDialog(parent), m_pZaberMonitorTimer(nullptr)
 {
 	// Set main window objects
 	m_pMainWnd = (MainWindow*)parent;
@@ -747,8 +752,8 @@ void QDeviceControlTab::initiateAllDevices()
 #endif
 #endif
 #ifdef PULLBACK_DEVICE
-	if (!m_pCheckBox_ZaberStageControl->isChecked()) m_pCheckBox_ZaberStageControl->setChecked(true);
-	if (!m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(true);
+	//if (!m_pCheckBox_ZaberStageControl->isChecked()) m_pCheckBox_ZaberStageControl->setChecked(true);
+	//if (!m_pCheckBox_FaulhaberMotorControl->isChecked()) m_pCheckBox_FaulhaberMotorControl->setChecked(true);
 #endif
 }
 
@@ -927,6 +932,7 @@ std::deque<double>* QDeviceControlTab::getRecordedEcg()
 bool QDeviceControlTab::initializeNiDaqAnalogInput()
 {
 #if NI_ENABLE
+#ifndef ALAZAR_NIRF_ACQUISITION
 	// Create NIRF emission acquisition objects
 	///m_pNirfEmissionTrigger = new NirfEmissionTrigger;
 	///m_pNirfEmissionTrigger->nAlines = m_pConfig->nAlines;
@@ -939,6 +945,16 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 	// Initializing
 	if (!m_pNirfEmission->initialize()) // || !m_pNirfEmission->initialize()) Trigger
 		return false;
+#endif
+
+#ifdef TWO_CHANNEL_NIRF
+	// Create NIRF modulated excitation objects
+	m_pNirfModulation = new NirfModulation;
+	m_pNirfModulation->nCh = 2;
+
+	if (!m_pNirfModulation->initialize())
+		return false;
+#endif
 
 	// Apply PMT gain voltage
 	m_pCheckBox_PmtGainControl->setChecked(true);
@@ -946,14 +962,21 @@ bool QDeviceControlTab::initializeNiDaqAnalogInput()
 
 	return true;
 }
+
 bool QDeviceControlTab::startNiDaqAnalogInput()
 {
 #if NI_ENABLE
 	// Open NIRF emission profile dialog
 	m_pMainWnd->m_pStreamTab->makeNirfEmissionProfileDlg();
 
+#ifndef ALAZAR_NIRF_ACQUISITION
 	// Generate trigger pulse & Start NIRF acquisition
 	if (m_pNirfEmission) m_pNirfEmission->start();
+#endif
+
+#ifdef TWO_CHANNEL_NIRF
+	if (m_pNirfModulation) m_pNirfModulation->start();
+#endif
 
 	///Sleep(100);
 	///if (m_pNirfEmissionTrigger) m_pNirfEmissionTrigger->start();
@@ -1384,7 +1407,7 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 		// Set text
 		m_pCheckBox_NirfAcquisitionControl->setText("Disable NIRF Acquisition Control");
 		m_pCheckBox_NirfAcquisitionControl->setChecked(true);
-		
+
 		// Initializing
 		if (!initializeNiDaqAnalogInput())
 			return;
@@ -1399,7 +1422,8 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 			m_pMainWnd->m_pStreamTab->getNirfEmissionProfileDlg()->close();
 		memset(m_pMainWnd->m_pStreamTab->m_visNirf.raw_ptr(), 0, sizeof(double) * m_pMainWnd->m_pStreamTab->m_visNirf.length());
 
-		// Delete ECG monitoring objects		
+#ifndef ALAZAR_NIRF_ACQUISITION
+		// Delete NIRF emission monitoring objects		
 		if (m_pNirfEmission)
 		{
 			m_pNirfEmission->stop();
@@ -1410,6 +1434,16 @@ void QDeviceControlTab::enableNirfEmissionAcquisition(bool toggled)
 		///	m_pNirfEmissionTrigger->stop();
 		///	delete m_pNirfEmissionTrigger;
 		///}
+#endif
+
+#ifdef TWO_CHANNEL_NIRF
+		// Delete NIRF modulated excitation object
+		if (m_pNirfModulation)
+		{
+			m_pNirfModulation->stop();
+			delete m_pNirfModulation;
+		}
+#endif
 
 		// Set text
 		m_pCheckBox_NirfAcquisitionControl->setText("Enable NIRF Acquisition Control");
@@ -1767,8 +1801,11 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 			// Disconnect the Stage
 			m_pZaberStage->DisconnectDevice();
 
-			m_pZaberMonitorTimer->stop();
-			delete m_pZaberMonitorTimer;
+			if (m_pZaberMonitorTimer)
+			{
+				m_pZaberMonitorTimer->stop();
+				delete m_pZaberMonitorTimer;
+			}
 #endif
 
 			// Delete Zaber stage control objects

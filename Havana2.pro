@@ -115,6 +115,7 @@ SOURCES += DeviceControl/AxsunControl/AxsunControl.cpp \
     DeviceControl/ECGMonitoring/Voltage800RPS.cpp \
     DeviceControl/NirfEmission/NirfEmission.cpp \
     DeviceControl/NirfEmission/NirfEmissionTrigger.cpp \
+    DeviceControl/NirfModulation/NirfModulation.cpp \
     DeviceControl/GalvoScan/GalvoScan.cpp \
     DeviceControl/ZaberStage/ZaberStage.cpp \
     DeviceControl/ZaberStage/zb_serial.cpp \
@@ -163,6 +164,7 @@ HEADERS += DeviceControl/AxsunControl/AxsunControl.h \
     DeviceControl/ECGMonitoring/Voltage800RPS.h \
     DeviceControl/NirfEmission/NirfEmission.h \
     DeviceControl/NirfEmission/NirfEmissionTrigger.h \
+    DeviceControl/NirfModulation/NirfModulation.h \
     DeviceControl/GalvoScan/GalvoScan.h \
     DeviceControl/ZaberStage/ZaberStage.h \
     DeviceControl/ZaberStage/zb_serial.h \

@@ -8,7 +8,9 @@
 #include <DataAcquisition/DataAcquisition.h>
 #include <MemoryBuffer/MemoryBuffer.h>
 #ifdef OCT_NIRF
+#ifndef ALAZAR_NIRF_ACQUISITION
 #include <DeviceControl/NirfEmission/NirfEmission.h>
+#endif
 #endif
 
 #include <Havana2/Viewer/QScope.h>
@@ -34,6 +36,9 @@
 #ifdef OCT_NIRF
 #include <Havana2/Dialog/NirfEmissionProfileDlg.h>
 #endif
+
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 
 
 QStreamTab::QStreamTab(QWidget *parent) :
@@ -114,7 +119,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #ifndef TWO_CHANNEL_NIRF
 	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
 #else
-	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(1, 2 * m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
+	m_pMemBuff->m_syncBufferingNirf.allocate_queue_buffer(4 * NIRF_SCANS, m_pConfig->nAlines / 2, PROCESSING_BUFFER_SIZE);
 #endif
 #endif
     m_syncDeinterleaving.allocate_queue_buffer(m_pConfig->nChannels * m_pConfig->nScans, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE);
@@ -130,13 +135,16 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #ifndef TWO_CHANNEL_NIRF
 	m_syncNirfVisualization.allocate_queue_buffer(1, m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
 #else
-	m_syncNirfVisualization.allocate_queue_buffer(1, 2 * m_pConfig->nAlines, PROCESSING_BUFFER_SIZE); // NIRF Visualization
+	m_syncNirfVisualization.allocate_queue_buffer(4 * NIRF_SCANS, m_pConfig->nAlines / 2, PROCESSING_BUFFER_SIZE); // NIRF Visualization
 #endif
 #endif
 #endif
 	
 	// Set signal object
 	setDataAcquisitionCallback();
+#ifdef ALAZAR_NIRF_ACQUISITION
+	setNirfAcquisitionCallback();
+#endif
 	setDeinterleavingCallback();
 	setCh1ProcessingCallback();
 	setCh2ProcessingCallback();
@@ -907,12 +915,51 @@ void QStreamTab::setDataAcquisitionCallback()
 #ifdef OCT_NIRF
 void QStreamTab::setNirfAcquisitionCallback()
 {
+#ifndef ALAZAR_NIRF_ACQUISITION
 	NirfEmission* pNirfEmission = m_pMainWnd->m_pDeviceControlTab->getNirfEmission();
 
-	pNirfEmission->DidAcquireData += [&](int total, const double* data) {
+	pNirfEmission->DidAcquireData += [&](int frame_count, const double* data) {
+#else
+	m_pDataAcq->ConnectDaqNirfAcquiredData([&](int frame_count, const np::Array<uint16_t, 2>& frame) {
+#endif		
+
+#ifdef ALAZAR_NIRF_ACQUISITION
+		// To see raw pulse waveform
+		///if (!(frame_count % RENEWAL_COUNT))
+		///{
+		///	QFile *pFile = new QFile("temp.nirf");
+		///	if (pFile->open(QIODevice::WriteOnly))
+		///		pFile->write(reinterpret_cast<const char*>(frame.raw_ptr()), sizeof(uint16_t) * frame.length());
+		///	delete pFile;
+		///}
+
+#ifndef TWO_CHANNEL_NIRF
+		// Scaling & averaging
+		np::FloatArray2 data32f(NIRF_SCANS, m_pConfig->nAlines);
+		np::DoubleArray2 data64f(NIRF_SCANS, m_pConfig->nAlines);
+		ippsConvert_16u32f(frame, data32f, NIRF_SCANS * m_pConfig->nAlines);
+		ippsConvert_32f64f(data32f, data64f, NIRF_SCANS * m_pConfig->nAlines);
+		ippsSubC_64f_I(32752.0, data64f, NIRF_SCANS * m_pConfig->nAlines);
+		ippsDivC_64f_I(8192.0, data64f, NIRF_SCANS * m_pConfig->nAlines);
+
+		np::DoubleArray data(m_pConfig->nAlines);
+		for (int i = 0; i < m_pConfig->nAlines; i++)
+			ippsMean_64f(&data64f(0, i), NIRF_SCANS, &data(i));
+#else
+		// Scaling & de-interleaving
+		np::FloatArray2 frame32(4 * NIRF_SCANS, m_pConfig->nAlines / 2);		
+		ippsConvert_16u32f(frame, frame32, 2 * NIRF_SCANS * m_pConfig->nAlines);
+		ippsSubC_32f_I(32752.0, frame32, 2 * NIRF_SCANS * m_pConfig->nAlines);
+		ippsDivC_32f_I(8192.0, frame32, 2 * NIRF_SCANS * m_pConfig->nAlines);		
 		
+		// Double-precision converting
+		np::DoubleArray2 data(4 * NIRF_SCANS, m_pConfig->nAlines / 2);
+		ippsConvert_32f64f(frame32, data, 2 * NIRF_SCANS * m_pConfig->nAlines);		
+#endif
+#endif
+
 		// Data transfer		
-		if (!(total % RENEWAL_COUNT))
+		if (!(frame_count % RENEWAL_COUNT))
 		{
 			// Get buffer from threading queue
 			double* nirf_ptr = nullptr;
@@ -932,19 +979,20 @@ void QStreamTab::setNirfAcquisitionCallback()
 #ifndef TWO_CHANNEL_NIRF
 				memcpy(nirf_ptr, data, sizeof(double) * m_pConfig->nAlines);
 #else
-				memcpy(nirf_ptr, data, sizeof(double) * 2 * m_pConfig->nAlines);
+				memcpy(nirf_ptr, data, sizeof(double) * 2 * NIRF_SCANS * m_pConfig->nAlines);
 #endif
 
 				// Visualization
 				if (m_pNirfEmissionProfileDlg)
 				{
 #ifndef TWO_CHANNEL_NIRF
-					emit plotNirf((double*)data);					
+					emit plotNirf((double*)data);
 #else
-					np::DoubleArray data1(m_pConfig->nAlines), data2(m_pConfig->nAlines);
-					ippsCplxToReal_64fc((const Ipp64fc*)data, data1, data2, m_pConfig->nAlines);
+					np::DoubleArray data1(NIRF_SCANS * 8), data2(NIRF_SCANS * 8);
+					ippsCplxToReal_64fc((const Ipp64fc*)data.raw_ptr(), data1, data2, NIRF_SCANS * 8);
 
-					emit plotNirf((double*)data1, (double*)data2);					
+					////emit plotNirf((double*)data64f1);
+					emit plotNirf((double*)data1, (double*)data2);
 #endif
 				}
 
@@ -952,10 +1000,10 @@ void QStreamTab::setNirfAcquisitionCallback()
 				m_syncNirfVisualization.Queue_sync.push(nirf_ptr);
 			}
 		}
-		
+
 		// Buffering (When recording)
-		//static QFile* pFile = nullptr; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//static bool is_opened = false; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		///static QFile* pFile = nullptr; 
+		///static bool is_opened = false; 
 
 		if (m_pMemBuff->m_bIsRecording)
 		{
@@ -979,36 +1027,41 @@ void QStreamTab::setNirfAcquisitionCallback()
 #ifndef TWO_CHANNEL_NIRF
 					memcpy(nirf_data, data, sizeof(double) * m_pConfig->nAlines);
 #else
-					memcpy(nirf_data, data, sizeof(double) * 2 * m_pConfig->nAlines);
+					memcpy(nirf_data, data, sizeof(double) * 2 * NIRF_SCANS * m_pConfig->nAlines);
 #endif
 
 					// Push to the copy queue for copying transfered data in copy thread
 					m_pMemBuff->m_syncBufferingNirf.Queue_sync.push(nirf_data);
 				}
-				
-				//if (!is_opened) ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//{ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//	pFile = new QFile("temp.nirf"); ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//	if (pFile->open(QIODevice::WriteOnly)) ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//		is_opened = true; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//	else ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//		delete pFile; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//} ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//
-				//if (is_opened) ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//	pFile->write(reinterpret_cast<const char*>(data), sizeof(double) * m_pConfig->nAlines); //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 				
-			}
-			//else ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//{ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//	if (is_opened) ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//	{ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//		pFile->close(); ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//		is_opened = false; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//	} ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			//} ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		}
-	};
 
+				///if (!is_opened) 
+				///{ 
+				///	pFile = new QFile("temp.nirf"); 
+				///	if (pFile->open(QIODevice::WriteOnly)) 
+				///		is_opened = true; 
+				///	else 
+				///		delete pFile; 
+				///} 
+				///
+				///if (is_opened) 
+				///	pFile->write(reinterpret_cast<const char*>(data), sizeof(double) * m_pConfig->nAlines);  				
+			}
+			///else 
+			///{ 
+			///	if (is_opened) 
+			///	{ 
+			///		pFile->close(); 
+			///		is_opened = false; 
+			///	} 
+			///} 
+		}
+#ifndef ALAZAR_NIRF_ACQUISITION
+	};
+#else
+	});
+#endif
+
+#ifndef ALAZAR_NIRF_ACQUISITION
 	pNirfEmission->DidStopData += [&]() {
 		// None
 	};
@@ -1017,6 +1070,16 @@ void QStreamTab::setNirfAcquisitionCallback()
 		QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
 		MsgBox.exec();
 	};
+#else
+	m_pDataAcq->ConnectDaqNirfStopData([&]() {
+		// None
+	});
+
+	m_pDataAcq->ConnectDaqNirfSendStatusMessage([&](const char * msg) {
+		QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
+		MsgBox.exec();
+	});
+#endif
 }
 #endif
 
@@ -1249,7 +1312,7 @@ void QStreamTab::setVisualizationCallback()
 		double* res3_data = m_syncNirfVisualization.Queue_sync.pop();
 #endif
 
-		if ((res1_data != nullptr) && (res2_data != nullptr) 
+		if ((res1_data != nullptr) && (res2_data != nullptr)
 #ifdef OCT_NIRF
 			&& (res3_data != nullptr)
 #endif
@@ -1273,6 +1336,13 @@ void QStreamTab::setVisualizationCallback()
 #elif defined (STANDALONE_OCT)
 				m_visImage1 = np::FloatArray2(res1_data, m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 				m_visImage2 = np::FloatArray2(res2_data, m_pConfig->n2ScansFFT, m_pConfig->nAlines);
+
+				// Frame mirroring
+#if defined(OCT_VERTICAL_MIRRORING)
+				ippiMirror_32f_C1IR((Ipp32f*)m_visImage1.raw_ptr(), sizeof(float) * m_visImage1.size(0), { m_visImage1.size(0), m_visImage1.size(1) }, ippAxsVertical);
+				ippiMirror_32f_C1IR((Ipp32f*)m_visImage2.raw_ptr(), sizeof(float) * m_visImage2.size(0), { m_visImage2.size(0), m_visImage2.size(1) }, ippAxsVertical);
+#endif
+
 				emit plotAline(&m_visImage1(0, m_pSlider_SelectAline->value()), &m_visImage2(0, m_pSlider_SelectAline->value()));
 
 #ifndef OCT_NIRF
@@ -1283,7 +1353,30 @@ void QStreamTab::setVisualizationCallback()
 #ifndef TWO_CHANNEL_NIRF
 				m_visNirf = np::DoubleArray2(res3_data, 1, m_pConfig->nAlines);
 #else
-				m_visNirf = np::DoubleArray2(res3_data, 2, m_pConfig->nAlines);
+				np::DoubleArray2 NirfData1(2 * NIRF_SCANS, m_pConfig->nAlines / 2), NirfData2(2 * NIRF_SCANS, m_pConfig->nAlines / 2);
+				m_visNirf = np::DoubleArray2(2, m_pConfig->nAlines);
+
+				// Deinterleaving
+				ippsCplxToReal_64fc((const Ipp64fc*)res3_data, NirfData1, NirfData2, NIRF_SCANS * m_pConfig->nAlines);
+
+				// Averaging				
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(m_pConfig->nAlines / 2)),
+					[&](const tbb::blocked_range<size_t>& r) {
+					for (size_t i = r.begin(); i != r.end(); ++i)
+					{
+						// GatingÀº result tab¿¡¼­...
+
+						Ipp64f m1, m2;
+						ippsMean_64f(&NirfData1(0, i), 2 * NIRF_SCANS, &m1);
+						ippsMean_64f(&NirfData2(0, i), 2 * NIRF_SCANS, &m2);
+
+						m_visNirf(0, 2 * i) = m1;
+						m_visNirf(0, 2 * i + 1) = m1;
+
+						m_visNirf(1, 2 * i) = m2;
+						m_visNirf(1, 2 * i + 1) = m2;
+					}
+				});
 #endif
 				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
@@ -1595,9 +1688,9 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 	// Reset NIRF emission profile dialog	
     if (m_pNirfEmissionProfileDlg)
 #ifndef TWO_CHANNEL_NIRF
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });		
 #else
-        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), 
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																				   std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 #endif
 #endif
@@ -1935,7 +2028,7 @@ void QStreamTab::adjustNirfContrast()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 	
 	if (m_pNirfEmissionProfileDlg)
-        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines },	{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines },	{ m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });		
 }
 #else
 void QStreamTab::adjustNirfContrast1()
@@ -1945,9 +2038,9 @@ void QStreamTab::adjustNirfContrast1()
 
 	if (!m_pOperationTab->isAcquisitionButtonToggled())
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
-
+	
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																						      std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 
@@ -1960,7 +2053,7 @@ void QStreamTab::adjustNirfContrast2()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)m_pConfig->nAlines }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																					          std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 #endif

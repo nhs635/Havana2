@@ -1,23 +1,23 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.7.5"
+#define VERSION						"1.2.8.0"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               false
+#define ALAZAR_ENABLE               true
 
-#define NI_ENABLE					false
+#define NI_ENABLE					true
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
 #endif
 
 /////////////////////// System setup ////////////////////////
-//#define OCT_FLIM
+///#define OCT_FLIM // deprecated
 #define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
@@ -29,7 +29,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define AXSUN_OCT_LASER
+#define AXSUN_OCT_LASER
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
@@ -37,9 +37,12 @@
 #endif
 #else
 #define PROGRAMMATIC_GAIN_CONTROL
-//#define TWO_CHANNEL_NIRF
+#if ALAZAR_ENABLE
+#define ALAZAR_NIRF_ACQUISITION
 #endif
-#define GALVANO_MIRROR
+#define TWO_CHANNEL_NIRF
+#endif
+//#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 
@@ -50,7 +53,7 @@
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #elif ALAZAR_ENABLE
-#define ADC_RATE                    1200 // MS/sec
+#define ADC_RATE                    1000 // MS/sec
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -76,16 +79,23 @@
 #endif
 
 #ifdef OCT_NIRF
-#define ALINE_RATE					200318 // approximated value (should be larger than the actual value)
-
-#define NI_NIRF_TRIGGER_SOURCE		"/Dev1/PFI9" // "/Dev3/PFI0"
-#ifndef TWO_CHANNEL_NIRF
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0" // "Dev3/ai7"
-#else
-#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0, Dev1/ai7" // "Dev3/ai0"
-#endif
+#define ALINE_RATE					200500 // approximated value (should be larger than the actual value)
+#ifndef ALAZAR_NIRF_ACQUISITION
+// It may be deprecated in the next release... //
+///#define NI_NIRF_TRIGGER_SOURCE		"/Dev2/PFI0" // "/Dev3/PFI0"
+///#ifndef TWO_CHANNEL_NIRF
+///#define NI_NIRF_EMISSION_CHANNEL	"Dev2/ai0" // "Dev3/ai7"
+///#else
+///#define NI_NIRF_EMISSION_CHANNEL	"Dev1/ai0, Dev1/ai7" // "Dev3/ai0"
+///#endif
 ///#define NI_NIRF_ALINES_COUNTER		"Dev1/ctr0" // 12  "Dev3/ctr0" // ctr0,1,2,3 => PFI12,13,14,15
 ///#define NI_NIRF_ALINES_SOURCE		"/Dev1/PFI10" // "/Dev3/PFI1"
+#else
+#define NIRF_SCANS					240
+
+#define NI_NIRF_MODUL_CHANNEL		"Dev1/ao2:3"
+#define NI_NIRF_MODUL_SOURCE		"/Dev1/PFI12"
+#endif
 
 #ifdef PROGRAMMATIC_GAIN_CONTROL
 #ifndef TWO_CHANNEL_NIRF
@@ -103,15 +113,15 @@
 #endif
 
 #ifdef PULLBACK_DEVICE
-#define ZABER_NEW_STAGE				false
-#define ZABER_PORT					"COM3"
+#define ZABER_NEW_STAGE				true
+#define ZABER_PORT					"COM5"
 #define ZABER_MAX_MICRO_RESOLUTION  64
 #define ZABER_MICRO_RESOLUTION		32
 #define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
 #define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
 #define ZABER_HOME_OFFSET			0.0
 
-//#define FAULHABER_NEW_CONTROLLER
+#define FAULHABER_NEW_CONTROLLER
 #define FAULHABER_PORT				"COM4"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
@@ -125,9 +135,9 @@
 #define N_CUDA_PARTITIONS			4
 #endif
 
-#define FREQ_SHIFTING               
+//#define FREQ_SHIFTING               
 
-//#define OCT_VERTICAL_MIRRORING
+#define OCT_VERTICAL_MIRRORING
 
 ///#define DATA_HALVING				 // to be updated... 
 
@@ -169,7 +179,7 @@
 #endif
 #endif
 
-#define RENEWAL_COUNT				5
+#define RENEWAL_COUNT				7
 
 
 
@@ -460,7 +470,7 @@ public:
 #endif
 #ifdef OCT_NIRF
 #ifndef TWO_CHANNEL_NIRF
-        settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 21));
+        settings.setValue("nirfRangeMax", QString::number(nirfRange.max, 'f', 2));
         settings.setValue("nirfRangeMin", QString::number(nirfRange.min, 'f', 2));
 #else
         settings.setValue("nirfRange1Max", QString::number(nirfRange[0].max, 'f', 2));
