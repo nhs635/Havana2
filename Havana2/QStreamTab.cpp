@@ -988,8 +988,8 @@ void QStreamTab::setNirfAcquisitionCallback()
 #ifndef TWO_CHANNEL_NIRF
 					emit plotNirf((double*)data);
 #else
-					np::DoubleArray data1(NIRF_SCANS * 8), data2(NIRF_SCANS * 8);
-					ippsCplxToReal_64fc((const Ipp64fc*)data.raw_ptr(), data1, data2, NIRF_SCANS * 8);
+					np::DoubleArray data1(NIRF_SCANS * MODULATION_FREQ * 2), data2(NIRF_SCANS * MODULATION_FREQ * 2);
+					ippsCplxToReal_64fc((const Ipp64fc*)data.raw_ptr(), data1, data2, NIRF_SCANS * MODULATION_FREQ * 2);
 
 					////emit plotNirf((double*)data64f1);
 					emit plotNirf((double*)data1, (double*)data2);
@@ -1353,28 +1353,27 @@ void QStreamTab::setVisualizationCallback()
 #ifndef TWO_CHANNEL_NIRF
 				m_visNirf = np::DoubleArray2(res3_data, 1, m_pConfig->nAlines);
 #else
-				np::DoubleArray2 NirfData1(2 * NIRF_SCANS, m_pConfig->nAlines / 2), NirfData2(2 * NIRF_SCANS, m_pConfig->nAlines / 2);
+				np::DoubleArray2 NirfData1(MODULATION_FREQ * NIRF_SCANS, m_pConfig->nAlines / MODULATION_FREQ), NirfData2(MODULATION_FREQ * NIRF_SCANS, m_pConfig->nAlines / MODULATION_FREQ);
 				m_visNirf = np::DoubleArray2(2, m_pConfig->nAlines);
 
 				// Deinterleaving
 				ippsCplxToReal_64fc((const Ipp64fc*)res3_data, NirfData1, NirfData2, NIRF_SCANS * m_pConfig->nAlines);
 
 				// Averaging				
-				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(m_pConfig->nAlines / 2)),
+				tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(m_pConfig->nAlines / MODULATION_FREQ)),
 					[&](const tbb::blocked_range<size_t>& r) {
 					for (size_t i = r.begin(); i != r.end(); ++i)
 					{
 						// GatingÀº result tab¿¡¼­...
-
 						Ipp64f m1, m2;
-						ippsMean_64f(&NirfData1(0, i), 2 * NIRF_SCANS, &m1);
-						ippsMean_64f(&NirfData2(0, i), 2 * NIRF_SCANS, &m2);
+						ippsMean_64f(&NirfData1(m_pConfig->nirfIntegWindow[0].min, i), m_pConfig->nirfIntegWindow[0].max - m_pConfig->nirfIntegWindow[0].min, &m1);
+						ippsMean_64f(&NirfData2(m_pConfig->nirfIntegWindow[1].max, i), m_pConfig->nirfIntegWindow[1].max - m_pConfig->nirfIntegWindow[1].min, &m2);
 
-						m_visNirf(0, 2 * i) = m1;
-						m_visNirf(0, 2 * i + 1) = m1;
-
-						m_visNirf(1, 2 * i) = m2;
-						m_visNirf(1, 2 * i + 1) = m2;
+						for (int j = 0; j < MODULATION_FREQ; j++)
+						{
+							m_visNirf(0, MODULATION_FREQ * i + j) = m1;
+							m_visNirf(1, MODULATION_FREQ * i + j) = m2;
+						}
 					}
 				});
 #endif
@@ -1656,8 +1655,7 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #endif
 #endif
 #endif
-
-
+	
 	// Create circularize object
 	if (m_pCirc)
 	{
@@ -1690,7 +1688,7 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #ifndef TWO_CHANNEL_NIRF
 		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)nAlines }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });		
 #else
-        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+        m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * MODULATION_FREQ * 2 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																				   std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 #endif
 #endif
@@ -2040,7 +2038,7 @@ void QStreamTab::adjustNirfContrast1()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 	
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * MODULATION_FREQ * 2 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																						      std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 
@@ -2053,7 +2051,7 @@ void QStreamTab::adjustNirfContrast2()
 		visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 
 	if (m_pNirfEmissionProfileDlg)
-		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * 8 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
+		m_pNirfEmissionProfileDlg->getScope()->resetAxis({ 0, (double)NIRF_SCANS * MODULATION_FREQ * 2 }, { std::min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min),
 																					          std::max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[1].max) });
 }
 #endif

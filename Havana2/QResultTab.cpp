@@ -2981,7 +2981,7 @@ void QResultTab::inBufferDataProcessing()
 				ippsConvert_64f32f(buffer_nirf, &m_nirfSignal(pConfig->nAlines * i), pConfig->nAlines);
 #else
 				ippsConvert_64f32f(buffer_nirf, &m_nirfSignal1(pConfig->nAlines * i), pConfig->nAlines);
-				ippsConvert_64f32f(buffer_nirf + pConfig->nAlines, &m_nirfSignal2(pConfig->nAlines * i), pConfig->nAlines);
+				ippsConvert_64f32f(buffer_nirf + pConfig->nAlines, &m_nirfSignal2(pConfig->nAlines * i), pConfig->nAlines);				
 #endif
 				m_pMemBuff->push_back_nirf(buffer_nirf);
 			}
@@ -3278,33 +3278,64 @@ void QResultTab::externalDataProcessing()
 								nirfFile.close();
 							}							
 #else
+							//m_nirfSignal1 = np::FloatArray(m_pConfigTemp->nAlines * m_pConfigTemp->nFrames);
+							//m_nirfSignal2 = np::FloatArray(m_pConfigTemp->nAlines * m_pConfigTemp->nFrames);
+							//memset(m_nirfSignal2.raw_ptr(), 0, sizeof(float) * m_nirfSignal2.length());
+							//
+							//np::DoubleArray nirf_data(2 * m_pConfigTemp->nAlines);
+							//np::DoubleArray nirf_data1(m_pConfigTemp->nAlines);
+							//np::DoubleArray nirf_data2(m_pConfigTemp->nAlines);
+							//for (int i = 0; i < m_pConfigTemp->nFrames; i++)
+							//{
+							//	if (ch == 2)
+							//	{
+							//		nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * 2 * m_pConfigTemp->nAlines);
+							//		ippsCplxToReal_64fc((const Ipp64fc*)nirf_data.raw_ptr(), nirf_data1, nirf_data2, m_pConfigTemp->nAlines);
+
+							//		ippsConvert_64f32f(nirf_data1.raw_ptr(), m_nirfSignal1.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
+							//		ippsConvert_64f32f(nirf_data2.raw_ptr(), m_nirfSignal2.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
+							//	}
+							//	else if (ch == 1)
+							//	{
+							//		nirfFile.read(reinterpret_cast<char *>(nirf_data1.raw_ptr()), sizeof(double) * m_pConfigTemp->nAlines);
+							//		ippsConvert_64f32f(nirf_data1.raw_ptr(), m_nirfSignal1.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
+							//	}
+							//}
+							//nirfFile.close();
+							//m_pConfigTemp->_2ch_nirf = true;
+
 							m_nirfSignal1 = np::FloatArray(m_pConfigTemp->nAlines * m_pConfigTemp->nFrames);
 							m_nirfSignal2 = np::FloatArray(m_pConfigTemp->nAlines * m_pConfigTemp->nFrames);
 							memset(m_nirfSignal2.raw_ptr(), 0, sizeof(float) * m_nirfSignal2.length());
-							
-							np::DoubleArray nirf_data(2 * m_pConfigTemp->nAlines);
-							np::DoubleArray nirf_data1(m_pConfigTemp->nAlines);
-							np::DoubleArray nirf_data2(m_pConfigTemp->nAlines);
+
+							np::DoubleArray2 nirf_data(2 * MODULATION_FREQ * NIRF_SCANS, m_pConfigTemp->nAlines / MODULATION_FREQ);
+							np::DoubleArray2 nirf_data1(MODULATION_FREQ * NIRF_SCANS, m_pConfigTemp->nAlines / MODULATION_FREQ);
+							np::DoubleArray2 nirf_data2(MODULATION_FREQ * NIRF_SCANS, m_pConfigTemp->nAlines / MODULATION_FREQ);
 							for (int i = 0; i < m_pConfigTemp->nFrames; i++)
 							{
-								if (ch == 2)
-								{
-									nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * 2 * m_pConfigTemp->nAlines);
-									ippsCplxToReal_64fc((const Ipp64fc*)nirf_data.raw_ptr(), nirf_data1, nirf_data2, m_pConfigTemp->nAlines);
+								nirfFile.read(reinterpret_cast<char *>(nirf_data.raw_ptr()), sizeof(double) * 2 * NIRF_SCANS * m_pConfigTemp->nAlines);
+								ippsCplxToReal_64fc((const Ipp64fc*)nirf_data.raw_ptr(), nirf_data1, nirf_data2, NIRF_SCANS * m_pConfigTemp->nAlines);
+									
+								// Averaging				
+								tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)(m_pConfig->nAlines / MODULATION_FREQ)),
+									[&](const tbb::blocked_range<size_t>& r) {
+									for (size_t j = r.begin(); j != r.end(); ++j)
+									{
+										Ipp64f m1, m2;
+										ippsMean_64f(&nirf_data1(m_pConfigTemp->nirfIntegWindow[0].min, j), m_pConfigTemp->nirfIntegWindow[0].max - m_pConfigTemp->nirfIntegWindow[0].min, &m1);
+										ippsMean_64f(&nirf_data2(m_pConfigTemp->nirfIntegWindow[1].min, j), m_pConfigTemp->nirfIntegWindow[1].max - m_pConfigTemp->nirfIntegWindow[1].min, &m2);
 
-									ippsConvert_64f32f(nirf_data1.raw_ptr(), m_nirfSignal1.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
-									ippsConvert_64f32f(nirf_data2.raw_ptr(), m_nirfSignal2.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
-								}
-								else if (ch == 1)
-								{
-									nirfFile.read(reinterpret_cast<char *>(nirf_data1.raw_ptr()), sizeof(double) * m_pConfigTemp->nAlines);
-									ippsConvert_64f32f(nirf_data1.raw_ptr(), m_nirfSignal1.raw_ptr() + i * m_pConfigTemp->nAlines, m_pConfigTemp->nAlines);
-								}
+										for (int k = 0; k < MODULATION_FREQ; k++)
+										{
+											m_nirfSignal1(m_pConfig->nAlines * i + MODULATION_FREQ * j + k) = (float)m1;
+											m_nirfSignal2(m_pConfig->nAlines * i + MODULATION_FREQ * j + k) = (float)m2;
+										}											
+									}
+								});
 							}
 							nirfFile.close();
 							m_pConfigTemp->_2ch_nirf = true;
 #endif
-
 							printf("NIRF data was successfully loaded...\n");
 							m_pConfigTemp->nirf = true;
 						}

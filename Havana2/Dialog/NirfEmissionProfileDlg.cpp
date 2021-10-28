@@ -15,7 +15,11 @@ NirfEmissionProfileDlg::NirfEmissionProfileDlg(bool _isStreaming, QWidget *paren
     QDialog(parent), m_bIsStreaming(true)
 {
     // Set default size & frame
+#ifndef TWO_CHANNEL_NIRF
     setFixedSize(600, 250);
+#else
+	setFixedSize(600, 280);
+#endif
     setWindowFlags(Qt::Tool);
     setWindowTitle("NIRF Emission Profile");
 
@@ -41,7 +45,7 @@ NirfEmissionProfileDlg::NirfEmissionProfileDlg(bool _isStreaming, QWidget *paren
         m_pScope = new QScope({ 0, (double)m_pResultTab->m_nirfMap.size(0) }, { m_pConfig->nirfRange.min, m_pConfig->nirfRange.max });
 #else
 	if (m_bIsStreaming)
-		m_pScope = new QScope2({ 0, (double)NIRF_SCANS * 8 }, { min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[0].max) }, 2, 2, 1, 1, 0, 0, "", "", true);
+		m_pScope = new QScope2({ 0, (double)NIRF_SCANS * MODULATION_FREQ * 2 }, { min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[0].max) }, 2, 2, 1, 1, 0, 0, "", "", true);
 	else
 		m_pScope = new QScope2({ 0, (double)m_pResultTab->m_nirfMap1.size(0) }, { min(m_pConfig->nirfRange[0].min, m_pConfig->nirfRange[1].min), max(m_pConfig->nirfRange[0].max, m_pConfig->nirfRange[0].max) });
 #endif
@@ -61,12 +65,59 @@ NirfEmissionProfileDlg::NirfEmissionProfileDlg(bool _isStreaming, QWidget *paren
 		};
 	}
 
+#ifdef TWO_CHANNEL_NIRF
+	for (int i = 0; i < 2; i++)
+	{
+		m_pLabel_Ch[i] = new QLabel(this);
+		m_pLabel_Ch[i]->setText(QString("Ch %1  ").arg(i + 1 ));
+		m_pLabel_Ch[i]->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		
+		for (int j = 0; j < 2; j++)
+		{
+			m_pSpinBox_ChStart[i][j] = new QSpinBox(this);
+			m_pSpinBox_ChStart[i][j]->setFixedWidth(45);
+			m_pSpinBox_ChStart[i][j]->setRange(0, NIRF_SCANS * MODULATION_FREQ - 1);
+			m_pSpinBox_ChStart[i][j]->setSingleStep(1);
+			m_pSpinBox_ChStart[i][j]->setValue((j == 0) ? m_pConfig->nirfIntegWindow[i].min : m_pConfig->nirfIntegWindow[i].max);			
+			m_pSpinBox_ChStart[i][j]->setAlignment(Qt::AlignCenter);
+		}
+	}	
+
+	m_pScope->setVerticalLine(4, m_pConfig->nirfIntegWindow[0].min, m_pConfig->nirfIntegWindow[0].max,
+								 m_pConfig->nirfIntegWindow[1].min, m_pConfig->nirfIntegWindow[1].max);
+#endif
+
     // Set layout
     QGridLayout *pGridLayout = new QGridLayout;
     pGridLayout->setSpacing(0);
 
-    pGridLayout->addWidget(m_pScope, 0, 0);
+	pGridLayout->addWidget(m_pScope, 0, 0);
+
+#ifdef TWO_CHANNEL_NIRF
+	QHBoxLayout *pHBoxLayout_SpinBox = new QHBoxLayout;
+	pHBoxLayout_SpinBox->setSpacing(0);
+	
+	pHBoxLayout_SpinBox->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	pHBoxLayout_SpinBox->addWidget(m_pLabel_Ch[0]);
+	pHBoxLayout_SpinBox->addWidget(m_pSpinBox_ChStart[0][0]);
+	pHBoxLayout_SpinBox->addWidget(m_pSpinBox_ChStart[0][1]);
+	pHBoxLayout_SpinBox->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	pHBoxLayout_SpinBox->addWidget(m_pLabel_Ch[1]);
+	pHBoxLayout_SpinBox->addWidget(m_pSpinBox_ChStart[1][0]);
+	pHBoxLayout_SpinBox->addWidget(m_pSpinBox_ChStart[1][1]);
+
+	pGridLayout->addItem(pHBoxLayout_SpinBox, 1, 0);
+#endif	
+
     setLayout(pGridLayout);
+
+#ifdef TWO_CHANNEL_NIRF
+	// Connect
+	connect(m_pSpinBox_ChStart[0][0], SIGNAL(valueChanged(int)), this, SLOT(resetChStart1_s(int)));
+	connect(m_pSpinBox_ChStart[0][1], SIGNAL(valueChanged(int)), this, SLOT(resetChStart1_e(int)));
+	connect(m_pSpinBox_ChStart[1][0], SIGNAL(valueChanged(int)), this, SLOT(resetChStart2_s(int)));
+	connect(m_pSpinBox_ChStart[1][1], SIGNAL(valueChanged(int)), this, SLOT(resetChStart2_e(int)));	
+#endif
 }
 
 NirfEmissionProfileDlg::~NirfEmissionProfileDlg()
@@ -98,8 +149,8 @@ void NirfEmissionProfileDlg::drawData(void* data1, void* data2)
 		m_pScope->drawData((double*)data1, (double*)data2);
 
 		Ipp64f mean[2], std[2];
-		ippsMeanStdDev_64f((double*)data1, m_pConfig->nAlines, &mean[0], &std[0]);
-		ippsMeanStdDev_64f((double*)data2, m_pConfig->nAlines, &mean[1], &std[1]);
+		ippsMeanStdDev_64f((double*)data1, NIRF_SCANS * MODULATION_FREQ * 2, &mean[0], &std[0]);
+		ippsMeanStdDev_64f((double*)data2, NIRF_SCANS * MODULATION_FREQ * 2, &mean[1], &std[1]);
 
 		setWindowTitle(QString("NIRF Emission Profile (Ch1: %1 + %2 / Ch2: %3 + %4)").arg(mean[0], 3, 'f', 4).arg(std[0], 3, 'f', 4).arg(mean[1], 3, 'f', 4).arg(std[1], 3, 'f', 4));
 #endif
@@ -179,8 +230,42 @@ void NirfEmissionProfileDlg::drawData(void* data1, void* data2)
 			std[1] = sqrt(std[1] / mask_len - mean[1] * mean[1]);
 		}
 
-		setWindowTitle(QString("NIRF Emission Profile (Ch1: %1 + %2 / Ch2: %3 + %4)").arg(mean[0], 3, 'f', 4).arg(std[0], 3, 'f', 4).arg(mean[1], 3, 'f', 4).arg(std[1], 3, 'f', 4));
+		setWindowTitle(QString("NIRF Emission Profile (Ch1: %1 / Ch2: %2)").arg(mean[0], 3, 'f', 4).arg(std[0], 3, 'f', 4).arg(mean[1], 3, 'f', 4).arg(std[1], 3, 'f', 4));
 #endif
 	}
 }
+
+#ifdef TWO_CHANNEL_NIRF
+void NirfEmissionProfileDlg::resetChStart1_s(int value)
+{
+	m_pConfig->nirfIntegWindow[0].min = value;	
+	m_pSpinBox_ChStart[0][1]->setMinimum(value + 1);
+	m_pScope->getRender()->m_pVLineInd[0] = value;
+	m_pScope->getRender()->update();
+}
+
+void NirfEmissionProfileDlg::resetChStart1_e(int value)
+{
+	m_pConfig->nirfIntegWindow[0].max = value;
+	m_pSpinBox_ChStart[0][0]->setMaximum(value - 1);
+	m_pScope->getRender()->m_pVLineInd[1] = value;
+	m_pScope->getRender()->update();
+}
+
+void NirfEmissionProfileDlg::resetChStart2_s(int value)
+{
+	m_pConfig->nirfIntegWindow[1].min = value;
+	m_pSpinBox_ChStart[1][1]->setMinimum(value + 1);
+	m_pScope->getRender()->m_pVLineInd[2] = value;
+	m_pScope->getRender()->update();
+}
+
+void NirfEmissionProfileDlg::resetChStart2_e(int value)
+{
+	m_pConfig->nirfIntegWindow[1].max = value;
+	m_pSpinBox_ChStart[1][0]->setMaximum(value - 1);
+	m_pScope->getRender()->m_pVLineInd[3] = value;
+	m_pScope->getRender()->update();
+}
+#endif
 #endif

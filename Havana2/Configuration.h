@@ -93,8 +93,13 @@
 #else
 #define NIRF_SCANS					240
 
+#ifdef TWO_CHANNEL_NIRF
+
+#define MODULATION_FREQ				4
+
 #define NI_NIRF_MODUL_CHANNEL		"Dev1/ao2:3"
 #define NI_NIRF_MODUL_SOURCE		"/Dev1/PFI12"
+#endif
 #endif
 
 #ifdef PROGRAMMATIC_GAIN_CONTROL
@@ -113,12 +118,12 @@
 #endif
 
 #ifdef PULLBACK_DEVICE
-#define ZABER_NEW_STAGE				true
-#define ZABER_PORT					"COM5"
+//#define ZABER_NEW_STAGE				
+#define ZABER_PORT					"COM6"
 #define ZABER_MAX_MICRO_RESOLUTION  64
 #define ZABER_MICRO_RESOLUTION		32
-#define ZABER_CONVERSION_FACTOR		1.6384 //1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
-#define ZABER_MICRO_STEPSIZE		0.09921875 // 0.49609375 // micro-meter ///
+#define ZABER_CONVERSION_FACTOR		1.0 / 9.375 // BENCHTOP_MODE ? 1.0 / 9.375 : 1.6384;
+#define ZABER_MICRO_STEPSIZE		0.49609375 // micro-meter ///0.09921875
 #define ZABER_HOME_OFFSET			0.0
 
 #define FAULHABER_NEW_CONTROLLER
@@ -322,6 +327,12 @@ public:
 #ifdef OCT_NIRF
 #ifdef TWO_CHANNEL_NIRF
         nirfCrossTalkRatio = settings.value("nirfCrossTalkRatio").toFloat();
+
+		// 2 Ch integration window
+		nirfIntegWindow[0].max = settings.value("nirfIntegWindow1Max").toInt();
+		nirfIntegWindow[0].min = settings.value("nirfIntegWindow1Min").toInt();
+		nirfIntegWindow[1].max = settings.value("nirfIntegWindow2Max").toInt();
+		nirfIntegWindow[1].min = settings.value("nirfIntegWindow2Min").toInt();
 #endif
 #endif
         // NIRF distance compensation
@@ -483,6 +494,12 @@ public:
 #ifdef OCT_NIRF
 #ifdef TWO_CHANNEL_NIRF
         settings.setValue("nirfCrossTalkRatio", QString::number(nirfCrossTalkRatio, 'f', 4));
+
+		// 2 Ch integration window
+		settings.setValue("nirfIntegWindow1Max", nirfIntegWindow[0].max);
+		settings.setValue("nirfIntegWindow1Min", nirfIntegWindow[0].min);
+		settings.setValue("nirfIntegWindow2Max", nirfIntegWindow[1].max);
+		settings.setValue("nirfIntegWindow2Min", nirfIntegWindow[1].min);		
 #endif
 #endif
         // NIRF distance compensation
@@ -636,6 +653,9 @@ public:
 #ifdef TWO_CHANNEL_NIRF
     // 2 Ch NIRF cross-talk compensation
     float nirfCrossTalkRatio;
+
+	// 2 Ch integration window
+	Range<int> nirfIntegWindow[2];
 #endif
 #endif
 

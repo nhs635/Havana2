@@ -9,7 +9,7 @@
 #include <DeviceControl/ECGMonitoring/EcgMonitoring.h>
 #endif
 #ifdef PULLBACK_DEVICE
-#if not ZABER_NEW_STAGE
+#ifndef ZABER_NEW_STAGE
 #include <DeviceControl/ZaberStage/ZaberStage.h>
 #else
 #include <DeviceControl/ZaberStage/ZaberStage2.h>
@@ -79,8 +79,8 @@ void MemoryBuffer::allocateWritingBuffer()
 			double* buffer = new double[m_pConfig->nAlines];
 			memset(buffer, 0, m_pConfig->nAlines * sizeof(double));
 #else
-			double* buffer = new double[2 * m_pConfig->nAlines];
-			memset(buffer, 0, 2 * m_pConfig->nAlines * sizeof(double));
+			double* buffer = new double[2 * NIRF_SCANS * m_pConfig->nAlines];
+			memset(buffer, 0, 2 * m_pConfig->nAlines * NIRF_SCANS * sizeof(double));
 #endif
 			m_queueWritingBufferNirf.push(buffer);
 		}
@@ -220,7 +220,7 @@ bool MemoryBuffer::startRecording()
 #ifndef TWO_CHANNEL_NIRF
 					memcpy(buffer_nirf, nirf, sizeof(double) * m_pConfig->nAlines);
 #else
-					memcpy(buffer_nirf, nirf, sizeof(double) * 2 * m_pConfig->nAlines);
+					memcpy(buffer_nirf, nirf, sizeof(double) * 2 * NIRF_SCANS * m_pConfig->nAlines);
 #endif
 					m_queueWritingBufferNirf.push(buffer_nirf);				
 #endif
@@ -459,7 +459,7 @@ void MemoryBuffer::write()
 #ifndef TWO_CHANNEL_NIRF
 				nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * m_pConfig->nAlines);
 #else
-				nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * 2 * m_pConfig->nAlines);
+				nirfFile.write(reinterpret_cast<char*>(buffer_nirf), sizeof(double) * 2 * NIRF_SCANS * m_pConfig->nAlines);
 #endif
 			m_queueWritingBufferNirf.push(buffer_nirf);
 		}

@@ -48,6 +48,14 @@ public slots:
 	void drawData(void* data1, void* float2);
 #endif
 
+#ifdef TWO_CHANNEL_NIRF
+private slots:
+	void resetChStart1_s(int);
+	void resetChStart1_e(int);
+	void resetChStart2_s(int);
+	void resetChStart2_e(int);
+#endif
+
 // Variables ////////////////////////////////////////////
 private:	
     MainWindow* m_pMainWnd;
@@ -61,6 +69,9 @@ private:
     QScope *m_pScope;
 #else
 	QScope2 *m_pScope;
+		
+	QLabel *m_pLabel_Ch[2];
+	QSpinBox *m_pSpinBox_ChStart[2][2];	
 #endif
 #endif
 };
