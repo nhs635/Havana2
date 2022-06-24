@@ -12,6 +12,16 @@
 #include <mutex>
 #include <condition_variable>
 
+class QMySpinBox : public QDoubleSpinBox
+{
+public:
+	explicit QMySpinBox(QWidget *parent = nullptr) : QDoubleSpinBox(parent)
+	{
+		lineEdit()->setReadOnly(true);
+	}
+	virtual ~QMySpinBox() {}
+};
+
 class MainWindow;
 class QOperationTab;
 class QStreamTab;
@@ -179,11 +189,16 @@ signals: ///////////////////////////////////////////////////////////////////////
 	void drawEcg(double, bool);
 
 private slots: //////////////////////////////////////////////////////////////////////////////////////////
-#ifdef AXSUN_OCT_LASER
+//#ifdef AXSUN_OCT_LASER
     // Axsun OCT Laser Control
     void enableAxsunOCTLaserControl(bool);
 	void setLightSource(bool);
-#endif
+	void setVDLLength(double);
+	void setVDLHome();
+	void setVDLWidgets(bool);
+	void setkClockDelay(int);
+
+//#endif
 #ifdef ECG_TRIGGERING
 	// ECG Module Control
 	void enableEcgModuleControl(bool);
@@ -333,6 +348,12 @@ private: ///////////////////////////////////////////////////////////////////////
 	QLabel *m_pLabel_OCTLaserSource;
 	QPushButton *m_pToggleButton_OCTLaserSource;
 
+	QLabel *m_pLabel_VDLLength;
+	QMySpinBox *m_pSpinBox_VDLLength;
+	QPushButton *m_pPushButton_VDLHome;
+
+	QLabel *m_pLabel_kClockDelay;
+	QSpinBox *m_pSpinBox_kClockDelay;
 #endif
 #ifdef ECG_TRIGGERING	
 	// Widgets for ECG module control

@@ -8,7 +8,7 @@
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               false
+#define ALAZAR_ENABLE               true
 
 #define NI_ENABLE					false
 
@@ -22,14 +22,14 @@
 
 #ifdef STANDALONE_OCT
 ///#define DUAL_CHANNEL // in the Streaming tab.. but it is not supported yet...
-#define OCT_NIRF // NIRF data can be loaded in the Result tab.
+//#define OCT_NIRF // NIRF data can be loaded in the Result tab.
 #endif
 
 #if defined(STANDALONE_OCT) && defined(OCT_FLIM)
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define AXSUN_OCT_LASER
+#define AXSUN_OCT_LASER
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
@@ -42,8 +42,8 @@
 //#endif
 #define TWO_CHANNEL_NIRF
 #endif
-#define GALVANO_MIRROR
-//#define PULLBACK_DEVICE
+//#define GALVANO_MIRROR
+#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -53,7 +53,8 @@
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #elif ALAZAR_ENABLE
-#define ADC_RATE                    1000 // MS/sec
+#define ADC_RATE                    500 // MS/sec
+#define USE_EXTERNAL_K_CLOCK		true
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -127,12 +128,12 @@
 #define ZABER_HOME_OFFSET			0.0
 
 #define FAULHABER_NEW_CONTROLLER
-#define FAULHABER_PORT				"COM4"
+#define FAULHABER_PORT				"COM3"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
 //////////////////////// Processing /////////////////////////
-//#define CUDA_ENABLED				// Only valid in visual studio environment
+#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
 #define N_CUDA_THREADS				32
@@ -142,7 +143,7 @@
 
 //#define FREQ_SHIFTING               
 
-#define OCT_VERTICAL_MIRRORING
+//#define OCT_VERTICAL_MIRRORING
 
 ///#define DATA_HALVING				 // to be updated... 
 
@@ -184,7 +185,7 @@
 #endif
 #endif
 
-#define RENEWAL_COUNT				7
+#define RENEWAL_COUNT				3
 
 
 
@@ -210,7 +211,7 @@ enum voltage_range
 #elif ALAZAR_ENABLE
 enum voltage_range
 {
-    v0_002 = 1, v0_005, v0_01, v0_02,
+    v0_002 = 1, v0_005, v0_01, v0_02, v0_04,
     v0_05, v0_1, v0_2, v0_5, v1, v2, v5, v10, v20
 };
 #endif
@@ -362,6 +363,10 @@ public:
         nirfOuterSheathPos = settings.value("nirfOuterSheathPos").toInt();
 #endif
         // Device control
+#ifdef AXSUN_OCT_LASER
+		axsunVDLLength = settings.value("axsunVDLLength").toFloat();
+		axsunkClockDelay = settings.value("axsunkClockDelay").toInt();
+#endif
 #ifdef ECG_TRIGGERING
         ecgDelayRate = settings.value("ecgDelayRate").toFloat();
 #endif
@@ -530,6 +535,10 @@ public:
 #endif
 
         // Device control
+#ifdef AXSUN_OCT_LASER
+		settings.setValue("axsunVDLLength", QString::number(axsunVDLLength, 'f', 2));
+		settings.setValue("axsunkClockDelay", axsunkClockDelay);
+#endif
 #ifdef ECG_TRIGGERING
         settings.setValue("ecgDelayRate", QString::number(ecgDelayRate, 'f', 2));
         settings.setValue("ecgHeartRate", QString::number(ecgHeartRate, 'f', 2));
@@ -693,6 +702,10 @@ public:
 #endif
 
     // Device control
+#ifdef AXSUN_OCT_LASER
+	float axsunVDLLength;
+	int axsunkClockDelay;
+#endif
 #ifdef ECG_TRIGGERING
     float ecgDelayRate;
     float ecgHeartRate;

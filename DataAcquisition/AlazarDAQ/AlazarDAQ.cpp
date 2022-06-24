@@ -111,7 +111,7 @@ bool AlazarDAQ::initialize()
 			boardHandle,			// HANDLE -- board handle
 			CHANNEL_A,			    // U8 -- input channel 
             DC_COUPLING,			// U32 -- input coupling id
-            VoltRange1,     		// U32 -- input range id
+			INPUT_RANGE_PM_400_MV,     		// U32 -- input range id  VoltRange1
 			IMPEDANCE_50_OHM		// U32 -- input impedance id
 			);
 	if (retCode != ApiSuccess)
@@ -126,7 +126,7 @@ bool AlazarDAQ::initialize()
 			boardHandle,			// HANDLE -- board handle
 			CHANNEL_B,				// U8 -- channel identifier
             DC_COUPLING,			// U32 -- input coupling id
-            VoltRange2,         	// U32 -- input range id
+			INPUT_RANGE_PM_400_MV,         	// U32 -- input range id  VoltRange2
             IMPEDANCE_50_OHM		// U32 -- input impedance id
 			);
 	if (retCode != ApiSuccess)

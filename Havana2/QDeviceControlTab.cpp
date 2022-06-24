@@ -135,13 +135,51 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
 	m_pToggleButton_OCTLaserSource->setDisabled(true);
 
 	m_pLabel_OCTLaserSource = new QLabel("OCT Laser Emission ", pGroupBox_AxsunOCTLaserControl);
+	m_pLabel_OCTLaserSource->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	m_pLabel_OCTLaserSource->setBuddy(m_pToggleButton_OCTLaserSource);
 	m_pLabel_OCTLaserSource->setDisabled(true);
 
+	m_pSpinBox_VDLLength = new QMySpinBox(this);
+	m_pSpinBox_VDLLength->setFixedWidth(55);
+	m_pSpinBox_VDLLength->setRange(0.00, 15.00);
+	m_pSpinBox_VDLLength->setSingleStep(0.05);
+	m_pSpinBox_VDLLength->setValue(m_pConfig->axsunVDLLength);
+	m_pSpinBox_VDLLength->setDecimals(2);
+	m_pSpinBox_VDLLength->setAlignment(Qt::AlignCenter);
+	m_pSpinBox_VDLLength->setDisabled(true);
 
-    pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 3);
-	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_OCTLaserSource, 1, 1);
-	pGridLayout_AxsunOCTLaserControl->addWidget(m_pToggleButton_OCTLaserSource, 1, 2);
+	m_pLabel_VDLLength = new QLabel("VDL (mm) ", this);
+	m_pLabel_VDLLength->setBuddy(m_pSpinBox_VDLLength);
+	m_pLabel_VDLLength->setDisabled(true);
+
+	m_pPushButton_VDLHome = new QPushButton(this);
+	m_pPushButton_VDLHome->setFixedWidth(40);
+	m_pPushButton_VDLHome->setText("Home");
+	m_pPushButton_VDLHome->setDisabled(true);
+
+	m_pSpinBox_kClockDelay = new QSpinBox(this);
+	m_pSpinBox_kClockDelay->setFixedWidth(40);
+	m_pSpinBox_kClockDelay->setRange(0, 63);
+	m_pSpinBox_kClockDelay->setSingleStep(1);
+	m_pSpinBox_kClockDelay->setValue(m_pConfig->axsunkClockDelay);	
+	m_pSpinBox_kClockDelay->setAlignment(Qt::AlignCenter);
+	m_pSpinBox_kClockDelay->setDisabled(true);
+
+	m_pLabel_kClockDelay = new QLabel("k Clock Delay ", this);
+	m_pLabel_kClockDelay->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	m_pLabel_kClockDelay->setBuddy(m_pSpinBox_kClockDelay);
+	m_pLabel_kClockDelay->setDisabled(true);
+
+
+    pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 4);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_OCTLaserSource, 1, 1, 1, 2);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pToggleButton_OCTLaserSource, 1, 3);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_VDLLength, 2, 1);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pSpinBox_VDLLength, 2, 2);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pPushButton_VDLHome, 2, 3);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_kClockDelay, 3, 1, 1, 2);
+	pGridLayout_AxsunOCTLaserControl->addWidget(m_pSpinBox_kClockDelay, 3, 3);
+
 
     pGroupBox_AxsunOCTLaserControl->setLayout(pGridLayout_AxsunOCTLaserControl);
     pGroupBox_AxsunOCTLaserControl->setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}");
@@ -150,6 +188,9 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
     // Connect signal and slot
     connect(m_pCheckBox_AxsunOCTLaserControl, SIGNAL(toggled(bool)), this, SLOT(enableAxsunOCTLaserControl(bool)));
 	connect(m_pToggleButton_OCTLaserSource, SIGNAL(toggled(bool)), this, SLOT(setLightSource(bool)));
+	connect(m_pSpinBox_VDLLength, SIGNAL(valueChanged(double)), this, SLOT(setVDLLength(double)));
+	connect(m_pPushButton_VDLHome, SIGNAL(clicked(bool)), this, SLOT(setVDLHome()));
+	connect(m_pSpinBox_kClockDelay, SIGNAL(valueChanged(int)), this, SLOT(setkClockDelay(int)));
 }
 #endif
 
@@ -723,7 +764,7 @@ void QDeviceControlTab::createFaulhaberMotorControl()
 void QDeviceControlTab::initiateAllDevices()
 {
 #ifdef AXSUN_OCT_LASER
-	if (!m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(true);
+	//if (!m_pCheckBox_AxsunOCTLaserControl->isChecked()) m_pCheckBox_AxsunOCTLaserControl->setChecked(true);
 #endif
 //#ifdef ECG_TRIGGERING
 //#if NI_ENABLE
@@ -812,11 +853,22 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
             m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
             return;
         }
+		m_pAxsunControl->SendStatusMessage += [&](const char* msg, bool is_fail)
+		{
+			printf("%s\n", msg);
+		};
+		m_pAxsunControl->setVDLLength(m_pConfig->axsunVDLLength);
+		m_pAxsunControl->setClockDelay(m_pConfig->axsunkClockDelay);
 
         // Set enable true for Axsun OCT laser control widgets
 		m_pLabel_OCTLaserSource->setEnabled(true);
 		m_pToggleButton_OCTLaserSource->setEnabled(true);
 		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#ff0000; }");
+		m_pLabel_VDLLength->setEnabled(true);
+		m_pSpinBox_VDLLength->setEnabled(true);
+		m_pPushButton_VDLHome->setEnabled(true);
+		m_pLabel_kClockDelay->setEnabled(true);
+		m_pSpinBox_kClockDelay->setEnabled(true);
     }
     else
     {
@@ -825,6 +877,11 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
 		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#353535; }");
 		m_pToggleButton_OCTLaserSource->setDisabled(true);
 		m_pLabel_OCTLaserSource->setDisabled(true);
+		m_pLabel_VDLLength->setDisabled(true);
+		m_pSpinBox_VDLLength->setDisabled(true);
+		m_pPushButton_VDLHome->setDisabled(true);
+		m_pLabel_kClockDelay->setDisabled(true);
+		m_pSpinBox_kClockDelay->setDisabled(true);
 
         if (m_pAxsunControl)
         {
@@ -905,6 +962,42 @@ void QDeviceControlTab::turnOnOCTLaser(bool set)
 	{
 		m_pToggleButton_OCTLaserSource->setChecked(false);
 	}
+}
+
+void QDeviceControlTab::setVDLLength(double length)
+{
+	if (m_pAxsunControl)
+	{
+		m_pConfig->axsunVDLLength = length;
+		m_pAxsunControl->setVDLLength(length);
+	}
+
+	//m_pDeviceControl->setVDLLength(length);
+	//if (m_pStreamTab)
+	//	m_pStreamTab->getCalibScrollBar()->setValue(int(length * 100.0));
+}
+
+void QDeviceControlTab::setVDLHome()
+{
+	m_pAxsunControl->setVDLHome();
+	m_pSpinBox_VDLLength->setValue(0.0);
+}
+
+void QDeviceControlTab::setVDLWidgets(bool enabled)
+{
+	//m_pLabel_VDLLength->setEnabled(enabled);
+	//m_pSpinBox_VDLLength->setEnabled(enabled);
+	//m_pPushButton_VDLHome->setEnabled(enabled);
+}
+
+void QDeviceControlTab::setkClockDelay(int delay)
+{
+	if (m_pAxsunControl)
+	{
+		m_pConfig->axsunkClockDelay = delay;
+		m_pAxsunControl->setClockDelay(delay);
+	}
+
 }
 #endif
 

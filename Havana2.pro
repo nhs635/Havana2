@@ -50,6 +50,7 @@ win32 {
 
     LIBS += $$PWD/lib/PX14_64.lib \
             $$PWD/lib/ATSApi.lib
+    LIBS += $$PWD/lib/AxsunOCTControl_LW.lib
     LIBS += $$PWD/lib/NIDAQmx.lib
     LIBS += $$PWD/lib/intel64_win/ippch.lib \
             $$PWD/lib/intel64_win/ippcc.lib \
