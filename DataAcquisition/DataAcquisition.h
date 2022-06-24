@@ -55,9 +55,9 @@ private:
 #endif
 #if ALAZAR_ENABLE
     AlazarDAQ* pDaq;
-#endif
 #ifdef ALAZAR_NIRF_ACQUISITION
 	AlazarDAQ* pDaqNirf;
+#endif
 #endif
 };
 

@@ -265,8 +265,10 @@ void MainWindow::changedTab(int index)
 #ifdef OCT_NIRF
 		if (m_pStreamTab->getNirfEmissionProfileDlg())
 			m_pStreamTab->getNirfEmissionProfileDlg()->close();
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 		if (m_pDeviceControlTab->getEnablePmtGainControl()->isChecked())
 			m_pDeviceControlTab->getEnablePmtGainControl()->setChecked(false);
+#endif
 #endif
 #endif
 

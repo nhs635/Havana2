@@ -915,6 +915,7 @@ void QStreamTab::setDataAcquisitionCallback()
 #ifdef OCT_NIRF
 void QStreamTab::setNirfAcquisitionCallback()
 {
+#if ALAZAR_ENABLE
 #ifndef ALAZAR_NIRF_ACQUISITION
 	NirfEmission* pNirfEmission = m_pMainWnd->m_pDeviceControlTab->getNirfEmission();
 
@@ -1079,6 +1080,7 @@ void QStreamTab::setNirfAcquisitionCallback()
 		QMessageBox MsgBox(QMessageBox::Critical, "Error", msg);
 		MsgBox.exec();
 	});
+#endif
 #endif
 }
 #endif

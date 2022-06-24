@@ -793,7 +793,11 @@ void NirfDistCompDlg::exportTbrData()
 	{
 		{
 			QTextStream stream(&file);
+#ifndef TWO_CHANNEL_NIRF
 			stream << "Frame#" << "\t" << "mTBR" << "\t" << "pTBR" << "\n";
+#else
+            stream << "Frame#" << "\t" << "mTBR1" << "\t" << "mTBR2" << "\t" << "pTBR1" << "\t" << "pTBR2" << "\n";
+#endif
 		}
 
 #ifndef TWO_CHANNEL_NIRF
@@ -828,7 +832,44 @@ void NirfDistCompDlg::exportTbrData()
 			stream << i + 1 << "\t" << mean << "\t" << maxi << "\n";
 		}
 #else
+        for (int i = 0; i < m_pResultTab->m_nirfMap1_0.size(1); i++)
+        {
+            // Copy original NIRF data
+            const float* data1 = &m_pResultTab->m_nirfMap1_0(0, i);
+            const float* data2 = &m_pResultTab->m_nirfMap2_0(0, i);
+            np::FloatArray data1_0(m_pResultTab->m_nirfMap1.size(0)), mask(m_pResultTab->m_nirfMap1.size(0));
+            np::FloatArray data2_0(m_pResultTab->m_nirfMap2.size(0)); // , mask2(m_pResultTab->m_nirfMap2.size(0));
+            memcpy(data1_0, data1, sizeof(float) * data1_0.length());
+            memcpy(data2_0, data2, sizeof(float) * data2_0.length());
 
+            // Excluding GW region
+            np::Uint8Array valid_region_8u(m_pResultTab->m_nirfMap1.size(0));
+            ippiCompareC_32f_C1R(data1_0.raw_ptr(), data1_0.size(0), 0.0f, valid_region_8u.raw_ptr(), valid_region_8u.size(0), { data1_0.size(0), 1 }, ippCmpEq);
+            ippsConvert_8u32f(valid_region_8u, mask, mask.length());
+            ippsDivC_32f_I(255.0f, mask, mask.length());
+            ippsSubCRev_32f_I(1.0f, mask, mask.length());
+
+            // Get MASK length
+            Ipp32f mean1, mean2, std, maxi1, maxi2, mask_len;
+            ippsSum_32f(mask.raw_ptr(), mask.length(), &mask_len, ippAlgHintFast);
+
+            // Masking the NIRF data
+            ippsMul_32f_I(mask.raw_ptr(), data1_0.raw_ptr(), data1_0.length());
+            ippsMeanStdDev_32f(data1_0.raw_ptr(), data1_0.length(), &mean1, &std, ippAlgHintFast);
+            ippsMax_32f(data1_0.raw_ptr(), data1_0.length(), &maxi1);
+
+            ippsMul_32f_I(mask.raw_ptr(), data2_0.raw_ptr(), data2_0.length());
+            ippsMeanStdDev_32f(data2_0.raw_ptr(), data2_0.length(), &mean2, &std, ippAlgHintFast);
+            ippsMax_32f(data2_0.raw_ptr(), data2_0.length(), &maxi2);
+
+            // Compensation of GW artifact
+            mean1 = mean1 * data1_0.length() / mask_len;
+            mean2 = mean2 * data2_0.length() / mask_len;
+
+            // Write to the CSV file
+            QTextStream stream(&file);
+            stream << i + 1 << "\t" << mean1 << "\t" << mean2 << "\t" << maxi1 << "\t" << maxi2 << "\n";
+        }
 #endif
 
 		QDesktopServices::openUrl(QUrl("file:///" + m_pResultTab->m_path));

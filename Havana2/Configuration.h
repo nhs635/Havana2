@@ -8,9 +8,9 @@
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               true
+#define ALAZAR_ENABLE               false
 
-#define NI_ENABLE					true
+#define NI_ENABLE					false
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
@@ -29,21 +29,21 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-#define AXSUN_OCT_LASER
+//#define AXSUN_OCT_LASER
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
 //#define ECG_TRIGGERING
 #endif
 #else
-#define PROGRAMMATIC_GAIN_CONTROL
-#if ALAZAR_ENABLE
+//#define PROGRAMMATIC_GAIN_CONTROL
+//#if ALAZAR_ENABLE
 #define ALAZAR_NIRF_ACQUISITION
-#endif
+//#endif
 #define TWO_CHANNEL_NIRF
 #endif
-//#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+#define GALVANO_MIRROR
+//#define PULLBACK_DEVICE
 
 
 ////////////////////// Digitizer setup //////////////////////

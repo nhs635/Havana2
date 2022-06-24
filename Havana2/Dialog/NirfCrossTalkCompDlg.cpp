@@ -136,8 +136,10 @@ NirfCrossTalkCompDlg::NirfCrossTalkCompDlg(QWidget *parent) :
 	// Initialization
 	loadNirfBackground();
 	ratio = m_pConfig->nirfCrossTalkRatio;
+#ifdef PROGRAMMATIC_GAIN_CONTROL
 	m_pLineEdit_Ch1_GainVoltage->setText(QString::number(m_pConfigTemp->pmtGainVoltage[0], 'f', 3));
 	m_pLineEdit_Ch2_GainVoltage->setText(QString::number(m_pConfigTemp->pmtGainVoltage[1], 'f', 3));
+#endif
 
 	// Invalidate
 	m_pResultTab->invalidate();
