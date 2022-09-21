@@ -18,6 +18,7 @@
 #include <Common/ImageObject.h>
 #include <Common/basic_functions.h>
 #include <Common/ann.h>
+#include <Common/lumen_detection.h>
 
 class MainWindow;
 #ifdef GALVANO_MIRROR
@@ -29,6 +30,7 @@ class QImageView;
 
 class SaveResultDlg;
 class LongitudinalViewDlg;
+class SpectroOCTDlg;
 #ifdef OCT_FLIM
 class PulseReviewDlg;
 #endif
@@ -67,6 +69,7 @@ public:
 	inline Configuration* getConfigTemp() const { return m_pConfigTemp; }
 	inline SaveResultDlg* getSaveResultDlg() const { return m_pSaveResultDlg; }
 	inline LongitudinalViewDlg* getLongitudinalViewDlg() const { return m_pLongitudinalViewDlg; }
+	inline SpectroOCTDlg* getSpectroOCTDlg() const { return m_pSpectroOCTDlg; }
 #ifdef OCT_FLIM
 	inline PulseReviewDlg* getPulseReviewDlg() const { return m_pPulseReviewDlg; }
 #endif
@@ -88,7 +91,8 @@ public:
 	inline void setCurrentFrame(int frame) { m_pSlider_SelectFrame->setValue(frame); }
 	inline int getCurrentFrame() const { return m_pSlider_SelectFrame->value(); }
 	inline int getCurrentOctColorTable() const { return m_pComboBox_OctColorTable->currentIndex(); }
-	inline bool getPolishedSurfaceFindingStatus() const { return m_pToggleButton_FindPolishedSurfaces->isChecked(); }
+	inline QPushButton* getAutoContouringButton() const { return m_pToggleButton_AutoContour; }
+	//inline bool getPolishedSurfaceFindingStatus() const { return m_pToggleButton_FindPolishedSurfaces->isChecked(); }
 #ifdef OCT_FLIM
 	inline int getCurrentLifetimeColorTable() const { return m_pComboBox_LifetimeColorTable->currentIndex(); }
 	inline bool isHsvEnhanced() const { return m_pCheckBox_HsvEnhancedMap->isChecked(); }
@@ -114,6 +118,8 @@ private slots: // widget operation
 	void deleteSaveResultDlg();
 	void createLongitudinalViewDlg();
 	void deleteLongitudinalViewDlg();
+	void createSpectroOCTDlg();
+	void deleteSpectroOCTDlg();
 #ifdef OCT_FLIM
 	void createPulseReviewDlg();
 	void deletePulseReviewDlg();
@@ -175,6 +181,9 @@ private slots: // widget operation
 	void adjustNirfOffset(const QString &);
 	void adjustNirfOffset(int);
 #endif
+
+public slots:
+	void autoContouring(bool);
 
 private slots: // processing
 	void startProcessing();
@@ -290,6 +299,7 @@ public: // for visualization
 	std::vector<np::FloatArray2> m_vectorOctImage;
 	np::FloatArray2 m_octProjection;
 	np::Array<int> m_polishedSurface;
+	np::Uint16Array2 m_contourMap;
 #ifdef OCT_FLIM
 	std::vector<np::FloatArray2> m_intensityMap; // (256 x N) x 3
 	std::vector<np::FloatArray2> m_lifetimeMap; // (256 x N) x 3
@@ -360,10 +370,11 @@ public:
 #ifdef OCT_NIRF
     medfilt* m_pMedfiltNirf;
 #endif
-	
+	LumenDetection* m_pLumenDetection;	
 
 public:
 	QString m_path;
+	QString m_fileName;
 
 
 private:
@@ -418,11 +429,14 @@ private:
 #endif	
 	QPushButton *m_pPushButton_LongitudinalView;
 	LongitudinalViewDlg *m_pLongitudinalViewDlg;
+	QPushButton *m_pPushButton_SpectroscopicView;
+	SpectroOCTDlg *m_pSpectroOCTDlg;
 
     QCheckBox *m_pCheckBox_ShowGuideLine;
     QCheckBox *m_pCheckBox_CircularizeImage;
 
-	QPushButton *m_pToggleButton_FindPolishedSurfaces;
+	//QPushButton *m_pToggleButton_FindPolishedSurfaces;
+	QPushButton *m_pToggleButton_AutoContour;
 
     QLabel *m_pLabel_CircCenter;
     QLineEdit *m_pLineEdit_CircCenter;

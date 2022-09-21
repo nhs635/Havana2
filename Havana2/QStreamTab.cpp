@@ -80,11 +80,15 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #elif defined (STANDALONE_OCT)
 #ifndef CUDA_ENABLED
 	m_pOCT1 = new OCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
+#ifndef K_CLOCKING
 	m_pOCT1->loadCalibration(CH_1);
+#endif
 	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
 #else
 	m_pOCT1 = new CudaOCTProcess(m_pConfig->nScans, m_pConfig->nAlines);
+#ifndef K_CLOCKING
 	m_pOCT1->loadCalibration(CH_1);
+#endif
 	m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
 	m_pOCT1->initialize();
 #endif
@@ -1515,12 +1519,16 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 #ifndef CUDA_ENABLED
 		delete m_pOCT1;
 		m_pOCT1 = new OCTProcess(m_pConfig->nScans, nAlines);
+#ifndef K_CLOCKING
 		m_pOCT1->loadCalibration(CH_1);
+#endif
 		m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
 #else
 		delete m_pOCT1;
 		m_pOCT1 = new CudaOCTProcess(m_pConfig->nScans, nAlines);
+#ifndef K_CLOCKING
 		m_pOCT1->loadCalibration(CH_1);
+#endif
 		m_pOCT1->changeDiscomValue(m_pConfig->octDiscomVal);
 		m_pOCT1->initialize();
 #endif

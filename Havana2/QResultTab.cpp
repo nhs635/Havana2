@@ -11,6 +11,7 @@
 #include <Havana2/Dialog/SaveResultDlg.h>
 #include <Havana2/Dialog/OctIntensityHistDlg.h>
 #include <Havana2/Dialog/LongitudinalViewDlg.h>
+#include <Havana2/Dialog/SpectroOCTDlg.h>
 #ifdef OCT_FLIM
 #include <Havana2/Dialog/PulseReviewDlg.h>
 #endif
@@ -54,8 +55,8 @@ QResultTab::QResultTab(QWidget *parent) :
     QDialog(parent), 
 	m_pConfigTemp(nullptr),
 	m_pImgObjRectImage(nullptr), m_pImgObjCircImage(nullptr), m_pCirc(nullptr), m_polishedSurface(0),
-	m_pMedfiltRect(nullptr), 
-	m_pSaveResultDlg(nullptr), m_pLongitudinalViewDlg(nullptr)
+	m_pMedfiltRect(nullptr), m_pLumenDetection(nullptr),
+	m_pSaveResultDlg(nullptr), m_pLongitudinalViewDlg(nullptr), m_pSpectroOCTDlg(nullptr)
 #ifdef OCT_FLIM
 	, m_pFLIMpost(nullptr), m_pPulseReviewDlg(nullptr)
 	, m_pImgObjIntensity(nullptr), m_pImgObjLifetime(nullptr)
@@ -440,12 +441,21 @@ void QResultTab::createVisualizationOptionTab()
 	m_pPushButton_LongitudinalView = new QPushButton(this);
 	m_pPushButton_LongitudinalView->setText("Longitudinal View...");
 	m_pPushButton_LongitudinalView->setDisabled(true);
+
+	// Create widegts for Spectroscopic OCT processing
+	m_pPushButton_SpectroscopicView = new QPushButton(this);
+	m_pPushButton_SpectroscopicView->setText("Spectroscopic OCT...");
+	m_pPushButton_SpectroscopicView->setDisabled(true);
 	
     // Create widgets for OCT circularizing
-	m_pToggleButton_FindPolishedSurfaces = new QPushButton(this);
-	m_pToggleButton_FindPolishedSurfaces->setCheckable(true);
-	m_pToggleButton_FindPolishedSurfaces->setText("Find Polished Surfaces");
-	m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+	//m_pToggleButton_FindPolishedSurfaces = new QPushButton(this);
+	//m_pToggleButton_FindPolishedSurfaces->setCheckable(true);
+	//m_pToggleButton_FindPolishedSurfaces->setText("Find Polished Surfaces");
+	//m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+	m_pToggleButton_AutoContour = new QPushButton(this);
+	m_pToggleButton_AutoContour->setCheckable(true);
+	m_pToggleButton_AutoContour->setText("Auto Lumen Contour");
+	m_pToggleButton_AutoContour->setDisabled(true);
 
     m_pLineEdit_CircCenter = new QLineEdit(this);
     m_pLineEdit_CircCenter->setFixedWidth(30);
@@ -577,13 +587,15 @@ void QResultTab::createVisualizationOptionTab()
 	//pGridLayout_Visualization->addWidget(m_pPushButton_NirfCrossTalkCompensation, 2, 1, 1, 2);
 #endif
 	pGridLayout_Visualization->addWidget(m_pPushButton_NirfDistanceCompensation, 2, 3, 1, 2);
-#else
-	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0, 1, 3);
+#else	
+	//pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 0, 1, 3);
 #endif
+	pGridLayout_Visualization->addWidget(m_pPushButton_SpectroscopicView, 2, 1, 1, 2);
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 2, 5);
 
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 0);
-	pGridLayout_Visualization->addWidget(m_pToggleButton_FindPolishedSurfaces, 3, 1, 1, 2);
+	//pGridLayout_Visualization->addWidget(m_pToggleButton_FindPolishedSurfaces, 3, 1, 1, 2);
+	pGridLayout_Visualization->addWidget(m_pToggleButton_AutoContour, 3, 1, 1, 2);
 	pGridLayout_Visualization->addWidget(m_pPushButton_LongitudinalView, 3, 3, 1, 2);
 	pGridLayout_Visualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 3, 5);
 
@@ -665,8 +677,10 @@ void QResultTab::createVisualizationOptionTab()
 #endif
 #endif
 	connect(m_pPushButton_LongitudinalView, SIGNAL(clicked(bool)), this, SLOT(createLongitudinalViewDlg()));
+	connect(m_pPushButton_SpectroscopicView, SIGNAL(clicked(bool)), this, SLOT(createSpectroOCTDlg()));
 	connect(m_pCheckBox_ShowGuideLine, SIGNAL(toggled(bool)), this, SLOT(showGuideLine(bool)));
-	connect(m_pToggleButton_FindPolishedSurfaces, SIGNAL(toggled(bool)), this, SLOT(findPolishedSurface(bool)));
+	//connect(m_pToggleButton_FindPolishedSurfaces, SIGNAL(toggled(bool)), this, SLOT(findPolishedSurface(bool)));
+	connect(m_pToggleButton_AutoContour, SIGNAL(toggled(bool)), this, SLOT(autoContouring(bool)));
 	connect(m_pCheckBox_CircularizeImage, SIGNAL(toggled(bool)), this, SLOT(changeVisImage(bool)));
 	connect(m_pLineEdit_CircCenter, SIGNAL(textEdited(const QString &)), this, SLOT(checkCircCenter(const QString &)));
 	connect(m_pLineEdit_CircRadius, SIGNAL(textEdited(const QString &)), this, SLOT(checkCircRadius(const QString &)));
@@ -1076,6 +1090,46 @@ void QResultTab::deleteLongitudinalViewDlg()
 	m_pToggleButton_MeasureDistance->setEnabled(true);
 }
 
+void QResultTab::createSpectroOCTDlg()
+{
+	if (m_pSpectroOCTDlg == nullptr)
+	{
+		m_pSpectroOCTDlg = new SpectroOCTDlg(this);
+		connect(m_pSpectroOCTDlg, SIGNAL(finished(int)), this, SLOT(deleteSpectroOCTDlg()));
+		m_pSpectroOCTDlg->show();
+
+		m_pImageView_RectImage->setVLineChangeCallback([&](int aline) { m_pSpectroOCTDlg->setCurrentAline(aline); });
+		m_pImageView_RectImage->setVerticalLine(1, 0);
+		m_pImageView_RectImage->getRender()->update();
+
+		m_pImageView_CircImage->setRLineChangeCallback([&](int aline) { m_pSpectroOCTDlg->setCurrentAline(aline); });
+		m_pImageView_CircImage->setVerticalLine(1, 0);
+		m_pImageView_CircImage->getRender()->m_bRadial = true;
+		m_pImageView_CircImage->getRender()->m_rMax = m_pConfigTemp->nAlines;
+		m_pImageView_CircImage->getRender()->update();
+	}
+	m_pSpectroOCTDlg->raise();
+	m_pSpectroOCTDlg->activateWindow();
+
+	m_pToggleButton_MeasureDistance->setChecked(false);
+	m_pToggleButton_MeasureDistance->setDisabled(true);
+}
+
+void QResultTab::deleteSpectroOCTDlg()
+{
+	m_pImageView_RectImage->setVerticalLine(0);
+	m_pImageView_RectImage->getRender()->update();
+
+	m_pImageView_CircImage->setVerticalLine(0);
+	m_pImageView_CircImage->getRender()->update();
+	m_pImageView_CircImage->getRender()->m_bRadial = false;
+
+	m_pSpectroOCTDlg->deleteLater();
+	m_pSpectroOCTDlg = nullptr;
+
+	m_pToggleButton_MeasureDistance->setEnabled(true);
+}
+
 #ifdef OCT_FLIM
 void QResultTab::createPulseReviewDlg()
 {
@@ -1352,8 +1406,8 @@ void QResultTab::visualizeImage(int frame)
 					}
 					else
 					{
-						int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-							(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(frame) - m_pConfig->ballRadius;
+						int center = m_pConfig->circCenter; // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+							//(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(frame) - m_pConfig->ballRadius;
 						if (!m_pNirfEmissionProfileDlg)
 							m_pImageView_CircImage->setContour(contour.length(), contour.raw_ptr());
 						else
@@ -1381,11 +1435,13 @@ void QResultTab::visualizeImage(int frame)
 		emit makeRgb(m_pImgObjRectImage, m_pImgObjCircImage, m_pImgObjNirf1, m_pImgObjNirf2);
 #endif
 #else
-		int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-			(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		//int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+		//	(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		int center = m_pConfig->circCenter;			
 		if (m_pCheckBox_ShowGuideLine->isChecked())
 		{
-			int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+			//int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+			int polished_surface = center - m_pConfig->circCenter;
 
 			if (!m_pCheckBox_CircularizeImage->isChecked())
 			{
@@ -1394,7 +1450,8 @@ void QResultTab::visualizeImage(int frame)
 				m_pImageView_RectImage->setHorizontalLineColor(6, 0xff0000, 0x00ff00, 0xffff00, 0xffff00, 0x00ff00, 0xff0000);
 			}
 			else
-				m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+				//m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+				m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1);
 		}
 
 		if (!m_pCheckBox_CircularizeImage->isChecked())
@@ -1412,6 +1469,23 @@ void QResultTab::visualizeImage(int frame)
 		}
 #endif
 #endif
+		if (m_pToggleButton_AutoContour->isChecked())
+		{
+			if (m_contourMap(0, frame) == 0)
+				m_pToggleButton_AutoContour->setChecked(false);
+			else
+			{
+				if (m_pCheckBox_CircularizeImage->isChecked())
+					m_pImageView_CircImage->setContour(m_pConfig->nAlines, &m_contourMap(0, getCurrentFrame()));
+				else
+				{
+					np::Uint16Array contour_16u1(m_pConfig->nAlines);
+					ippsAddC_16u_Sfs(&m_contourMap(0, getCurrentFrame()), m_pConfig->circCenter, contour_16u1, m_pConfig->nAlines, 0);
+					m_pImageView_RectImage->setContour(m_pConfig->nAlines, contour_16u1);
+				}
+			}
+		}
+
 		m_pImageView_OctProjection->setHorizontalLine(1, m_visOctProjection.size(1) - frame);
 		m_pImageView_OctProjection->setHorizontalLineColor(1, 0xff0000);
 		m_pImageView_OctProjection->getRender()->update();
@@ -1455,6 +1529,14 @@ void QResultTab::visualizeImage(int frame)
 
 		QString str; str.sprintf("Current Frame : %3d / %3d", frame + 1, (int)m_vectorOctImage.size());
 		m_pLabel_SelectFrame->setText(str);
+
+		if (m_pSpectroOCTDlg)
+		{
+			if (m_pSpectroOCTDlg->isAutoExtraction())
+				m_pSpectroOCTDlg->spectrumExtract();
+			else
+				m_pSpectroOCTDlg->drawSpectroImage(m_pSpectroOCTDlg->getCurrentAline());
+		}
 	}
 }
 
@@ -1555,16 +1637,16 @@ void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj,
 void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj, ImageObject *pNirfObj1, ImageObject *pNirfObj2)
 #endif
 {	
-	int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-		(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+	int center = m_pConfig->circCenter; // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+		//(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		int polished_surface = center - m_pConfig->circCenter; //  (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
 
 		m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
 			polished_surface, center + m_pConfigTemp->circRadius, center + m_pConfigTemp->circRadius - m_pConfig->ringThickness, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 		m_pImageView_RectImage->setHorizontalLineColor(7, 0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x00ff00, 0x00ff00, 0xff0000);
-		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1); // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
 	}
 
 	// Convert RGB
@@ -2156,9 +2238,11 @@ void QResultTab::showGuideLine(bool toggled)
 	{
 		if (m_pCheckBox_ShowGuideLine->isChecked())
 		{
-			int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-				(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
-			int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+			//int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+			//	(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+			int center = m_pConfig->circCenter;				
+			//int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+			int polished_surface = center - m_pConfig->circCenter;
 
 #if (defined(OCT_FLIM) || defined(OCT_NIRF))
 			m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
@@ -2169,7 +2253,8 @@ void QResultTab::showGuideLine(bool toggled)
 				polished_surface, center + m_pConfigTemp->circRadius, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 			m_pImageView_RectImage->setHorizontalLineColor(6, 0xff0000, 0x00ff00, 0xffff00, 0xffff00, 0x00ff00, 0xff0000);
 #endif
-			m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+			//m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+			m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1);
 		}
 	}
 	else
@@ -2192,6 +2277,8 @@ void QResultTab::changeVisImage(bool toggled)
 
 		if (m_pLongitudinalViewDlg)
 			m_pImageView_CircImage->setVerticalLine(1, m_pLongitudinalViewDlg->getCurrentAline());
+		if (m_pSpectroOCTDlg)
+			m_pImageView_CircImage->setVerticalLine(1, m_pSpectroOCTDlg->getCurrentAline());
 	}
 	else // rect view
 	{
@@ -2201,6 +2288,8 @@ void QResultTab::changeVisImage(bool toggled)
 
 		if (m_pLongitudinalViewDlg)
 			m_pImageView_RectImage->setVerticalLine(1, m_pLongitudinalViewDlg->getCurrentAline());
+		if (m_pSpectroOCTDlg)
+			m_pImageView_RectImage->setVerticalLine(1, m_pSpectroOCTDlg->getCurrentAline());
 	}
 	visualizeImage(m_pSlider_SelectFrame->value());
 
@@ -2209,109 +2298,238 @@ void QResultTab::changeVisImage(bool toggled)
 
 void QResultTab::findPolishedSurface(bool toggled)
 {
-	if (toggled)
-	{		
-		m_pProgressBar_PostProcessing->setFormat("Finding polished surfaces... %p%");
-		m_pProgressBar_PostProcessing->setRange(0, m_pConfigTemp->nFrames - 1);
-		m_pProgressBar_PostProcessing->setValue(0);
+	//if (toggled)
+	//{		
+	//	m_pProgressBar_PostProcessing->setFormat("Finding polished surfaces... %p%");
+	//	m_pProgressBar_PostProcessing->setRange(0, m_pConfigTemp->nFrames - 1);
+	//	m_pProgressBar_PostProcessing->setValue(0);
 
-		m_polishedSurface = np::Array<int>(m_pConfigTemp->nFrames);
-		memset(m_polishedSurface, 0, sizeof(int) * m_polishedSurface.length());
-		
-		// Ball lens polished surface detection
-		IppiSize roi_oct = { m_pImgObjRectImage->getHeight(), m_pImgObjRectImage->getWidth() };
-		for (int i = 0; i < m_pConfigTemp->nFrames; i++)
+	//	m_polishedSurface = np::Array<int>(m_pConfigTemp->nFrames);
+	//	memset(m_polishedSurface, 0, sizeof(int) * m_polishedSurface.length());
+	//	
+	//	// Ball lens polished surface detection
+	//	IppiSize roi_oct = { m_pImgObjRectImage->getHeight(), m_pImgObjRectImage->getWidth() };
+	//	for (int i = 0; i < m_pConfigTemp->nFrames; i++)
+	//	{
+	//		// OCT Visualization
+	//		np::FloatArray2 tranp_temp(roi_oct.height, roi_oct.width);
+	//		ippiTranspose_32f_C1R(m_vectorOctImage.at(i), roi_oct.width * sizeof(float), tranp_temp.raw_ptr(), roi_oct.height * sizeof(float), roi_oct);
+	//		
+	//		np::FloatArray mean_profile(tranp_temp.size(1) / 2 - (m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3));
+	//		np::FloatArray mean_profile_filt(mean_profile.length());
+	//		memset(mean_profile_filt, 0, sizeof(float) * mean_profile_filt.length());
+	//		tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)mean_profile.length()),
+	//			[&](const tbb::blocked_range<size_t>& r) {
+	//			for (size_t j = r.begin(); j != r.end(); ++j)
+	//			{
+	//				ippsMean_32f((const Ipp32f*)&tranp_temp(0, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3 + (int)j), 
+	//																			tranp_temp.size(0), &mean_profile((int)j), ippAlgHintFast);
+	//			}
+	//		});
+	//		tbb::parallel_for(tbb::blocked_range<size_t>(2, (size_t)mean_profile.length() - 2),
+	//			[&](const tbb::blocked_range<size_t>& r) {
+	//			for (size_t j = r.begin(); j != r.end(); ++j)
+	//			{
+	//				for (int k = 0; k < 5; k++)
+	//					mean_profile_filt((int)j) += mean_profile((int)j - 2 + k);
+	//				mean_profile_filt((int)j) /= 5;
+	//			}
+	//		});
+	//					
+	//		np::FloatArray drv_profile(mean_profile.length() - 1);
+	//		memset(drv_profile, 0, sizeof(float) * drv_profile.length());
+	//		tbb::parallel_for(tbb::blocked_range<size_t>(2, (size_t)drv_profile.length() - 2),
+	//			[&](const tbb::blocked_range<size_t>& r) {
+	//			for (size_t j = r.begin(); j != r.end(); ++j)
+	//			{
+	//				drv_profile((int)j) = mean_profile_filt((int)j + 1) - mean_profile_filt((int)j);
+	//			}
+	//		});
+	//		
+	//		QFile file1("profile.dat");
+	//		if (true == file1.open(QFile::WriteOnly))
+	//			file1.write(reinterpret_cast<char*>(mean_profile_filt.raw_ptr()), sizeof(float) * mean_profile_filt.length());
+	//		file1.close();
+	//		QFile file("d_profile.dat");
+	//		if (true == file.open(QFile::WriteOnly))			
+	//			file.write(reinterpret_cast<char*>(drv_profile.raw_ptr()), sizeof(float) * drv_profile.length());
+	//		file.close();
+
+	//		float max;
+	//		ippsMax_32f(mean_profile_filt.raw_ptr(), mean_profile_filt.length(), &max);
+	//		//printf("%f\n", max);
+	//		for (int j = 0; j < drv_profile.length() - 1; j++)
+	//		{
+	//			bool det = (drv_profile(j + 1) * drv_profile(j) < 0) ? true : false;
+	//			if (det && (mean_profile_filt(j + 1) > max * 0.9))
+	//			{
+	//				//printf("[%d %f]\n", j + 1, mean_profile_filt(j + 1 ));
+	//				m_polishedSurface(i) = j + 1;
+	//				break;
+	//			}
+	//		}
+
+	//		m_pProgressBar_PostProcessing->setValue(i);
+
+	//		//break;
+	//	}
+	//	QFile file("polished.dat");
+	//	if (true == file.open(QFile::WriteOnly))
+	//		file.write(reinterpret_cast<char*>(m_polishedSurface.raw_ptr()), sizeof(int) * m_polishedSurface.length());
+	//	file.close();
+
+	//	m_pProgressBar_PostProcessing->setFormat("");
+	//	m_pProgressBar_PostProcessing->setValue(0);
+	//	m_pToggleButton_FindPolishedSurfaces->setText("Fixed Center Mode");
+	//	m_pLabel_CircCenter->setText("Ball Radius");
+	//	m_pLineEdit_CircCenter->setText(QString::number(m_pConfig->ballRadius));
+	//}
+	//else
+	//{		
+	//	m_pToggleButton_FindPolishedSurfaces->setText("Find Polished Surfaces");
+	//	m_pLabel_CircCenter->setText("Circ Center");
+	//	m_pLineEdit_CircCenter->setText(QString::number(m_pConfig->circCenter));
+	//}
+
+	//getOctProjection(m_vectorOctImage, m_octProjection);
+	//visualizeEnFaceMap(true);
+	//visualizeImage(m_pSlider_SelectFrame->value());
+	//if (m_pLongitudinalViewDlg)	m_pLongitudinalViewDlg->drawLongitudinalImage(m_pLongitudinalViewDlg->getCurrentAline());
+}
+
+void QResultTab::autoContouring(bool toggled)
+{
+	QString contour_map_path = m_path + "/contour_map.bin";
+
+	QFileInfo check_file(contour_map_path);
+
+	if (toggled)
+	{
+		// Load first
+		if (check_file.exists())
 		{
-			// OCT Visualization
-			np::FloatArray2 tranp_temp(roi_oct.height, roi_oct.width);
-			ippiTranspose_32f_C1R(m_vectorOctImage.at(i), roi_oct.width * sizeof(float), tranp_temp.raw_ptr(), roi_oct.height * sizeof(float), roi_oct);
-			
-			np::FloatArray mean_profile(tranp_temp.size(1) / 2 - (m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3));
-			np::FloatArray mean_profile_filt(mean_profile.length());
-			memset(mean_profile_filt, 0, sizeof(float) * mean_profile_filt.length());
-			tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)mean_profile.length()),
-				[&](const tbb::blocked_range<size_t>& r) {
-				for (size_t j = r.begin(); j != r.end(); ++j)
-				{
-					ippsMean_32f((const Ipp32f*)&tranp_temp(0, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3 + (int)j), 
-																				tranp_temp.size(0), &mean_profile((int)j), ippAlgHintFast);
-				}
-			});
-			tbb::parallel_for(tbb::blocked_range<size_t>(2, (size_t)mean_profile.length() - 2),
-				[&](const tbb::blocked_range<size_t>& r) {
-				for (size_t j = r.begin(); j != r.end(); ++j)
-				{
-					for (int k = 0; k < 5; k++)
-						mean_profile_filt((int)j) += mean_profile((int)j - 2 + k);
-					mean_profile_filt((int)j) /= 5;
-				}
-			});
+			QFile file(contour_map_path);
+			file.open(QIODevice::ReadOnly);
+			file.read(reinterpret_cast<char*>(m_contourMap.raw_ptr()), sizeof(uint16_t) * m_contourMap.length());
+			file.close();
+		}
+		else
+		{
+			// Threading
+			QMessageBox msg_box(QMessageBox::NoIcon, "Lumen Contour Detection...", "", QMessageBox::NoButton, this);
+			msg_box.setStandardButtons(0);
+			msg_box.setWindowModality(Qt::WindowModal);
+			msg_box.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+			msg_box.move(QApplication::desktop()->screen()->rect().center() - msg_box.rect().center());
+			msg_box.setFixedSize(msg_box.width(), msg_box.height());
+			msg_box.show();
 						
-			np::FloatArray drv_profile(mean_profile.length() - 1);
-			memset(drv_profile, 0, sizeof(float) * drv_profile.length());
-			tbb::parallel_for(tbb::blocked_range<size_t>(2, (size_t)drv_profile.length() - 2),
-				[&](const tbb::blocked_range<size_t>& r) {
-				for (size_t j = r.begin(); j != r.end(); ++j)
-				{
-					drv_profile((int)j) = mean_profile_filt((int)j + 1) - mean_profile_filt((int)j);
-				}
-			});
+			int n_pieces = 12;
+			np::Array<int> pieces(n_pieces + 1);
+			pieces[0] = 0;
+			for (int p = 0; p < n_pieces; p++)
+				pieces[p + 1] = (int)((double)m_vectorOctImage.size() / (double)n_pieces * (double)(p + 1));
+
+			std::thread *plumdet = new std::thread[n_pieces];
+			for (int p = 0; p < n_pieces; p++)
+			{
+				plumdet[p] = std::thread([&, p, pieces]() {
+
+					LumenDetection *pLumenDetection = new LumenDetection(m_pConfig->sheathRadius, 50, false);
+
+					for (int i = pieces[p]; i < pieces[p + 1]; i++)
+					{
+						np::FloatArray contour(m_contourMap.size(0));
+
+						np::Uint8Array2 scale_temp(m_vectorOctImage.at(i).size(0), m_vectorOctImage.at(i).size(1));
+						ippiScale_32f8u_C1R(m_vectorOctImage.at(i), m_vectorOctImage.at(i).size(0) * sizeof(float),
+							scale_temp.raw_ptr(), scale_temp.size(0) * sizeof(uint8_t), { scale_temp.size(0), scale_temp.size(1) },
+							m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
+
+						np::Uint8Array2 crop_img(m_pConfig->circRadius, scale_temp.size(1));
+						ippiCopy_8u_C1R(&scale_temp(m_pConfig->circCenter, 0), scale_temp.size(0), crop_img, crop_img.size(0), { crop_img.size(0), crop_img.size(1) });
+
+						(*pLumenDetection)(crop_img, contour);
+
+						ippsConvert_32f16u_Sfs(contour, &m_contourMap(0, i), contour.length(), ippRndNear, 0);
+
+						printf("%d\n", i);
+					}
+
+					delete pLumenDetection;
+					pLumenDetection = nullptr;
+				});
+			}
+			for (int p = 0; p < n_pieces; p++)
+				plumdet[p].join();
 			
-			QFile file1("profile.dat");
-			if (true == file1.open(QFile::WriteOnly))
-				file1.write(reinterpret_cast<char*>(mean_profile_filt.raw_ptr()), sizeof(float) * mean_profile_filt.length());
-			file1.close();
-			QFile file("d_profile.dat");
-			if (true == file.open(QFile::WriteOnly))			
-				file.write(reinterpret_cast<char*>(drv_profile.raw_ptr()), sizeof(float) * drv_profile.length());
+			QFile file(m_path + "/contour_map.bin");
+			file.open(QIODevice::WriteOnly);
+			file.write(reinterpret_cast<const char*>(m_contourMap.raw_ptr()), sizeof(uint16_t) * m_contourMap.length());
 			file.close();
 
-			float max;
-			ippsMax_32f(mean_profile_filt.raw_ptr(), mean_profile_filt.length(), &max);
-			//printf("%f\n", max);
-			for (int j = 0; j < drv_profile.length() - 1; j++)
-			{
-				bool det = (drv_profile(j + 1) * drv_profile(j) < 0) ? true : false;
-				if (det && (mean_profile_filt(j + 1) > max * 0.9))
-				{
-					//printf("[%d %f]\n", j + 1, mean_profile_filt(j + 1 ));
-					m_polishedSurface(i) = j + 1;
-					break;
-				}
-			}
+			//// Set lumen contour in circ image
+			//np::Uint16Array contour_16u(&m_contourMap(0, getCurrentFrame()), m_pConfig->nAlines);
+			//if (contour_16u[0] == 0)
+			//{
+			//	if (!m_pLumenDetection)
+			//	{
+			//		np::FloatArray contour;
+			//		m_pLumenDetection = new LumenDetection(m_pConfig->sheathRadius, 50, true);
 
-			m_pProgressBar_PostProcessing->setValue(i);
+			//		np::Uint8Array2 scale_temp(m_vectorOctImage.at(getCurrentFrame()).size(0), m_vectorOctImage.at(getCurrentFrame()).size(1));
+			//		ippiScale_32f8u_C1R(m_vectorOctImage.at(getCurrentFrame()), m_vectorOctImage.at(getCurrentFrame()).size(0) * sizeof(float),
+			//			scale_temp.raw_ptr(), scale_temp.size(0) * sizeof(uint8_t), { scale_temp.size(0), scale_temp.size(1) },
+			//			m_pConfig->octDbRange.min, m_pConfig->octDbRange.max);
+			//		
+			//		np::Uint8Array2 crop_img(m_pConfig->circRadius, scale_temp.size(1));
+			//		ippiCopy_8u_C1R(&scale_temp(m_pConfig->circCenter, 0), scale_temp.size(0), crop_img, crop_img.size(0), { crop_img.size(0), crop_img.size(1) });
 
-			//break;
+			//		(*m_pLumenDetection)(crop_img, contour);
+
+			//		ippsConvert_32f16u_Sfs(contour, contour_16u, contour.length(), ippRndNear, 0);
+
+			//		QFile file(m_path + "/contour_map.bin");
+			//		file.open(QIODevice::WriteOnly);
+			//		file.write(reinterpret_cast<const char*>(m_contourMap.raw_ptr()), sizeof(uint16_t) * m_contourMap.length());
+			//		file.close();
+			//	}
+			//}		
 		}
-		QFile file("polished.dat");
-		if (true == file.open(QFile::WriteOnly))
-			file.write(reinterpret_cast<char*>(m_polishedSurface.raw_ptr()), sizeof(int) * m_polishedSurface.length());
-		file.close();
 
-		m_pProgressBar_PostProcessing->setFormat("");
-		m_pProgressBar_PostProcessing->setValue(0);
-		m_pToggleButton_FindPolishedSurfaces->setText("Fixed Center Mode");
-		m_pLabel_CircCenter->setText("Ball Radius");
-		m_pLineEdit_CircCenter->setText(QString::number(m_pConfig->ballRadius));
+		if (m_pCheckBox_CircularizeImage->isChecked())
+			m_pImageView_CircImage->setContour(m_pConfig->nAlines, &m_contourMap(0, getCurrentFrame()));
+		else
+		{
+			np::Uint16Array contour_16u1(m_pConfig->nAlines);
+			ippsAddC_16u_Sfs(&m_contourMap(0, getCurrentFrame()), m_pConfig->circCenter, contour_16u1, m_pConfig->nAlines, 0);
+			m_pImageView_RectImage->setContour(m_pConfig->nAlines, contour_16u1);
+		}
 	}
 	else
-	{		
-		m_pToggleButton_FindPolishedSurfaces->setText("Find Polished Surfaces");
-		m_pLabel_CircCenter->setText("Circ Center");
-		m_pLineEdit_CircCenter->setText(QString::number(m_pConfig->circCenter));
+	{
+		if (m_pLumenDetection)
+		{
+			delete m_pLumenDetection;
+			m_pLumenDetection = nullptr;
+		}
+		
+		if (m_pCheckBox_CircularizeImage->isChecked())
+			m_pImageView_CircImage->setContour(0, nullptr);
+		else
+			m_pImageView_RectImage->setContour(0, nullptr);
 	}
 
-	getOctProjection(m_vectorOctImage, m_octProjection);
-	visualizeEnFaceMap(true);
-	visualizeImage(m_pSlider_SelectFrame->value());
-	if (m_pLongitudinalViewDlg)	m_pLongitudinalViewDlg->drawLongitudinalImage(m_pLongitudinalViewDlg->getCurrentAline());
+	if (m_pCheckBox_CircularizeImage->isChecked())
+		m_pImageView_CircImage->getRender()->update();
+	else
+		m_pImageView_RectImage->getRender()->update();
 }
 
 void QResultTab::checkCircCenter(const QString &str)
 {
-	if (!m_pToggleButton_FindPolishedSurfaces->isChecked())
-	{
+	//if (!m_pToggleButton_FindPolishedSurfaces->isChecked())
+	//{
 		int circCenter = str.toInt();
 		if (circCenter + m_pConfigTemp->circRadius + 1 > m_pImageView_RectImage->getRender()->m_pImage->height())
 		{
@@ -2324,29 +2542,29 @@ void QResultTab::checkCircCenter(const QString &str)
 			m_pLineEdit_CircCenter->setText(QString::number(circCenter));
 		}
 		m_pConfig->circCenter = circCenter;
-	}
-	else
-	{
-		int ballRadius = str.toInt();
-		if (ballRadius > m_polishedSurface(m_pSlider_SelectFrame->value()))
-		{
-			ballRadius = m_polishedSurface(m_pSlider_SelectFrame->value());
-			m_pLineEdit_CircCenter->setText(QString::number(ballRadius));
-		}
-		if (ballRadius < 0)
-		{
-			ballRadius = 0;
-			m_pLineEdit_CircCenter->setText(QString::number(ballRadius));
-		}
-		m_pConfig->ballRadius = ballRadius;
-	}
+	//}
+	//else
+	//{
+	//	int ballRadius = str.toInt();
+	//	if (ballRadius > m_polishedSurface(m_pSlider_SelectFrame->value()))
+	//	{
+	//		ballRadius = m_polishedSurface(m_pSlider_SelectFrame->value());
+	//		m_pLineEdit_CircCenter->setText(QString::number(ballRadius));
+	//	}
+	//	if (ballRadius < 0)
+	//	{
+	//		ballRadius = 0;
+	//		m_pLineEdit_CircCenter->setText(QString::number(ballRadius));
+	//	}
+	//	m_pConfig->ballRadius = ballRadius;
+	//}
 	
 #ifdef OCT_NIRF
-	if (m_pCheckBox_CircularizeImage->isChecked())
-		if (m_pNirfDistCompDlg)
-			if (m_pImageView_CircImage->getRender()->m_contour.length() > 0)
-				m_pImageView_CircImage->getRender()->m_contour_offset = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-				(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		if (m_pCheckBox_CircularizeImage->isChecked())
+			if (m_pNirfDistCompDlg)
+				if (m_pImageView_CircImage->getRender()->m_contour.length() > 0)
+					m_pImageView_CircImage->getRender()->m_contour_offset = m_pConfig->circCenter;// (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+				//(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
 #endif
 
 	getOctProjection(m_vectorOctImage, m_octProjection);
@@ -2356,9 +2574,11 @@ void QResultTab::checkCircCenter(const QString &str)
 
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-			(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
-		int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		//int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+		//	(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		//int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		int center = m_pConfig->circCenter;			
+		int polished_surface = center - m_pConfig->circCenter;
 
 #if (defined(OCT_FLIM) || defined(OCT_NIRF))
 		m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
@@ -2369,7 +2589,8 @@ void QResultTab::checkCircCenter(const QString &str)
 			polished_surface, center + m_pConfigTemp->circRadius, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 		m_pImageView_RectImage->setHorizontalLineColor(6, 0xff0000, 0x00ff00, 0xffff00, 0xffff00, 0x00ff00, 0xff0000);
 #endif
-		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);		
+		//m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);		
+		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1);
 	}	
 }
 
@@ -2377,28 +2598,28 @@ void QResultTab::checkCircRadius(const QString &str)
 {
 	// Range and value test
 	int circRadius = str.toInt();
-	if (!m_pToggleButton_FindPolishedSurfaces->isChecked())
-	{
+	//if (!m_pToggleButton_FindPolishedSurfaces->isChecked())
+	//{
 		if (circRadius + m_pConfig->circCenter + 1 > m_pConfigTemp->n2ScansFFT)
 		{
 			circRadius = m_pConfigTemp->n2ScansFFT - m_pConfig->circCenter - 1;
 			circRadius = (circRadius % 2) ? circRadius - 1 : circRadius;
 			m_pLineEdit_CircRadius->setText(QString::number(circRadius));
 		}
-	}
-	else
-	{
-		int pol_surface_max;
-		ippsMax_32s(m_polishedSurface.raw_ptr(), m_polishedSurface.length(), &pol_surface_max);
-		pol_surface_max = (m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + pol_surface_max;
+	//}
+	//else
+	//{
+	//	int pol_surface_max;
+	//	ippsMax_32s(m_polishedSurface.raw_ptr(), m_polishedSurface.length(), &pol_surface_max);
+	//	pol_surface_max = (m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + pol_surface_max;
 
-		if (circRadius + pol_surface_max + 1 > m_pConfigTemp->n2ScansFFT)
-		{
-			circRadius = m_pConfigTemp->n2ScansFFT - pol_surface_max - 1;
-			circRadius = (circRadius % 2) ? circRadius - 1 : circRadius;
-			m_pLineEdit_CircRadius->setText(QString::number(circRadius));
-		}
-	}
+	//	if (circRadius + pol_surface_max + 1 > m_pConfigTemp->n2ScansFFT)
+	//	{
+	//		circRadius = m_pConfigTemp->n2ScansFFT - pol_surface_max - 1;
+	//		circRadius = (circRadius % 2) ? circRadius - 1 : circRadius;
+	//		m_pLineEdit_CircRadius->setText(QString::number(circRadius));
+	//	}
+	//}
 
 #if (defined(OCT_NIRF) || defined(OCT_FLIM))
 #ifndef TWO_CHANNEL_NIRF
@@ -2465,9 +2686,11 @@ void QResultTab::checkCircRadius(const QString &str)
 
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-			(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
-		int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		//int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+		//	(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		//int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		int center = m_pConfig->circCenter;			
+		int polished_surface = center - m_pConfig->circCenter;
 
 #if (defined(OCT_FLIM) || defined(OCT_NIRF))
 		m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
@@ -2478,7 +2701,8 @@ void QResultTab::checkCircRadius(const QString &str)
 			polished_surface, center + m_pConfigTemp->circRadius, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 		m_pImageView_RectImage->setHorizontalLineColor(6, 0xff0000, 0x00ff00, 0xffff00, 0xffff00, 0x00ff00, 0xff0000);
 #endif
-		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+		//m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1);
 	}
 }
 
@@ -2553,9 +2777,9 @@ void QResultTab::checkRingThickness(const QString &str)
 
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-			(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
-		int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		int center = m_pConfig->circCenter;// (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+			//(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+		int polished_surface = center - m_pConfig->circCenter; /// (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
 
 #if (defined(OCT_FLIM) || defined(OCT_NIRF))
 		m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
@@ -2566,7 +2790,7 @@ void QResultTab::checkRingThickness(const QString &str)
 			polished_surface, center + m_pConfigTemp->circRadius, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 		m_pImageView_RectImage->setHorizontalLineColor(6, 0xff0000, 0x00ff00, 0xffff00, 0xffff00, 0x00ff00, 0xff0000);
 #endif
-		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1); // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
 	}
 }
 #endif
@@ -2844,6 +3068,8 @@ void QResultTab::startProcessing()
         m_pSaveResultDlg->close();
 	if (m_pLongitudinalViewDlg)
 		m_pLongitudinalViewDlg->close();
+	if (m_pSpectroOCTDlg)
+		m_pSpectroOCTDlg->close();
 #ifdef OCT_FLIM
     if (m_pPulseReviewDlg)
         m_pPulseReviewDlg->close();
@@ -3027,6 +3253,8 @@ void QResultTab::externalDataProcessing()
 			else
 			{
 				// Read Ini File & Initialization ///////////////////////////////////////////////////////////
+				m_fileName = fileName;
+
 				QString fileTitle;
 				for (int i = 0; i < fileName.length(); i++)
 					if (fileName.at(i) == QChar('.')) fileTitle = fileName.left(i);
@@ -3134,11 +3362,15 @@ void QResultTab::externalDataProcessing()
 #elif defined (STANDALONE_OCT)
 #ifndef CUDA_ENABLED
 				OCTProcess* pOCT1 = new OCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
+#ifndef K_CLOCKING
 				pOCT1->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+#endif
 				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
 #else
 				CudaOCTProcess* pOCT1 = new CudaOCTProcess(m_pConfigTemp->nScans, m_pConfigTemp->nAlines);
+#ifndef K_CLOCKING
 				pOCT1->loadCalibration(CH_1, calibName.toUtf8().constData(), bgName.toUtf8().constData(), m_pConfigTemp->erasmus);
+#endif
 				pOCT1->changeDiscomValue(m_pConfigTemp->octDiscomVal);
 				pOCT1->initialize();
 #endif
@@ -3468,8 +3700,10 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 #endif
 		m_pPushButton_LongitudinalView->setEnabled(true);
-		m_pToggleButton_FindPolishedSurfaces->setChecked(false);
-		m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		m_pPushButton_SpectroscopicView->setEnabled(true);
+		//m_pToggleButton_FindPolishedSurfaces->setChecked(false);
+		//m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		m_pToggleButton_AutoContour->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
 		m_pLabel_CircCenter->setEnabled(true);
@@ -3611,8 +3845,10 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 #endif
 		m_pPushButton_LongitudinalView->setDisabled(true);
-		m_pToggleButton_FindPolishedSurfaces->setChecked(false);
-		m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		m_pPushButton_SpectroscopicView->setDisabled(true);
+		//m_pToggleButton_FindPolishedSurfaces->setChecked(false);
+		//m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		m_pToggleButton_AutoContour->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
 		m_pLabel_CircCenter->setDisabled(true);
@@ -3733,7 +3969,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 #endif
 		m_pPushButton_LongitudinalView->setEnabled(true);
-		m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		m_pPushButton_SpectroscopicView->setEnabled(true);
+		//m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		m_pToggleButton_AutoContour->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
 		m_pLabel_CircCenter->setEnabled(true);
@@ -3849,7 +4087,9 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 #endif
 		m_pPushButton_LongitudinalView->setDisabled(true);
-		m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		m_pPushButton_SpectroscopicView->setDisabled(true);
+		//m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		m_pToggleButton_AutoContour->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
 		m_pLabel_CircCenter->setDisabled(true);
@@ -3953,6 +4193,8 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 	m_nirfOffset = 0;
 #endif
+	m_contourMap = np::Uint16Array2(pConfig->nAlines, pConfig->nFrames);
+	memset(m_contourMap, 0, sizeof(uint16_t) * m_contourMap.length());
 
 	// Visualization buffers
 	ColorTable temp_ctable;
@@ -4456,8 +4698,9 @@ void QResultTab::getOctProjection(std::vector<np::FloatArray2>& vecImg, np::Floa
 		[&](const tbb::blocked_range<size_t>& r) {
 		for (size_t i = r.begin(); i != r.end(); ++i)
 		{
-			int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-				(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface((int)i) - m_pConfig->ballRadius;
+			//int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+			//	(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface((int)i) - m_pConfig->ballRadius;
+			int center = m_pConfig->circCenter;
 			int len = m_pConfigTemp->circRadius - m_pConfig->sheathRadius;
 
 			float maxVal;

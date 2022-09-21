@@ -1,7 +1,7 @@
 ﻿#ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define VERSION						"1.2.8.0"
+#define VERSION						"1.2.9.0"
 
 #define POWER_2(x)					(1 << x)
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
@@ -10,7 +10,7 @@
 #define PX14_ENABLE                 false
 #define ALAZAR_ENABLE               true
 
-#define NI_ENABLE					false
+#define NI_ENABLE					true
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
@@ -30,6 +30,9 @@
 #endif
 
 #define AXSUN_OCT_LASER
+#ifdef AXSUN_OCT_LASER
+//#define AXSUN_VDL_K_CLOCK_DELAY
+#endif
 
 #ifndef OCT_NIRF
 #if NI_ENABLE
@@ -40,9 +43,9 @@
 //#if ALAZAR_ENABLE
 #define ALAZAR_NIRF_ACQUISITION
 //#endif
-#define TWO_CHANNEL_NIRF
+//#define TWO_CHANNEL_NIRF
 #endif
-//#define GALVANO_MIRROR
+#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
 
 
@@ -141,7 +144,8 @@
 #define N_CUDA_PARTITIONS			4
 #endif
 
-//#define FREQ_SHIFTING               
+//#define FREQ_SHIFTING
+//#define K_CLOCKING
 
 //#define OCT_VERTICAL_MIRRORING
 
@@ -169,7 +173,7 @@
 #define N_VIS_SAMPS_FLIM			200
 #endif
 
-#define PIXEL_SIZE					1 // (100.0 / 43.0) // um/px
+#define PIXEL_SIZE					4.4 // (100.0 / 43.0) // um/px
 
 #ifdef OCT_FLIM
 #define INTENSITY_COLORTABLE		6 // fire
@@ -269,6 +273,15 @@ public:
 
         // OCT processing
         octDiscomVal = settings.value("octDiscomVal").toInt();
+		
+		// SOCT processing
+		spectroDbRange.max = settings.value("spectroDbRangeMax").toFloat();
+		spectroDbRange.min = settings.value("spectroDbRangeMin").toFloat();
+		spectroWindow = settings.value("spectroWindow").toInt();
+		spectroOverlap = settings.value("spectroOverlap").toInt();
+		spectroInPlaneAvgSize = settings.value("spectroInPlaneAvgSize").toInt();
+		spectroOutOfPlaneAvgSize = settings.value("spectroOutOfPlaneAvgSize").toInt();
+		spectroRoiDepth = settings.value("spectroRoiDepth").toInt();
 
 #ifdef OCT_FLIM
         // FLIM processing
@@ -452,6 +465,15 @@ public:
         // OCT processing
         settings.setValue("octDiscomVal", octDiscomVal);
 
+		// SOCT processing
+		settings.setValue("spectroDbRangeMax", spectroDbRange.max);
+		settings.setValue("spectroDbRangeMin", spectroDbRange.min);
+		settings.setValue("spectroWindow", spectroWindow);
+		settings.setValue("spectroOverlap", spectroOverlap);
+		settings.setValue("spectroInPlaneAvgSize", spectroInPlaneAvgSize);
+		settings.setValue("spectroOutOfPlaneAvgSize", spectroOutOfPlaneAvgSize);
+		settings.setValue("spectroRoiDepth", spectroRoiDepth);
+		
 #ifdef OCT_FLIM
         // FLIM processing
         settings.setValue("flimCh", flimCh);
@@ -616,6 +638,14 @@ public:
 
     // OCT processing
     int octDiscomVal;
+
+	// SOCT processing
+	Range<float> spectroDbRange;
+	int spectroWindow;
+	int spectroOverlap;
+	int spectroInPlaneAvgSize;
+	int spectroOutOfPlaneAvgSize;
+	int spectroRoiDepth;
 
     // FLIM processing
 #ifdef OCT_FLIM

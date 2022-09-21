@@ -189,16 +189,18 @@ signals: ///////////////////////////////////////////////////////////////////////
 	void drawEcg(double, bool);
 
 private slots: //////////////////////////////////////////////////////////////////////////////////////////
-//#ifdef AXSUN_OCT_LASER
+#ifdef AXSUN_OCT_LASER
     // Axsun OCT Laser Control
     void enableAxsunOCTLaserControl(bool);
 	void setLightSource(bool);
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 	void setVDLLength(double);
 	void setVDLHome();
 	void setVDLWidgets(bool);
 	void setkClockDelay(int);
+#endif
+#endif
 
-//#endif
 #ifdef ECG_TRIGGERING
 	// ECG Module Control
 	void enableEcgModuleControl(bool);
@@ -348,12 +350,14 @@ private: ///////////////////////////////////////////////////////////////////////
 	QLabel *m_pLabel_OCTLaserSource;
 	QPushButton *m_pToggleButton_OCTLaserSource;
 
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 	QLabel *m_pLabel_VDLLength;
 	QMySpinBox *m_pSpinBox_VDLLength;
 	QPushButton *m_pPushButton_VDLHome;
 
 	QLabel *m_pLabel_kClockDelay;
 	QSpinBox *m_pSpinBox_kClockDelay;
+#endif
 #endif
 #ifdef ECG_TRIGGERING	
 	// Widgets for ECG module control

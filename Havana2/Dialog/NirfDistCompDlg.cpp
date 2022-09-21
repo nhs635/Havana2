@@ -1418,10 +1418,10 @@ void NirfDistCompDlg::setCompInfo(const QString &infopath)
 #endif
 	settings.setValue("compConst", QString::number(compConst, 'f', 4));
 
-	if (!m_pResultTab->getPolishedSurfaceFindingStatus())
+	//if (!m_pResultTab->getPolishedSurfaceFindingStatus())
 		settings.setValue("circCenter", QString::number(m_pConfig->circCenter));
-	else
-		settings.setValue("ballRadius", QString::number(m_pConfig->ballRadius));
+	//else
+		//settings.setValue("ballRadius", QString::number(m_pConfig->ballRadius));
 	settings.setValue("circRadius", QString::number(m_pConfig->circRadius));
 	
 	settings.setValue("zeroTbrDefinition", QString::number(m_pCheckBox_ZeroTBRDefinition->isChecked()));

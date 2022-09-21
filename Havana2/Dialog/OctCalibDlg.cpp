@@ -58,6 +58,11 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
     m_pPushButton_CaptureD1->setText("Capture D1");
     m_pLabel_CaptureD1 = new QLabel(this);
 
+#ifdef K_CLOCKING
+	m_pPushButton_CaptureD1->setDisabled(true);
+	m_pLabel_CaptureD1->setDisabled(true);
+#else
+
 	info = QFileInfo("d1.bin");
 	if (info.exists())
 	{
@@ -94,12 +99,18 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 		m_pLabel_CaptureD1->setText(lastUpdate);
 	}
 	else
+#endif
 		m_pLabel_CaptureD1->setText("Last Update: X");
 
 	// Create widgets for OCT calibration (d2)
     m_pPushButton_CaptureD2 = new QPushButton(this);
     m_pPushButton_CaptureD2->setText("Capture D2");
     m_pLabel_CaptureD2 = new QLabel(this);
+
+#ifdef K_CLOCKING
+	m_pPushButton_CaptureD2->setDisabled(true);
+	m_pLabel_CaptureD2->setDisabled(true);
+#else
     
 	info = QFileInfo("d2.bin");
 	if (info.exists())
@@ -137,11 +148,13 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 		m_pLabel_CaptureD2->setText(lastUpdate);
 	}
 	else
+#endif
 		m_pLabel_CaptureD2->setText("Last Update: X");
 
 	// Create widgets for OCT calibration (calibration)
     m_pPushButton_GenerateCalibration = new QPushButton(this);
     m_pPushButton_GenerateCalibration->setText("Generate Calibration");
+	m_pPushButton_GenerateCalibration->setFixedWidth(147);
 	m_pPushButton_GenerateCalibration->setDisabled(true);
     m_pLabel_GenerateCalibration = new QLabel(this);
 
@@ -153,6 +166,7 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 	m_pPushButton_ReloadCalibration->setText("Reload");
 	m_pPushButton_ReloadCalibration->setFixedWidth(72);
 
+#ifndef K_CLOCKING
 	info = QFileInfo("calibration.dat");
 	if (info.exists())
 	{
@@ -167,8 +181,12 @@ OctCalibDlg::OctCalibDlg(QWidget *parent) :
 
 	if (QFileInfo("d1.bin").exists() && QFileInfo("d2.bin").exists())
 		m_pPushButton_GenerateCalibration->setEnabled(true);
-
-	
+#else
+	m_pLabel_GenerateCalibration->setText("Last Update: X");
+	m_pLabel_GenerateCalibration->setDisabled(true);
+	m_pPushButton_RemoveCalibration->setDisabled(true);
+	m_pPushButton_ReloadCalibration->setDisabled(true);
+#endif	
 
 	// Create widgets for discom value
 	m_pLabel_DiscomValue = new QLabel(this);
@@ -400,9 +418,11 @@ void OctCalibDlg::generateCalibration()
 	m_pOCT->transferCalibData();
 #endif
 #elif defined (STANDALONE_OCT)
+#ifndef K_CLOCKING
 	m_pOCT1->generateCalibration(m_pConfig->octDiscomVal);
 #ifdef CUDA_ENABLED
 	m_pOCT1->transferCalibData();
+#endif
 #endif
 #endif
 }
@@ -757,7 +777,9 @@ void OctCalibDlg::reloadCalibration()
 #ifdef OCT_FLIM
 	m_pOCT->loadCalibration();
 #elif defined (STANDALONE_OCT)
+#ifndef K_CLOCKING
 	m_pOCT1->loadCalibration();
+#endif
 #endif
 }
 

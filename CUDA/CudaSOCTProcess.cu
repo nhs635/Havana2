@@ -1,5 +1,5 @@
 
-#include "CudaOCTProcess.cuh"
+#include "CudaSOCTProcess.cuh"
 
 #ifdef CUDA_ENABLED
 
@@ -160,7 +160,7 @@ __global__ void logScaling(float* pScaled, cuComplex* pComplex, int width, bool 
 
 
 // Class member function definition
-CudaOCTProcess::CudaOCTProcess(int _nScans, int _nAlines) :
+CudaSOCTProcess::CudaSOCTProcess(int _nScans, int _nAlines) :
 	OCTProcess(_nScans, _nAlines),
 	nScans(_nScans), n2Scans(_nScans / 2),
 	nScansFFT((int)(1 << (int)ceil(log2(_nScans)))),
@@ -169,7 +169,7 @@ CudaOCTProcess::CudaOCTProcess(int _nScans, int _nAlines) :
 {
 }
 
-CudaOCTProcess::~CudaOCTProcess()
+CudaSOCTProcess::~CudaSOCTProcess()
 {
 	// Free Memories
 	freeMemory();
@@ -177,7 +177,7 @@ CudaOCTProcess::~CudaOCTProcess()
 
 
 
-void CudaOCTProcess::operator()(float* img, uint16_t* fringe)
+void CudaSOCTProcess::operator()(float* img, uint16_t* fringe)
 {
 	int transfer_nAlines = nAlines / N_CUDA_STREAMS / N_CUDA_PARTITIONS;
 	for (int i = 0; i < N_CUDA_PARTITIONS; i++)
@@ -255,7 +255,7 @@ void CudaOCTProcess::operator()(float* img, uint16_t* fringe)
 }
 
 
-void CudaOCTProcess::initialize()
+void CudaSOCTProcess::initialize()
 {
 	transferCalibData();
 	allocateMemory();
@@ -265,7 +265,7 @@ void CudaOCTProcess::initialize()
 }
 
 
-void CudaOCTProcess::transferCalibData()
+void CudaSOCTProcess::transferCalibData()
 {
 	// Transfer OCT Calibration Data to Device as Constant Memory
 	int tempOffset = 0;
@@ -286,7 +286,7 @@ void CudaOCTProcess::transferCalibData()
 }
 
 
-void CudaOCTProcess::allocateMemory()
+void CudaSOCTProcess::allocateMemory()
 {
 	// Set Host & Device Memories
 	CUDA_CHECK_ERROR(cudaMalloc((void**)&deviceRawFringeU16, sizeof(ushort2) * nScans * nAlines / N_CUDA_PARTITIONS));
@@ -314,7 +314,7 @@ void CudaOCTProcess::allocateMemory()
 #endif
 }
 
-void CudaOCTProcess::setGridBlockDimension()
+void CudaSOCTProcess::setGridBlockDimension()
 {
 	// Grid and Block Dimension 
 #ifndef K_CLOCKING
@@ -329,14 +329,14 @@ void CudaOCTProcess::setGridBlockDimension()
 	threadsPerBlock = dim3(N_CUDA_THREADS, N_CUDA_THREADS);
 }
 
-void CudaOCTProcess::setCudaStream()
+void CudaSOCTProcess::setCudaStream()
 {
 	// CUDA Stream 
 	for (int i = 0; i < N_CUDA_STREAMS; i++)
 		CUDA_CHECK_ERROR(cudaStreamCreate(&stream[i]));
 }
 
-void CudaOCTProcess::setCufftPlan()
+void CudaSOCTProcess::setCufftPlan()
 {
 	// FFT Plans 
 	int rank = 1;
@@ -367,7 +367,7 @@ void CudaOCTProcess::setCufftPlan()
 }
 
 
-void CudaOCTProcess::freeMemory()
+void CudaSOCTProcess::freeMemory()
 {
 	// Free Objects and Memories
 	for (int i = 0; i < N_CUDA_STREAMS; i++)

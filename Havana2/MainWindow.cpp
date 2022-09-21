@@ -213,7 +213,9 @@ void MainWindow::onTimer()
 	m_pStreamTab->m_pFLIM->saveMaskData();
 	m_pStreamTab->m_pOCT->saveCalibration();
 #elif defined (STANDALONE_OCT)
+#ifndef K_CLOCKING
 	m_pStreamTab->m_pOCT1->saveCalibration();
+#endif
 #endif
 	m_pConfiguration->setConfigFile("Havana2.ini");
 }

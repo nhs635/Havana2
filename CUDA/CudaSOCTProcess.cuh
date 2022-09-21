@@ -1,5 +1,5 @@
-#ifndef _CUDA_OCT_PROCESS_H_
-#define _CUDA_OCT_PROCESS_H_
+#ifndef _CUDA_SOCT_PROCESS_H_
+#define _CUDA_SOCT_PROCESS_H_
 
 #include <Havana2/Configuration.h>
 
@@ -31,20 +31,20 @@ static __global__ void dispersion_compensation(cuComplex* pComp, float* pSignal,
 static __global__ void logScaling(float* pScaled, cuComplex* pcuComplex, int width, bool is_linear = false);
 
 
-class CudaOCTProcess : public OCTProcess
+class CudaSOCTProcess : public OCTProcess
 {
 // Member Methods
 public: // Construtor & Destructor
-	CudaOCTProcess(int _nScans, int _nAlines);
-	~CudaOCTProcess();
+	CudaSOCTProcess(int _nScans, int _nAlines);
+	~CudaSOCTProcess();
 
 private: // Not to call copy constructor and copy assignment operator
-	CudaOCTProcess(const CudaOCTProcess&);
-	CudaOCTProcess& operator=(const CudaOCTProcess&);
+	CudaSOCTProcess(const CudaSOCTProcess&);
+	CudaSOCTProcess& operator=(const CudaSOCTProcess&);
 
 public:
-    // Generate OCT image
-	void operator()(float* img, uint16_t* fringe);
+    // Generate SOCT image
+	void operator()(float* spectra, uint16_t* fringe);
 	
     // For initiation
 	void initialize();

@@ -418,7 +418,10 @@ void QRenderImage::paintEvent(QPaintEvent *)
 
 	// Draw assitive lines - contour
     if (m_contour.length() != 0)
-    {		
+    {	
+		double perimeter = 0;
+		double area = 0;
+
 		for (int i = 0; i < m_contour.length() - 1; i++)
 		{
 			QPen pen; pen.setWidth(2);
@@ -445,8 +448,23 @@ void QRenderImage::paintEvent(QPaintEvent *)
 				x1.setY((r1 * sinf(-t1) + h / 2) / (double)m_fMagnLevel - double(m_rectMagnified.top() * (float)h / m_fMagnLevel / (float)m_pImage->height()));
 			}
 
+			// Arc length to calculate perimter
+			double arc_length = sqrt(m_contour[i] * m_contour[i] + m_contour[i + 1] * m_contour[i + 1] - 2 * m_contour[i] * m_contour[i + 1] * cos(IPP_2PI / m_contour.length()));
+			arc_length *= PIXEL_SIZE / 1000.0;
+			perimeter += arc_length;
+
+			// Arc area to calculate area
+			double arc_area = 0.5 * m_contour[i] * m_contour[i + 1] * sin(IPP_2PI / m_contour.length());
+			arc_area *= PIXEL_SIZE / 1000.0;
+			arc_area *= PIXEL_SIZE / 1000.0;
+			area += arc_area;
+
 			painter.drawLine(x0, x1);
 		}
+
+		QFont font; font.setBold(true); font.setPointSize(11);
+		painter.setFont(font);
+		painter.drawText(QRect(10, 10, 300, 150), Qt::AlignLeft, QString("Perimeter: %1 mm\nArea: %2 mm2\nAvg Dia: %3 mm").arg(perimeter, 0, 'f', 3).arg(area, 0, 'f', 3).arg(area / perimeter * 4, 0, 'f', 3));
     }
 
 	// Draw rectangle

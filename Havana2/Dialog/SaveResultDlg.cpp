@@ -1852,8 +1852,9 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 #endif
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qindeximg.bits(), pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
-			int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
-				(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+			//int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
+			//	(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+			int center = m_pConfig->circCenter;				
 			
 #ifdef OCT_NIRF
 			if (checkList.bNirfRingOnly)
@@ -2084,8 +2085,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 
 			// Buffer & center
 			np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
-			int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
-				(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+			int center = m_pConfig->circCenter; // (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
+				//(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
 
 			if (checkList.bCirc || checkList.bLongi)
 			{

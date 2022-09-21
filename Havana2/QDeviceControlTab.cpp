@@ -139,6 +139,7 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
 	m_pLabel_OCTLaserSource->setBuddy(m_pToggleButton_OCTLaserSource);
 	m_pLabel_OCTLaserSource->setDisabled(true);
 
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 	m_pSpinBox_VDLLength = new QMySpinBox(this);
 	m_pSpinBox_VDLLength->setFixedWidth(55);
 	m_pSpinBox_VDLLength->setRange(0.00, 15.00);
@@ -169,16 +170,19 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
 	m_pLabel_kClockDelay->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	m_pLabel_kClockDelay->setBuddy(m_pSpinBox_kClockDelay);
 	m_pLabel_kClockDelay->setDisabled(true);
+#endif
 
 
     pGridLayout_AxsunOCTLaserControl->addWidget(m_pCheckBox_AxsunOCTLaserControl, 0, 0, 1, 4);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_OCTLaserSource, 1, 1, 1, 2);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pToggleButton_OCTLaserSource, 1, 3);
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_VDLLength, 2, 1);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pSpinBox_VDLLength, 2, 2);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pPushButton_VDLHome, 2, 3);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pLabel_kClockDelay, 3, 1, 1, 2);
 	pGridLayout_AxsunOCTLaserControl->addWidget(m_pSpinBox_kClockDelay, 3, 3);
+#endif
 
 
     pGroupBox_AxsunOCTLaserControl->setLayout(pGridLayout_AxsunOCTLaserControl);
@@ -188,9 +192,11 @@ void QDeviceControlTab::createAxsunOCTLaserControl()
     // Connect signal and slot
     connect(m_pCheckBox_AxsunOCTLaserControl, SIGNAL(toggled(bool)), this, SLOT(enableAxsunOCTLaserControl(bool)));
 	connect(m_pToggleButton_OCTLaserSource, SIGNAL(toggled(bool)), this, SLOT(setLightSource(bool)));
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 	connect(m_pSpinBox_VDLLength, SIGNAL(valueChanged(double)), this, SLOT(setVDLLength(double)));
 	connect(m_pPushButton_VDLHome, SIGNAL(clicked(bool)), this, SLOT(setVDLHome()));
 	connect(m_pSpinBox_kClockDelay, SIGNAL(valueChanged(int)), this, SLOT(setkClockDelay(int)));
+#endif
 }
 #endif
 
@@ -864,11 +870,13 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
 		m_pLabel_OCTLaserSource->setEnabled(true);
 		m_pToggleButton_OCTLaserSource->setEnabled(true);
 		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#ff0000; }");
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 		m_pLabel_VDLLength->setEnabled(true);
 		m_pSpinBox_VDLLength->setEnabled(true);
 		m_pPushButton_VDLHome->setEnabled(true);
 		m_pLabel_kClockDelay->setEnabled(true);
 		m_pSpinBox_kClockDelay->setEnabled(true);
+#endif
     }
     else
     {
@@ -877,11 +885,13 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
 		m_pToggleButton_OCTLaserSource->setStyleSheet("QPushButton { background-color:#353535; }");
 		m_pToggleButton_OCTLaserSource->setDisabled(true);
 		m_pLabel_OCTLaserSource->setDisabled(true);
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 		m_pLabel_VDLLength->setDisabled(true);
 		m_pSpinBox_VDLLength->setDisabled(true);
 		m_pPushButton_VDLHome->setDisabled(true);
 		m_pLabel_kClockDelay->setDisabled(true);
 		m_pSpinBox_kClockDelay->setDisabled(true);
+#endif
 
         if (m_pAxsunControl)
         {
@@ -964,6 +974,7 @@ void QDeviceControlTab::turnOnOCTLaser(bool set)
 	}
 }
 
+#ifdef AXSUN_VDL_K_CLOCK_DELAY
 void QDeviceControlTab::setVDLLength(double length)
 {
 	if (m_pAxsunControl)
@@ -999,6 +1010,7 @@ void QDeviceControlTab::setkClockDelay(int delay)
 	}
 
 }
+#endif
 #endif
 
 #ifdef ECG_TRIGGERING

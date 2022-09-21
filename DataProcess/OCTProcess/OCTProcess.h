@@ -122,7 +122,7 @@ public: // Constructor & Destructor
 	explicit OCTProcess(int nScans, int nAlines);
 	~OCTProcess();
     
-private: // Not to call copy constrcutor and copy assignment operator
+protected: // Not to call copy constrcutor and copy assignment operator
     OCTProcess(const OCTProcess&);
     OCTProcess& operator=(const OCTProcess&);
 	
@@ -139,18 +139,24 @@ public:
     float* getBg0() { return bg0.raw_ptr(); }
     float* getFringe(int ch) { return &fringe(0, ch); }
 	float* getWin() { return win.raw_ptr(); }
+#ifndef K_CLOCKING
 	float* getCalibIndex() { return calib_index.raw_ptr(); }
 	float* getCalibWeight() { return calib_weight.raw_ptr(); }
+#endif
 	auto getDispComp() { return dispersion1.raw_ptr(); }
 
+#ifndef K_CLOCKING
     void generateCalibration(int discom_val = 0);
+#endif
 	void removeCalibration();
 
     void changeDiscomValue(int discom_val = 0);
+#ifndef K_CLOCKING
     //void saveCalibration(const char* calibpath = "calibration.dat");	
 	void saveCalibration(QString calibpath = "calibration.dat");
     //void loadCalibration(int ch = CH_1, const char* calibpath = "calibration.dat", const char* bgpath = "bg.bin");
 	void loadCalibration(int ch = CH_1, QString calibpath = "calibration.dat", QString bgpath = "bg.bin", bool erasmus = false);
+#endif
 
 	// For calibration dialog
 	callback2<float*, const char*> drawGraph;
@@ -158,22 +164,28 @@ public:
 	callback<void> endCalibration;
     
 // Variables
-private:
+protected:
     // FFT objects
+#ifndef K_CLOCKING
     FFT_R2C fft1; // fft
     FFT_C2C fft2; // ifft
+#endif
     FFT_C2C fft3; // fft
     
     // Size variables
     IppiSize raw_size;
+#ifndef K_CLOCKING
     IppiSize raw2_size;
+#endif
     IppiSize fft_size;
     IppiSize fft2_size;
     
     // OCT image processing buffer
     FloatArray2 signal;
     ComplexFloatArray2 complex_signal;
+#ifndef K_CLOCKING
     ComplexFloatArray2 complex_resamp;
+#endif
     ComplexFloatArray2 fft_complex;
     ComplexFloatArray2 fft2_complex;
     FloatArray2 fft2_linear;
@@ -182,11 +194,15 @@ private:
     FloatArray bg0;
     FloatArray bg;
     FloatArray2 fringe;
+#ifndef K_CLOCKING
     FloatArray calib_index;
     FloatArray calib_weight;
+#endif
     FloatArray win;
+#ifndef K_CLOCKING
     ComplexFloatArray dispersion;
     ComplexFloatArray discom;
+#endif
     ComplexFloatArray dispersion1;
 };
 
