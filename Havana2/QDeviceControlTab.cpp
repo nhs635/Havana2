@@ -60,7 +60,7 @@
 
 
 QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
-    QDialog(parent), m_pZaberMonitorTimer(nullptr)
+    QDialog(parent), m_pFaulhaberMotor(nullptr), m_pZaberMonitorTimer(nullptr)
 {
 	// Set main window objects
 	m_pMainWnd = (MainWindow*)parent;
@@ -862,6 +862,7 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
 		m_pAxsunControl->SendStatusMessage += [&](const char* msg, bool is_fail)
 		{
 			printf("%s\n", msg);
+			(void)is_fail;
 		};
 		m_pAxsunControl->setVDLLength(m_pConfig->axsunVDLLength);
 		m_pAxsunControl->setClockDelay(m_pConfig->axsunkClockDelay);
@@ -999,6 +1000,8 @@ void QDeviceControlTab::setVDLWidgets(bool enabled)
 	//m_pLabel_VDLLength->setEnabled(enabled);
 	//m_pSpinBox_VDLLength->setEnabled(enabled);
 	//m_pPushButton_VDLHome->setEnabled(enabled);
+
+	(void)enabled;
 }
 
 void QDeviceControlTab::setkClockDelay(int delay)
@@ -1838,6 +1841,7 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 		m_pCheckBox_ZaberStageControl->setText("Disable Zaber Stage Control");
 
 		// Create Zaber stage control objects
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 		m_pZaberStage = new ZaberStage;
 
@@ -1871,6 +1875,24 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 		// Set target speed first
 		m_pZaberStage->SetTargetSpeed(1, m_pLineEdit_TargetSpeed->text().toDouble());
 #endif
+#else
+		if (!m_pFaulhaberMotor)
+		{
+			// Create Faulhaber motor control objects (as a surrogate of stage object)
+			m_pFaulhaberMotor = new FaulhaberMotor;
+
+			// Connect the motor
+			if (!(m_pFaulhaberMotor->ConnectDevice()))
+			{
+				m_pCheckBox_FaulhaberMotorControl->setChecked(false);
+				return;
+			}
+		}
+
+		// Set target speed first
+		home();
+		m_pFaulhaberMotor->SetProfileVelocity(2, m_pLineEdit_TargetSpeed->text().toInt());
+#endif
 
 		// Set enable true for Zaber stage control widgets
 		m_pPushButton_MoveAbsolute->setEnabled(true);
@@ -1894,6 +1916,7 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 		m_pLabel_TravelLength->setEnabled(false);
 		m_pLabel_TargetSpeed->setEnabled(false);
 
+#ifndef DOTTER_STAGE
 		if (m_pZaberStage)
 		{
 #ifndef ZABER_NEW_STAGE
@@ -1916,6 +1939,20 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 			// Delete Zaber stage control objects
 			delete m_pZaberStage;
 		}
+#else
+		if (!m_pCheckBox_FaulhaberMotorControl->isChecked())
+		{
+			if (m_pFaulhaberMotor)
+			{
+				// Disconnect the motor
+				m_pFaulhaberMotor->DisconnectDevice();
+
+				// Delete Faulhaber motor control objects
+				delete m_pFaulhaberMotor;
+				m_pFaulhaberMotor = nullptr;
+			}
+		}
+#endif
 
 		// Set text
 		m_pCheckBox_ZaberStageControl->setText("Enable Zaber Stage Control");
@@ -1924,19 +1961,28 @@ void QDeviceControlTab::enableZaberStageControl(bool toggled)
 
 void QDeviceControlTab::moveAbsolute()
 {
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 	m_pZaberStage->MoveAbsoulte(m_pLineEdit_TravelLength->text().toDouble());
 #else
 	m_pZaberStage->MoveAbsolute(1, m_pLineEdit_TravelLength->text().toDouble());
 #endif
+#else
+	int travel_length = int(-m_pLineEdit_TravelLength->text().toDouble() / 10.0 * 4096.0);
+	m_pFaulhaberMotor->SetTargetPosition(2, travel_length);
+#endif
 }
 
 void QDeviceControlTab::setTargetSpeed(const QString & str)
 {
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 	m_pZaberStage->SetTargetSpeed(str.toDouble());
 #else
 	m_pZaberStage->SetTargetSpeed(1, str.toDouble());
+#endif	
+#else
+	m_pFaulhaberMotor->SetProfileVelocity(2, str.toInt());
 #endif
 	m_pConfig->zaberPullbackSpeed = str.toInt();
 }
@@ -1948,20 +1994,28 @@ void QDeviceControlTab::changeZaberPullbackLength(const QString &str)
 
 void QDeviceControlTab::home()
 {
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 	m_pZaberStage->Home();
 #else
 	m_pZaberStage->Home(1);
 #endif
+#else
+	m_pFaulhaberMotor->SetTargetPosition(2, 40960);	
+#endif
 }
 
 void QDeviceControlTab::stop()
 {
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 	m_pZaberStage->Stop();
 #else
 	m_pZaberStage->Stop(1);
 	m_pZaberStage->GetPos(1);
+#endif
+#else
+	m_pFaulhaberMotor->DisableMotor(2);
 #endif
 }
 
@@ -1974,13 +2028,16 @@ void QDeviceControlTab::enableFaulhaberMotorControl(bool toggled)
 		m_pCheckBox_FaulhaberMotorControl->setText("Disable Faulhaber Motor Control");
 
 		// Create Faulhaber motor control objects
-		m_pFaulhaberMotor = new FaulhaberMotor;
-
-		// Connect the motor
-		if (!(m_pFaulhaberMotor->ConnectDevice()))
+		if (!m_pFaulhaberMotor)
 		{
-			m_pCheckBox_FaulhaberMotorControl->setChecked(false);
-			return;
+			m_pFaulhaberMotor = new FaulhaberMotor;
+
+			// Connect the motor
+			if (!(m_pFaulhaberMotor->ConnectDevice()))
+			{
+				m_pCheckBox_FaulhaberMotorControl->setChecked(false);
+				return;
+			}
 		}
 		
 		// Set enable true for Faulhaber motor control widgets
@@ -1997,14 +2054,22 @@ void QDeviceControlTab::enableFaulhaberMotorControl(bool toggled)
 		m_pLineEdit_RPM->setEnabled(false);
 		m_pLabel_RPM->setEnabled(false);
 		
-		if (m_pFaulhaberMotor)
+#ifdef DOTTER_STAGE
+		if (!m_pCheckBox_ZaberStageControl->isChecked())
 		{
-			// Disconnect the motor
-			m_pFaulhaberMotor->DisconnectDevice();
+#endif
+			if (m_pFaulhaberMotor)
+			{
+				// Disconnect the motor
+				m_pFaulhaberMotor->DisconnectDevice();
 
-			// Delete Faulhaber motor control objects
-			delete m_pFaulhaberMotor;
+				// Delete Faulhaber motor control objects
+				delete m_pFaulhaberMotor;
+				m_pFaulhaberMotor = nullptr;
+			}
+#ifdef DOTTER_STAGE
 		}
+#endif
 
 		// Set text
 		m_pCheckBox_FaulhaberMotorControl->setText("Enable Faulhaber Motor Control");
@@ -2013,12 +2078,12 @@ void QDeviceControlTab::enableFaulhaberMotorControl(bool toggled)
 
 void QDeviceControlTab::rotate()
 {
-	m_pFaulhaberMotor->RotateMotor(m_pLineEdit_RPM->text().toInt());
+	m_pFaulhaberMotor->RotateMotor(1, m_pLineEdit_RPM->text().toInt());
 }
 
 void QDeviceControlTab::rotateStop()
 {
-	m_pFaulhaberMotor->StopMotor();
+	m_pFaulhaberMotor->StopMotor(1);
 }
 
 void QDeviceControlTab::changeFaulhaberRpm(const QString &str)

@@ -83,7 +83,7 @@ public:
 
 	void waitUntilResponse()
 	{
-		m_pSerialPort->waitForReadyRead(100);
+		m_pSerialPort->waitForReadyRead(50);
 	}
 	
 public slots:

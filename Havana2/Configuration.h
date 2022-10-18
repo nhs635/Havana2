@@ -10,7 +10,7 @@
 #define PX14_ENABLE                 false
 #define ALAZAR_ENABLE               true
 
-#define NI_ENABLE					true
+#define NI_ENABLE					false
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
@@ -31,7 +31,7 @@
 
 #define AXSUN_OCT_LASER
 #ifdef AXSUN_OCT_LASER
-//#define AXSUN_VDL_K_CLOCK_DELAY
+#define AXSUN_VDL_K_CLOCK_DELAY
 #endif
 
 #ifndef OCT_NIRF
@@ -45,8 +45,11 @@
 //#endif
 //#define TWO_CHANNEL_NIRF
 #endif
-#define GALVANO_MIRROR
+//#define GALVANO_MIRROR
 #define PULLBACK_DEVICE
+#ifdef PULLBACK_DEVICE
+#define DOTTER_STAGE
+#endif
 
 
 ////////////////////// Digitizer setup //////////////////////
@@ -145,7 +148,7 @@
 #endif
 
 //#define FREQ_SHIFTING
-//#define K_CLOCKING
+#define K_CLOCKING
 
 //#define OCT_VERTICAL_MIRRORING
 

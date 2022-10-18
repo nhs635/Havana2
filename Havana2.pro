@@ -95,9 +95,11 @@ SOURCES += Havana2/Havana2.cpp \
     Havana2/Dialog/PulseReviewDlg.cpp \
     Havana2/Dialog/NirfEmissionProfileDlg.cpp \
     Havana2/Dialog/NirfDistCompDlg.cpp \
-    Havana2/Dialog/NirfCrossTalkCompDlg.cpp
+    Havana2/Dialog/NirfCrossTalkCompDlg.cpp \
+    Havana2/Dialog/SpectroOCTDlg.cpp
 
 SOURCES += DataProcess/OCTProcess/OCTProcess.cpp \
+    DataProcess/OCTProcess/SOCTProcess.cpp \
     DataProcess/FLIMProcess/FLIMProcess.cpp \
     DataProcess/ThreadManager.cpp
 
@@ -144,9 +146,11 @@ HEADERS += Havana2/Configuration.h \
     Havana2/Dialog/PulseReviewDlg.h \
     Havana2/Dialog/NirfEmissionProfileDlg.h \
     Havana2/Dialog/NirfDistCompDlg.h \
-    Havana2/Dialog/NirfCrossTalkCompDlg.h
+    Havana2/Dialog/NirfCrossTalkCompDlg.h \
+    Havana2/Dialog/SpectroOCTDlg.h
 
 HEADERS += DataProcess/OCTProcess/OCTProcess.h \
+    DataProcess/OCTProcess/SOCTProcess.h \
     DataProcess/FLIMProcess/FLIMProcess.h \
     DataProcess/ThreadManager.h \
 

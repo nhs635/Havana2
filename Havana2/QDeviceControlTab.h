@@ -114,10 +114,14 @@ public: ////////////////////////////////////////////////////////////////////////
 	inline QCheckBox* getEnableGalvanoMirrorControl() const { return m_pCheckBox_GalvanoMirrorControl; }
 #endif
 #ifdef PULLBACK_DEVICE
+#ifndef DOTTER_STAGE
 #ifndef ZABER_NEW_STAGE
 	inline ZaberStage* getZaberStage() const { return m_pZaberStage; }
 #else
 	inline ZaberStage2* getZaberStage() const { return m_pZaberStage; }
+#endif
+#else
+	inline auto getZaberStage() const { return m_pFaulhaberMotor; }
 #endif
 	inline FaulhaberMotor* getFaulhaberMotor() const { return m_pFaulhaberMotor; }
 #endif
@@ -182,7 +186,7 @@ public: ////////////////////////////////////////////////////////////////////////
 #ifdef PULLBACK_DEVICE
 	// Zaber Stage Control
 	bool isZaberStageEnabled() { return m_pCheckBox_ZaberStageControl->isChecked(); }
-	void pullback() { moveAbsolute(); }
+	void pullback() { moveAbsolute(); }	
 #endif
 
 signals: ////////////////////////////////////////////////////////////////////////////////////////////////

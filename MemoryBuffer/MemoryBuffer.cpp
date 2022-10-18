@@ -179,7 +179,7 @@ bool MemoryBuffer::startRecording()
 			{
 				m_bIsRecording = false;
 				m_pOperationTab->setRecordingButton(false);
-				m_pDeviceControlTab->getFaulhaberMotor()->StopMotor();
+				m_pDeviceControlTab->getFaulhaberMotor()->StopMotor(1);
 			}
 		};
 		m_pDeviceControlTab->pullback();
