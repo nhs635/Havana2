@@ -1975,8 +1975,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 					pCircImgObj[i] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 
 					// Buffer & center
-					int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
-						(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+					int center = m_pConfig->circCenter;// (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
+						//(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
 					np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 
 					if (checkList.bCh[i] && (checkList.bCirc || checkList.bLongi))
@@ -2028,8 +2028,8 @@ void SaveResultDlg::circularizing(CrossSectionCheckList checkList) // with longi
 				pCircImgObj[0] = new ImageObject(2 * m_pResultTab->getConfigTemp()->circRadius, 2 * m_pResultTab->getConfigTemp()->circRadius, temp_ctable.m_colorTableVector.at(m_pResultTab->getCurrentOctColorTable()), m_pConfig->octDbGamma);
 
 				// Buffer & center
-				int center = (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
-					(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
+				int center = m_pConfig->circCenter; // (!m_pResultTab->getPolishedSurfaceFindingStatus()) ? m_pConfig->circCenter :
+					//(m_pResultTab->getConfigTemp()->n2ScansFFT / 2 - m_pResultTab->getConfigTemp()->nScans / 3) + m_pResultTab->m_polishedSurface(frameCount) - m_pConfig->ballRadius;
 				np::Uint8Array2 rect_temp(pImgObjVec->at(0)->qrgbimg.bits(), 3 * pImgObjVec->at(0)->arr.size(0), pImgObjVec->at(0)->arr.size(1));
 
 				// Paste FLIM color ring to RGB rect image

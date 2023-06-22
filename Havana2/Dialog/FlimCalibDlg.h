@@ -20,14 +20,14 @@ class MainWindow;
 class QStreamTab;
 class FLIMProcess;
 
-class QMySpinBox : public QDoubleSpinBox
+class QMySpinBox1 : public QDoubleSpinBox
 {
 public:
-	explicit QMySpinBox(QWidget *parent = 0) : QDoubleSpinBox(parent)
+	explicit QMySpinBox1(QWidget *parent = 0) : QDoubleSpinBox(parent)
 	{
 		lineEdit()->setReadOnly(true);
 	}
-	virtual ~QMySpinBox() {};
+	virtual ~QMySpinBox1() {};
 };
 
 struct Histogram
@@ -193,7 +193,7 @@ private:
 	QLabel *m_pLabel_ChStart;
 	QLabel *m_pLabel_DelayTimeOffset;
 	QLabel *m_pLabel_Ch[4];
-	QMySpinBox *m_pSpinBox_ChStart[4];
+	QMySpinBox1 *m_pSpinBox_ChStart[4];
 	QLineEdit *m_pLineEdit_DelayTimeOffset[3];
 	QLabel *m_pLabel_NanoSec[2];
 

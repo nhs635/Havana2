@@ -60,7 +60,10 @@
 
 
 QDeviceControlTab::QDeviceControlTab(QWidget *parent) :
-    QDialog(parent), m_pFaulhaberMotor(nullptr), m_pZaberMonitorTimer(nullptr)
+    QDialog(parent)
+#ifdef PULLBACK_DEVICE
+	,m_pFaulhaberMotor(nullptr), m_pZaberMonitorTimer(nullptr)
+#endif
 {
 	// Set main window objects
 	m_pMainWnd = (MainWindow*)parent;

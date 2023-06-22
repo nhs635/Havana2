@@ -151,7 +151,7 @@ void FlimCalibDlg::createCalibWidgets()
 
 	for (int i = 0; i < 4; i++)
 	{	
-		m_pSpinBox_ChStart[i] = new QMySpinBox(this);
+		m_pSpinBox_ChStart[i] = new QMySpinBox1(this);
 		m_pSpinBox_ChStart[i]->setFixedWidth(65);
 		m_pSpinBox_ChStart[i]->setRange(0.0, 1000.0);
 		m_pSpinBox_ChStart[i]->setSingleStep(m_pFLIM->_params.samp_intv);

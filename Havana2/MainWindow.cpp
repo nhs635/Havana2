@@ -37,12 +37,35 @@
 #endif
 
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+using namespace tbb;
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+
+	int num = 100;
+	for (int i = 0; i < num; i++)
+	{
+		/* do something */
+	}
+
+	parallel_for(blocked_range<int>(0, num),
+		[&](const blocked_range<int>& r) {
+		for (int i = r.begin(); i != r.end(); ++i)
+		{
+			/* do something */
+		}
+	});
 	
+
+
+
     // Initialize user interface
 	QString windowTitle("Havana2 [%1] v%2");
 #ifdef OCT_FLIM

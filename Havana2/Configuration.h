@@ -8,7 +8,7 @@
 
 ///////////////////// Library enabling //////////////////////
 #define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               true
+#define ALAZAR_ENABLE               false
 
 #define NI_ENABLE					false
 
@@ -17,7 +17,7 @@
 #endif
 
 /////////////////////// System setup ////////////////////////
-///#define OCT_FLIM // deprecated
+//#define OCT_FLIM // deprecated
 #define STANDALONE_OCT
 
 #ifdef STANDALONE_OCT
@@ -40,15 +40,15 @@
 #endif
 #else
 //#define PROGRAMMATIC_GAIN_CONTROL
-//#if ALAZAR_ENABLE
+#if ALAZAR_ENABLE
 #define ALAZAR_NIRF_ACQUISITION
-//#endif
+#endif
 //#define TWO_CHANNEL_NIRF
 #endif
 //#define GALVANO_MIRROR
-#define PULLBACK_DEVICE
+//#define PULLBACK_DEVICE
 #ifdef PULLBACK_DEVICE
-#define DOTTER_STAGE
+//#define DOTTER_STAGE
 #endif
 
 
@@ -148,7 +148,7 @@
 #endif
 
 //#define FREQ_SHIFTING
-#define K_CLOCKING
+//#define K_CLOCKING
 
 //#define OCT_VERTICAL_MIRRORING
 

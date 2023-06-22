@@ -1543,16 +1543,16 @@ void QResultTab::visualizeImage(int frame)
 #ifdef OCT_FLIM
 void QResultTab::constructRgbImage(ImageObject *pRectObj, ImageObject *pCircObj, ImageObject *pIntObj, ImageObject *pLftObj)
 {	
-	int center = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
-		(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
+	int center = m_pConfig->circCenter; // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? m_pConfig->circCenter :
+		//(m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3) + m_polishedSurface(m_pSlider_SelectFrame->value()) - m_pConfig->ballRadius;
 	if (m_pCheckBox_ShowGuideLine->isChecked())
 	{
-		int polished_surface = (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
+		int polished_surface = center - m_pConfig->circCenter; // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? center - m_pConfig->circCenter : center + m_pConfig->ballRadius;
 
 		m_pImageView_RectImage->setHorizontalLine(7, m_pConfigTemp->n2ScansFFT / 2 - m_pConfigTemp->nScans / 3, center, center + m_pConfig->sheathRadius,
 			polished_surface, center + m_pConfigTemp->circRadius, center + m_pConfigTemp->circRadius - m_pConfig->ringThickness, m_pConfigTemp->n2ScansFFT / 2 + m_pConfigTemp->nScans / 3);
 		m_pImageView_RectImage->setHorizontalLineColor(7, 0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x00ff00, 0x00ff00, 0xff0000);
-		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
+		m_pImageView_CircImage->setCircle(2, m_pConfig->sheathRadius, 1); // (!m_pToggleButton_FindPolishedSurfaces->isChecked()) ? 1 : m_pConfig->ballRadius);
 	}
 	
 	// Convert RGB

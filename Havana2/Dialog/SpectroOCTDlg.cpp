@@ -34,7 +34,7 @@ SpectroOCTDlg::SpectroOCTDlg(QWidget *parent) :
 	m_pConfig = m_pMainWnd->m_pConfiguration;
 
 	// Create image viewing widgets
-	m_pImageView_SpectroOCTView = new QImageView(ColorTable::colortable::parula, 200, m_pResultTab->getConfigTemp()->n2ScansFFT);
+	m_pImageView_SpectroOCTView = new QImageView(ColorTable::colortable::jet, 200, m_pResultTab->getConfigTemp()->n2ScansFFT);
 	m_pImageView_SpectroOCTView->setMinimumWidth(400);
 	m_pImageView_SpectroOCTView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	m_pImageView_SpectroOCTView->getRender()->update();
@@ -116,7 +116,7 @@ SpectroOCTDlg::SpectroOCTDlg(QWidget *parent) :
 	m_pLineEdit_SpectroDbMin->setFixedWidth(30);
 	m_pLineEdit_SpectroDbMin->setDisabled(true);
 
-	m_pImageView_Colorbar = new QImageView(ColorTable::colortable::parula, 256, 1);
+	m_pImageView_Colorbar = new QImageView(ColorTable::colortable::jet, 256, 1);
 	m_pImageView_Colorbar->setFixedHeight(15);
 	m_pImageView_Colorbar->drawImage(color);
 	m_pImageView_Colorbar->setDisabled(true);
@@ -438,7 +438,7 @@ void SpectroOCTDlg::spectrumExtract()
 
 				ColorTable temp_ctable;
 				if (m_pImgObjSpectroOCT) delete m_pImgObjSpectroOCT;
-				m_pImgObjSpectroOCT = new ImageObject(((nk + 3) >> 2) << 2, m_pConfigTemp->n2ScansFFT, temp_ctable.m_colorTableVector.at(ColorTable::parula));
+				m_pImgObjSpectroOCT = new ImageObject(((nk + 3) >> 2) << 2, m_pConfigTemp->n2ScansFFT, temp_ctable.m_colorTableVector.at(ColorTable::jet));
 
 				m_pImageView_SpectroOCTView->resetSize(nk, m_pConfigTemp->n2ScansFFT);
 
