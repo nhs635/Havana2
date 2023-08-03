@@ -22,7 +22,7 @@ GalvoScan::GalvoScan() :
 	pp_voltage_slow(2.0),
 	offset_slow(0.0),
 	step_slow(0.0),
-	max_rate(120000.0),
+	max_rate(250000.0),
 	data(nullptr),
 	physicalChannel(NI_GALVO_CHANNEL),
     sourceTerminal(NI_GAVLO_SOURCE)

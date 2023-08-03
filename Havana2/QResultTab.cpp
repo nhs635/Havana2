@@ -466,7 +466,7 @@ void QResultTab::createVisualizationOptionTab()
 	m_pCheckBox_ShowGuideLine->setDisabled(true);
     m_pCheckBox_CircularizeImage = new QCheckBox(this);
     m_pCheckBox_CircularizeImage->setText("Circularize Image");
-	m_pCheckBox_CircularizeImage->setChecked(true);
+	m_pCheckBox_CircularizeImage->setChecked(false);
 	m_pCheckBox_CircularizeImage->setDisabled(true);
 
 	// Create widegts for OCT longitudinal visualization
@@ -3767,8 +3767,8 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 		m_pPushButton_LongitudinalView->setEnabled(true);
 		m_pPushButton_SpectroscopicView->setEnabled(true);
-		//m_pToggleButton_FindPolishedSurfaces->setChecked(false);
-		//m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		///m_pToggleButton_FindPolishedSurfaces->setChecked(false);
+		///m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
 		m_pToggleButton_AutoContour->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
@@ -3916,8 +3916,8 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 #endif
 		m_pPushButton_LongitudinalView->setDisabled(true);
 		m_pPushButton_SpectroscopicView->setDisabled(true);
-		//m_pToggleButton_FindPolishedSurfaces->setChecked(false);
-		//m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		///m_pToggleButton_FindPolishedSurfaces->setChecked(false);
+		///m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
 		m_pToggleButton_AutoContour->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
@@ -4047,7 +4047,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 		m_pPushButton_LongitudinalView->setEnabled(true);
 		m_pPushButton_SpectroscopicView->setEnabled(true);
-		//m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
+		///m_pToggleButton_FindPolishedSurfaces->setEnabled(true);
 		m_pToggleButton_AutoContour->setEnabled(true);
 		m_pCheckBox_CircularizeImage->setEnabled(true);
 		m_pCheckBox_ShowGuideLine->setEnabled(true);
@@ -4169,7 +4169,7 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 #endif
 		m_pPushButton_LongitudinalView->setDisabled(true);
 		m_pPushButton_SpectroscopicView->setDisabled(true);
-		//m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
+		///m_pToggleButton_FindPolishedSurfaces->setDisabled(true);
 		m_pToggleButton_AutoContour->setDisabled(true);
 		m_pCheckBox_CircularizeImage->setDisabled(true);
 		m_pCheckBox_ShowGuideLine->setDisabled(true);
@@ -4435,7 +4435,14 @@ void QResultTab::deinterleaving(Configuration* pConfig)
 					// Data deinterleaving
 					int frame_length = pConfig->nFrameSize / pConfig->nChannels;
 					if (pConfig->nChannels == 2)
+					{
+#ifndef AXSUN_OCT_LASER
 						ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+#else
+						memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
+						memcpy(ch2_ptr, frame_ptr + frame_length, sizeof(uint16_t) * frame_length);					
+#endif
+					}
 					else
 						memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
 					//printf("ch1,2proc: %d %d [%d]\n", m_syncCh1Processing.queue_buffer.size(), m_syncCh2Processing.queue_buffer.size(), frameCount);
@@ -4503,7 +4510,14 @@ void QResultTab::deinterleavingInBuffer(Configuration* pConfig)
 				// Data deinterleaving
 				int frame_length = pConfig->nFrameSize / pConfig->nChannels;
 				if (pConfig->nChannels == 2)
+				{
+#ifndef AXSUN_OCT_LASER
 					ippsCplxToReal_16sc((Ipp16sc *)frame_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+#else
+					memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
+					memcpy(ch2_ptr, frame_ptr + frame_length, sizeof(uint16_t) * frame_length);
+#endif
+				}
 				else
 					memcpy(ch1_ptr, frame_ptr, sizeof(uint16_t) * frame_length);
 				//printf("ch1,2proc: %d %d [%d]\n", m_syncCh1Processing.queue_buffer.size(), m_syncCh2Processing.queue_buffer.size(), frameCount);

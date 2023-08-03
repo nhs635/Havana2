@@ -47,25 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-
-	int num = 100;
-	for (int i = 0; i < num; i++)
-	{
-		/* do something */
-	}
-
-	parallel_for(blocked_range<int>(0, num),
-		[&](const blocked_range<int>& r) {
-		for (int i = r.begin(); i != r.end(); ++i)
-		{
-			/* do something */
-		}
-	});
 	
-
-
-
     // Initialize user interface
 	QString windowTitle("Havana2 [%1] v%2");
 #ifdef OCT_FLIM
@@ -163,8 +145,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_pTimerSync, SIGNAL(timeout()), this, SLOT(onTimerSync()));
 	connect(m_pTabWidget, SIGNAL(currentChanged(int)), this, SLOT(changedTab(int)));
 	
-	// Connect all devices
-	m_pDeviceControlTab->initiateAllDevices();
+	/// Connect all devices
+	///m_pDeviceControlTab->initiateAllDevices();
 }
 
 MainWindow::~MainWindow()

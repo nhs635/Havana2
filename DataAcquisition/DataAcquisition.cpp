@@ -68,13 +68,13 @@ bool DataAcquisition::InitializeAcquistion()
 #elif ALAZAR_ENABLE
     // Parameter settings for DAQ
 	pDaq->SystemId = 1;
-	pDaq->AcqRate = SAMPLE_RATE_500MSPS;
+	pDaq->AcqRate = SAMPLE_RATE_1000MSPS;
     pDaq->nChannels = m_pConfig->nChannels;
     pDaq->nScans = m_pConfig->nScans;
     pDaq->nAlines = m_pConfig->nAlines;
 
-    pDaq->VoltRange1 = m_pConfig->ch1VoltageRange + 1;
-    pDaq->VoltRange2 = m_pConfig->ch2VoltageRange + 1;
+    pDaq->VoltRange1 = INPUT_RANGE_PM_400_MV;
+	pDaq->VoltRange2 = INPUT_RANGE_PM_400_MV;
     pDaq->TriggerDelay = m_pConfig->triggerDelay;  ///// need to be revised!!!! 2020 02 20
 
 	pDaq->UseExternalClock = USE_EXTERNAL_K_CLOCK;
@@ -130,9 +130,7 @@ bool DataAcquisition::StartAcquisition()
     }
     return true;
 #elif ALAZAR_ENABLE
-    // Parameter settings for DAQ
-    pDaq->VoltRange1 = m_pConfig->ch1VoltageRange + 1;
-    pDaq->VoltRange2 = m_pConfig->ch2VoltageRange + 1;
+    // Parameter settings for DAQ	
     pDaq->TriggerDelay = m_pConfig->triggerDelay;
 
     // Start acquisition

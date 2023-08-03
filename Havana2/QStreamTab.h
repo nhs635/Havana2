@@ -420,6 +420,8 @@ private:
     QLineEdit *m_pLineEdit_OctDbMax;
     QLineEdit *m_pLineEdit_OctDbMin;
     QImageView *m_pImageView_OctDbColorbar;
+
+	QLabel *m_pLabel_AvgMaxVal;
 };
 
 #endif // QSTREAMTAB_H

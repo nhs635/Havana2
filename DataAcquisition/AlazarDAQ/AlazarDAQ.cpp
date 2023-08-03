@@ -11,12 +11,12 @@ using namespace std;
 
 AlazarDAQ::AlazarDAQ() :
 	SystemId(1),
-    nChannels(2),
-    nScans(1600),
-    nAlines(1024),
-    VoltRange1(INPUT_RANGE_PM_500_MV),
-    VoltRange2(INPUT_RANGE_PM_500_MV),
-	AcqRate(SAMPLE_RATE_500MSPS),
+    nChannels(1),
+    nScans(2560),
+    nAlines(2048),
+    VoltRange1(INPUT_RANGE_PM_400_MV),
+    VoltRange2(INPUT_RANGE_PM_400_MV),
+	AcqRate(SAMPLE_RATE_1000MSPS),
     TriggerDelay(0),
     UseExternalClock(false),
     UseAutoTrigger(false),
@@ -68,9 +68,8 @@ bool AlazarDAQ::initialize()
 		return false;
 	}
 
-	// Specify the sample rate (see sample rate id below)
-    // double samplesPerSec = 500.e6;
-	const U32 SamplingRate = AcqRate;  // SAMPLE_RATE_500MSPS; // only for internal clock
+	// Specify the sample rate (see sample rate id below)    
+	const U32 SamplingRate = AcqRate; // only for internal clock
 
 	// Select clock parameters as required to generate this sample rate.
 	//
@@ -93,17 +92,19 @@ bool AlazarDAQ::initialize()
 	}
 
     // External Clock Settings
-    retCode =
-        AlazarSetExternalClockLevel(
-        boardHandle,			// HANDLE -- board handle
-        30.f                    // Voltage level in percentage
-        );
-    if (retCode != ApiSuccess)
-    {
-        dumpError(retCode, "Error: AlazarSetExternalClockLevel failed: ");
-        return false;
-    }
-
+	if (UseExternalClock)
+	{
+		retCode =
+			AlazarSetExternalClockLevel(
+				boardHandle,			// HANDLE -- board handle
+				30.f                    // Voltage level in percentage
+				);
+		if (retCode != ApiSuccess)
+		{
+			dumpError(retCode, "Error: AlazarSetExternalClockLevel failed: ");
+			return false;
+		}
+	}
 
 	// Select CHA input parameters as required
 	retCode = 
@@ -111,7 +112,7 @@ bool AlazarDAQ::initialize()
 			boardHandle,			// HANDLE -- board handle
 			CHANNEL_A,			    // U8 -- input channel 
             DC_COUPLING,			// U32 -- input coupling id
-			INPUT_RANGE_PM_400_MV,     		// U32 -- input range id  VoltRange1
+			VoltRange1,  // U32 -- input range id  VoltRange1
 			IMPEDANCE_50_OHM		// U32 -- input impedance id
 			);
 	if (retCode != ApiSuccess)
@@ -126,7 +127,7 @@ bool AlazarDAQ::initialize()
 			boardHandle,			// HANDLE -- board handle
 			CHANNEL_B,				// U8 -- channel identifier
             DC_COUPLING,			// U32 -- input coupling id
-			INPUT_RANGE_PM_400_MV,         	// U32 -- input range id  VoltRange2
+			VoltRange2,         	// U32 -- input range id  VoltRange2
             IMPEDANCE_50_OHM		// U32 -- input impedance id
 			);
 	if (retCode != ApiSuccess)
@@ -143,7 +144,7 @@ bool AlazarDAQ::initialize()
 			TRIG_ENGINE_J,			// U32 -- trigger engine id
 			TRIG_EXTERNAL,			// U32 -- trigger source id
 			TRIGGER_SLOPE_POSITIVE,	// U32 -- trigger slope id
-			128 + (int)(128 * 0.5),// Utrigger32 -- trigger level from 0 (-range) to 255 (+range)
+			128 + (int)(128 * 0.5),	// U32 -- trigger level from 0 (-range) to 255 (+range)  
 			TRIG_ENGINE_K,			// U32 -- trigger engine id
 			TRIG_DISABLE,			// U32 -- trigger source id for engine K
 			TRIGGER_SLOPE_POSITIVE,	// U32 -- trigger slope id
@@ -160,7 +161,7 @@ bool AlazarDAQ::initialize()
 		AlazarSetExternalTrigger( 
 			boardHandle,			// HANDLE -- board handle
 			DC_COUPLING,			// U32 -- external trigger coupling id
-            ETR_2V5					// U32 -- external trigger range id
+            ETR_TTL					// U32 -- external trigger range id
 			);
 
     // Set trigger delay as required.
@@ -277,10 +278,10 @@ void AlazarDAQ::run()
     // MEMO: we always acquire two channel and if nChannels == 1, interlace and send only 1 channel
 
     // Calculate the number of enabled channels from the channel mask
-    int channelCount = nChannels;
+	int channelCount = nChannels;
 
     // Select which channels to capture (A, B, or both)
-    U32 channelMask = (channelCount == 2) ? CHANNEL_A | CHANNEL_B : CHANNEL_A;
+	U32 channelMask = (channelCount == 2) ? CHANNEL_A | CHANNEL_B : CHANNEL_A;
 
     // Get the sample size in bits, and the on-board memory size in samples per channel
     U8 bitsPerSample;
@@ -349,7 +350,7 @@ void AlazarDAQ::run()
             // Acquire records per each trigger
             admaFlags = ADMA_EXTERNAL_STARTCAPTURE |	// Start acquisition when AlazarStartCapture is called
                 ADMA_FIFO_ONLY_STREAMING |		// The ATS9360-FIFO does not have on-board memory
-                ADMA_TRADITIONAL_MODE;			// Acquire multiple records optionally with pretrigger
+                ADMA_NPT;			// Acquire multiple records optionally with no-pretrigger
         }
 		
         // samples and record headers
@@ -465,33 +466,12 @@ void AlazarDAQ::run()
                 // - a sample code of 0x000 represents a negative full scale input signal.
                 // - a sample code of 0x800 represents a ~0V signal.
                 // - a sample code of 0xFFF represents a positive full scale input signal.
+				                
+                // Callback
+                np::Array<uint16_t, 2> frame(pBuffer, nScans, channelCount * nAlines);  // internal de-interleaving
 
-                //if (nChannels == 2)
-                {
-                    // Callback
-                    np::Array<uint16_t, 2> frame(pBuffer, channelCount * nScans, nAlines);
-
-                    // MEMO: -1 to make buffersCompleted start with 0 (same as signatec system)                    
-                    DidAcquireData(buffersCompleted++, frame);
-                }
-//                else if (nChannels == 1)
-//                {
-//                    // deinterlace data and send only 1 channel
-
-//                    // lazy initialize buffer
-//                    if (buffer1ch.size(0) != nScans || buffer1ch.size(1) != nAlines)
-//                    {
-//                        buffer1ch = np::Array<uint16_t, 2>(nScans, nAlines);
-//                        buffer2ch = np::Array<uint16_t, 2>(nScans, nAlines);
-//                    }
-
-//                    // deinterlace fringe
-//                    Ipp16u *deinterlaced_fringe[2] = { buffer1ch, buffer2ch};
-//                    ippsDeinterleave_16s((Ipp16s *)pBuffer, 2, nAlines * nScans, (Ipp16s **)deinterlaced_fringe);
-
-//                    // MEMO: -1 to make buffersCompleted start with 0 (same as signatec system)
-//                    DidAcquireData(buffersCompleted - 1, buffer1ch);
-//                }
+                // MEMO: -1 to make buffersCompleted start with 0 (same as signatec system)      
+				DidAcquireData(buffersCompleted++, frame);                
             }
 				
             // Add the buffer to the end of the list of available buffers.
@@ -585,9 +565,9 @@ void AlazarDAQ::dumpError(RETURN_CODE retCode, const char* pPreamble)
     memcpy(msg, pPreamble, strlen(pPreamble));
 
     strcat(msg, AlazarErrorToText(retCode));
-
-    printf("%s\n", msg);
-//    SendStatusMessage(msg);
+	    
+	printf("%s\n", msg);
+    //SendStatusMessage(msg);
 
     // Abort the acquisition
     AlazarAbortAsyncRead(boardHandle);
@@ -616,8 +596,8 @@ void AlazarDAQ::dumpErrorSystem(int res, const char* pPreamble)
     sprintf(pErr, "Error code (%d)", res);
     strcat(msg, pErr);
 
-    printf("%s\n", msg);
-//    SendStatusMessage(msg);
+	printf("%s\n", msg);
+    //SendStatusMessage(msg);
 
     // Abort the acquisition
     AlazarAbortAsyncRead(boardHandle);

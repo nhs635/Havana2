@@ -174,6 +174,7 @@ QStreamTab::QStreamTab(QWidget *parent) :
 
 	m_visFringe2 = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
 	m_visFringeBg2 = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
+	memset(m_visFringeBg2, 0, sizeof(float) * m_visFringeBg2.length());
 	m_visFringe2Rm = np::FloatArray2(m_pConfig->nScans, m_pConfig->nAlines);
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, m_pConfig->nAlines);
 
@@ -249,9 +250,10 @@ QStreamTab::QStreamTab(QWidget *parent) :
 #elif defined (STANDALONE_OCT)
 	m_pScope_OctFringe = new QScope2({ 0, (double)m_pConfig->nScans }, { -POWER_2(15), POWER_2(15) }, 2, 3, 1, voltageCh1 / (double)POWER_2(16), 0, 0, "", "V");
 	m_pScope_OctFringe->setMinimumSize(600, 250);
-	m_pScope_OctDepthProfile = new QScope2({ 0, (double)m_pConfig->n2ScansFFT }, { (double)m_pConfig->octDbRange.min, (double)m_pConfig->octDbRange.max }, 2, 2, 1, 1, 0, 0, "", "dB");
+	m_pScope_OctDepthProfile = new QScope2({ 0, (double)m_pConfig->n2ScansFFT }, { (double)m_pConfig->octDbRange.min, (double)m_pConfig->octDbRange.max }, 2, 2, 1, 1, 0, 0, "", "dB");	
 	m_pScope_OctDepthProfile->setMinimumSize(600, 250);
 	//m_pScope_OctDepthProfile->setVerticalLine(2, m_pConfig->n2ScansFFT / 2 - m_pConfig->nScans / 4, m_pConfig->n2ScansFFT / 2 + m_pConfig->nScans / 4);
+	m_pScope_OctDepthProfile->getRender()->setGrid(8, 64, 8); // default 8 64 4
 	m_pScope_OctDepthProfile->getRender()->update();
 #endif
 	
@@ -768,8 +770,15 @@ void QStreamTab::createOctVisualizationOptionTab()
     m_pLabel_OctDb = new QLabel("OCT dB", this);
     m_pLabel_OctDb->setFixedWidth(60);
 
+    // Create label
+	m_pLabel_AvgMaxVal = new QLabel(this);
+	m_pLabel_AvgMaxVal->setStyleSheet("font: 15pt; color: yellow; font-weight: bold");
+	m_pLabel_AvgMaxVal->setText("0.000 dB");
+
+
     // Set layout
-	pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0);
+	pGridLayout_OctVisualization->addWidget(m_pLabel_AvgMaxVal, 0, 0, 3, 3);
+	//pGridLayout_OctVisualization->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 0, 1, 3);
 	pGridLayout_OctVisualization->addWidget(m_pPushButton_OctCalibration, 0, 3, 1, 2);
 	
 #if defined OCT_FLIM || (defined(STANDALONE_OCT) && defined(OCT_NIRF))
@@ -836,7 +845,7 @@ void QStreamTab::setDataAcquisitionCallback()
 		// Data halving
 #ifdef STANDALONE_OCT
 		/* To be updated*/
-#endif
+#endif			
 		// Data transfer		
 		if (!(frame_count % RENEWAL_COUNT))
 		{
@@ -869,35 +878,38 @@ void QStreamTab::setDataAcquisitionCallback()
 		// Buffering (When recording)
 		if (m_pMemBuff->m_bIsRecording)
 		{
-			if (m_pMemBuff->m_nRecordedFrames < WRITING_BUFFER_SIZE)
+			if (!(frame_count % RECORDING_SKIP_FRAMES))
 			{
-				// Get buffer from writing queue
-				uint16_t* frame_ptr = nullptr;
+				if (m_pMemBuff->m_nRecordedFrames < WRITING_BUFFER_SIZE)
 				{
-					std::unique_lock<std::mutex> lock(m_pMemBuff->m_syncBuffering.mtx);
-
-					if (!m_pMemBuff->m_syncBuffering.queue_buffer.empty())
+					// Get buffer from writing queue
+					uint16_t* frame_ptr = nullptr;
 					{
-						frame_ptr = m_pMemBuff->m_syncBuffering.queue_buffer.front();
-						m_pMemBuff->m_syncBuffering.queue_buffer.pop();
+						std::unique_lock<std::mutex> lock(m_pMemBuff->m_syncBuffering.mtx);
+
+						if (!m_pMemBuff->m_syncBuffering.queue_buffer.empty())
+						{
+							frame_ptr = m_pMemBuff->m_syncBuffering.queue_buffer.front();
+							m_pMemBuff->m_syncBuffering.queue_buffer.pop();
+						}
+					}
+
+					if (frame_ptr != nullptr)
+					{
+						// Body (Copying the frame data)
+						memcpy(frame_ptr, frame.raw_ptr(), sizeof(uint16_t) * m_pConfig->nFrameSize);
+						//frame_ptr[0] = m_pMemBuff->m_nRecordedFrames; // for test
+
+						// Push to the copy queue for copying transfered data in copy thread
+						m_pMemBuff->m_syncBuffering.Queue_sync.push(frame_ptr);
 					}
 				}
-
-				if (frame_ptr != nullptr)
+				else
 				{
-					// Body (Copying the frame data)
-					memcpy(frame_ptr, frame.raw_ptr(), sizeof(uint16_t) * m_pConfig->nFrameSize);
-					//frame_ptr[0] = m_pMemBuff->m_nRecordedFrames; // for test
-
-					// Push to the copy queue for copying transfered data in copy thread
-					m_pMemBuff->m_syncBuffering.Queue_sync.push(frame_ptr);
+					// Finish recording when the buffer is full
+					m_pMemBuff->m_bIsRecording = false;
+					m_pOperationTab->setRecordingButton(false);
 				}
-			}
-			else
-			{
-				// Finish recording when the buffer is full
-				m_pMemBuff->m_bIsRecording = false;
-				m_pOperationTab->setRecordingButton(false);
 			}
 		}
 	});
@@ -1126,7 +1138,15 @@ void QStreamTab::setDeinterleavingCallback()
 				int frame_length = m_pConfig->nFrameSize / m_pConfig->nChannels;
 
 				if (m_pConfig->nChannels == 2)
+				{
+#if PX14_ENABLE
 					ippsCplxToReal_16sc((Ipp16sc *)fulldata_ptr, (Ipp16s *)ch1_ptr, (Ipp16s *)ch2_ptr, frame_length);
+
+#elif ALAZAR_ENABLE
+					memcpy(ch1_ptr, fulldata_ptr, sizeof(uint16_t) * frame_length);
+					memcpy(ch2_ptr, fulldata_ptr + frame_length, sizeof(uint16_t) * frame_length);
+#endif
+				}
 				else
 					memcpy(ch1_ptr, fulldata_ptr, sizeof(uint16_t) * frame_length);
 #ifdef OCT_FLIM
@@ -1385,6 +1405,22 @@ void QStreamTab::setVisualizationCallback()
 #endif
 				visualizeImage(m_visImage1.raw_ptr(), m_visImage2.raw_ptr(), m_visNirf.raw_ptr());
 #endif
+				// Find peak decibel
+				if (frame_count % 4 == 0)
+				{
+					np::FloatArray max_val(m_pConfig->nAlines);
+					tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)m_pConfig->nAlines),
+						[&](const tbb::blocked_range<size_t>& r) {
+						for (size_t i = r.begin(); i != r.end(); ++i)
+						{
+							ippsMax_32f(&m_visImage1(0, (int)i), m_pConfig->n2ScansFFT, &max_val[(int)i]);
+						}
+					});
+
+					float avg_max_val;
+					ippsMean_32f(max_val, max_val.length(), &avg_max_val, ippAlgHintFast);
+					m_pLabel_AvgMaxVal->setText(QString("%1 dB").arg(avg_max_val, 4, 'f', 3));
+				}
 #endif
 			}
 
@@ -1630,6 +1666,7 @@ void QStreamTab::resetObjectsForAline(int nAlines) // need modification
 
 	m_visFringe2 = np::FloatArray2(m_pConfig->nScans, nAlines);
 	m_visFringeBg2 = np::FloatArray2(m_pConfig->nScans, nAlines);
+	memset(m_visFringeBg2, 0, sizeof(float) * m_visFringeBg2.length());
 	m_visFringe2Rm = np::FloatArray2(m_pConfig->nScans, nAlines);
 	m_visImage2 = np::FloatArray2(m_pConfig->n2ScansFFT, nAlines);
 
@@ -2096,8 +2133,8 @@ void QStreamTab::changeVisImage(bool toggled)
 {	
 	if (toggled)
 	{
-		m_pImageView_CircImage->show();// setVisible(toggled);
-		m_pImageView_RectImage->hide();// setVisible(!toggled);
+		m_pImageView_CircImage->show(); // setVisible(toggled);
+		m_pImageView_RectImage->hide(); // setVisible(!toggled);
 	}
 	else
 	{
@@ -2127,16 +2164,16 @@ void QStreamTab::changeFringeBg(bool toggled)
 		memcpy(&m_visFringeBg(0, i), bg, sizeof(float) * m_pConfig->nScans);
 
 #elif defined (STANDALONE_OCT)
-	float* bg1 = (toggled) ? m_pOCT1->getBg() : m_pOCT1->getBg0();
-#ifdef DUAL_CHANNEL
+	float* bg1 = (toggled) ? m_pOCT1->getBg() : m_pOCT1->getBg0();	
+#ifndef DUAL_CHANNEL
+	float* bg2 = (toggled) ? m_pOCT1->getBg() : m_pOCT1->getBg0();
+#else
 	float* bg2 = (toggled) ? m_pOCT2->getBg() : m_pOCT2->getBg0();	
 #endif
 	for (int i = 0; i < m_pConfig->nAlines; i++)
 	{
-		memcpy(&m_visFringeBg1(0, i), bg1, sizeof(float) * m_pConfig->nScans);
-#ifdef DUAL_CHANNEL
+		memcpy(&m_visFringeBg1(0, i), bg1, sizeof(float) * m_pConfig->nScans);		
 		memcpy(&m_visFringeBg2(0, i), bg2, sizeof(float) * m_pConfig->nScans);
-#endif
 	}
 #endif   
 

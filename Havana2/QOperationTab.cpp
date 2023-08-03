@@ -112,9 +112,11 @@ void QOperationTab::changedTab(bool change)
 void QOperationTab::operateDataAcquisition(bool toggled)
 {
 	QStreamTab* pStreamTab = m_pMainWnd->m_pStreamTab;
-#ifdef AXSUN_OCT_LASER
 	QDeviceControlTab* pDeviceControl = m_pMainWnd->m_pDeviceControlTab;
-#endif
+
+
+
+
 	if (toggled) // Start Data Acquisition
 	{
 		if ((m_pDataAcquisition->InitializeAcquistion()) 
@@ -154,6 +156,11 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 				allocate_writing_buffer.detach();
 			}
 
+#ifdef GALVANO_MIRROR
+			// Turn on galvo scanner
+			pDeviceControl->getEnableGalvanoMirrorControl()->setChecked(true);
+#endif
+
 #ifdef AXSUN_OCT_LASER
 			// Turn on Axsun OCT Laser
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -184,6 +191,10 @@ void QOperationTab::operateDataAcquisition(bool toggled)
 #ifdef AXSUN_OCT_LASER
 		// Turn off Axsun OCT Laser
 		pDeviceControl->turnOnOCTLaser(false);
+#endif
+#ifdef GALVANO_MIRROR
+		// Turn off galvo scanner
+		pDeviceControl->getEnableGalvanoMirrorControl()->setChecked(false);
 #endif
 	}
 }

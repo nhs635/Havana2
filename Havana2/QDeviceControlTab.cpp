@@ -855,6 +855,11 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
 
         // Create Axsun OCT laser control objects
         m_pAxsunControl = new AxsunControl;
+		m_pAxsunControl->SendStatusMessage += [&](const char* msg, bool is_fail)
+		{
+			printf("%s\n", msg);
+			(void)is_fail;
+		};
 
         // Connect the OCT laser
         if (!(m_pAxsunControl->initialize()))
@@ -862,11 +867,6 @@ void QDeviceControlTab::enableAxsunOCTLaserControl(bool toggled)
             m_pCheckBox_AxsunOCTLaserControl->setChecked(false);
             return;
         }
-		m_pAxsunControl->SendStatusMessage += [&](const char* msg, bool is_fail)
-		{
-			printf("%s\n", msg);
-			(void)is_fail;
-		};
 		m_pAxsunControl->setVDLLength(m_pConfig->axsunVDLLength);
 		m_pAxsunControl->setClockDelay(m_pConfig->axsunkClockDelay);
 
@@ -1799,7 +1799,7 @@ void QDeviceControlTab::changeGalvoSlowScanVoltage(const QString &str)
 		m_pToggleButton_ScanTriggering->setEnabled(true);
 
 	int nIter = int(ceil(m_pConfig->galvoSlowScanVoltage / m_pConfig->galvoSlowScanIncrement)) + 1;
-	printf("Number of fast scan: %d (Estimated scan time: %.2f sec)\n", nIter, double(nIter) / (118400 / m_pConfig->nAlines));
+	printf("Number of fast scan: %d (Estimated scan time: %.2f sec)\n", nIter, double(nIter) / (200'000.0 / m_pConfig->nAlines));
 }
 
 void QDeviceControlTab::changeGalvoSlowScanVoltageOffset(const QString &str)
@@ -1811,7 +1811,7 @@ void QDeviceControlTab::changeGalvoSlowScanIncrement(const QString &str)
 {
 	m_pConfig->galvoSlowScanIncrement = str.toFloat();
 	int nIter = int(ceil(m_pConfig->galvoSlowScanVoltage / m_pConfig->galvoSlowScanIncrement)) + 1;
-	printf("Number of fast scan: %d (Estimated scan time: %.2f sec)\n", nIter, double(nIter) / (118400 / m_pConfig->nAlines));
+	printf("Number of fast scan: %d (Estimated scan time: %.2f sec)\n", nIter, double(nIter) / (200'000.0 / m_pConfig->nAlines));
 }
 
 void QDeviceControlTab::scanAdjusting(int horizontalShift)

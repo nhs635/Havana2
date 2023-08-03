@@ -7,10 +7,10 @@
 #define NEAR_2_POWER(x)				(int)(1 << (int)ceil(log2(x)))
 
 ///////////////////// Library enabling //////////////////////
-#define PX14_ENABLE                 false
-#define ALAZAR_ENABLE               false
+#define PX14_ENABLE                 false						// Oh short cavity 120 kHz
+#define ALAZAR_ENABLE               true							// Axsun 200 kHz
 
-#define NI_ENABLE					false
+#define NI_ENABLE					true
 
 #if PX14_ENABLE && ALAZAR_ENABLE
 #error("PX14_ENABLE and ALAZAR_ENABLE cannot be defined at the same time.");
@@ -29,9 +29,9 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-//#define AXSUN_OCT_LASER
+#define AXSUN_OCT_LASER  // axsun only
 #ifdef AXSUN_OCT_LASER
-#define AXSUN_VDL_K_CLOCK_DELAY
+//#define AXSUN_VDL_K_CLOCK_DELAY
 #endif
 
 #ifndef OCT_NIRF
@@ -59,8 +59,8 @@
 #define DIGITIZER_VOLTAGE			0.220
 #define DIGITIZER_VOLTAGE_RATIO		1.122018
 #elif ALAZAR_ENABLE
-#define ADC_RATE                    500 // MS/sec
-#define USE_EXTERNAL_K_CLOCK		true
+#define ADC_RATE                    1000 // MS/sec
+#define USE_EXTERNAL_K_CLOCK		false
 #endif
 
 /////////////////////// Device setup ////////////////////////
@@ -121,7 +121,7 @@
 
 #ifdef GALVANO_MIRROR
 #define NI_GALVO_CHANNEL			"Dev1/ao0:1"
-#define NI_GAVLO_SOURCE				"/Dev1/PFI13"
+#define NI_GAVLO_SOURCE				"/Dev1/PFI8"			 // Axsun 8  Short-cavity 12
 #endif
 
 #ifdef PULLBACK_DEVICE
@@ -134,12 +134,12 @@
 #define ZABER_HOME_OFFSET			0.0
 
 #define FAULHABER_NEW_CONTROLLER
-#define FAULHABER_PORT				"COM3"
+#define FAULHABER_PORT				"COM4"
 #define FAULHABER_POSITIVE_ROTATION false
 #endif
 
 //////////////////////// Processing /////////////////////////
-//#define CUDA_ENABLED				// Only valid in visual studio environment
+#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
 #define N_CUDA_THREADS				32
@@ -147,7 +147,7 @@
 #define N_CUDA_PARTITIONS			4
 #endif
 
-#define FREQ_SHIFTING
+//#define FREQ_SHIFTING				// short cavity only
 //#define K_CLOCKING
 
 //#define OCT_VERTICAL_MIRRORING
@@ -161,6 +161,8 @@
 #else
 #define WRITING_BUFFER_SIZE	        800
 #endif
+
+#define	RECORDING_SKIP_FRAMES		1
 
 /////////////////////// FLIM system /////////////////////////
 #ifdef OCT_FLIM
@@ -192,7 +194,7 @@
 #endif
 #endif
 
-#define RENEWAL_COUNT				3
+#define RENEWAL_COUNT				11
 
 
 

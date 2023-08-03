@@ -23,6 +23,8 @@ OCTProcess::OCTProcess(int nScans, int nAlines) :
     bg0(raw_size.width),
 	bg(raw_size.width),
     fringe(raw_size.width, 2),
+
+	    
 #ifndef K_CLOCKING
 	calib_index(raw2_size.width),
     calib_weight(raw2_size.width),
@@ -88,7 +90,7 @@ OCTProcess::~OCTProcess()
 
 /* OCT Image */
 void OCTProcess::operator() (float* img, uint16_t* fringe)
-{		
+{
 	tbb::parallel_for(tbb::blocked_range<size_t>(0, (size_t)raw_size.height),
 		[&](const tbb::blocked_range<size_t>& r) {
 		//for (int i = 0; i < raw_size.height; i++)
