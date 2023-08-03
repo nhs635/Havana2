@@ -140,6 +140,7 @@ private slots: // widget operation
 #endif
 	void enableUserDefinedAlines(bool);
 	void enableDiscomValue(bool);
+	void enableSpecifiedRange(bool);
 	void visualizeImage(int);
 #ifdef OCT_FLIM
 	void constructRgbImage(ImageObject*, ImageObject*, ImageObject*, ImageObject*);
@@ -230,7 +231,7 @@ private:
 
 	void setObjects(Configuration* pConfig);
 
-	void loadingRawData(QFile* pFile, Configuration* pConfig);
+	void loadingRawData(QFile* pFile, Configuration* pConfig, int spacing = 1);
 	void deinterleaving(Configuration* pConfig);
 	void deinterleavingInBuffer(Configuration* pConfig);
 #ifdef OCT_FLIM
@@ -406,6 +407,11 @@ private:
 
 	QCheckBox *m_pCheckBox_DiscomValue;
 	QLineEdit *m_pLineEdit_DiscomValue;
+
+	QCheckBox *m_pCheckBox_SpecifiedRange;
+	QLineEdit *m_pLineEdit_SpecifiedRangeStart;
+	QLineEdit *m_pLineEdit_SpecifiedRangeSpacing;
+	QLineEdit *m_pLineEdit_SpecifiedRangeEnd;
 
 	QProgressBar *m_pProgressBar_PostProcessing;
 

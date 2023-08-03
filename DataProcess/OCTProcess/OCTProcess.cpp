@@ -105,20 +105,27 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			ippsSub_32f_I(bg, signal.raw_ptr() + f1, raw_size.width);
 			ippsMul_32f_I(win, signal.raw_ptr() + f1, raw_size.width);
 
+#ifndef K_CLOCKING
 			// 3. Fourier transform (21 msec)
 			fft1((Ipp32fc*)(fft_complex.raw_ptr() + f1), signal.raw_ptr() + f1, (int)i);
 
-            // 4. Remove virtual peak & Inverse Fourier transform (5+19 sec)
-            ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 2), fft_size.width);
+#ifdef FREQ_SHIFTING
+			// 4. Circshift by nfft/4 & Remove virtual peak & Inverse Fourier transform (5+19 sec)
+			std::rotate(fft_complex.raw_ptr() + f1, fft_complex.raw_ptr() + f1 + 3 * fft_size.width / 4, fft_complex.raw_ptr() + f1 + fft_size.width);
+			ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 4), fft_size.width);
+#else
+			// 4. Remove virtual peak & Inverse Fourier transform (5+19 sec)
+			ippsSet_32f(0.0f, (Ipp32f*)(fft_complex.raw_ptr() + f1 + fft_size.width / 2), fft_size.width);
+#endif
 			fft2.inverse((Ipp32fc*)(complex_signal.raw_ptr() + f1), (const Ipp32fc*)(fft_complex.raw_ptr() + f1));
 
 			// 5. k linear resampling (5 msec)		
-            bf::LinearInterp_32fc((const Ipp32fc*)(complex_signal.raw_ptr() + f1), (Ipp32fc*)(complex_resamp.raw_ptr() + f2),
+			bf::LinearInterp_32fc((const Ipp32fc*)(complex_signal.raw_ptr() + f1), (Ipp32fc*)(complex_resamp.raw_ptr() + f2),
 				raw2_size.width, calib_index.raw_ptr(), calib_weight.raw_ptr());
-			
+
 			// 6. Dispersion compensation (4 msec)
 			ippsMul_32fc_I((const Ipp32fc*)dispersion1.raw_ptr(), (Ipp32fc*)(complex_resamp.raw_ptr() + f2), raw2_size.width);
-			
+
 			// 7. Fourier transform (9 msec)
 			fft3.forward((Ipp32fc*)(fft2_complex.raw_ptr() + f2), (const Ipp32fc*)(complex_resamp.raw_ptr() + f2));
 
@@ -126,6 +133,23 @@ void OCTProcess::operator() (float* img, uint16_t* fringe)
 			ippsPowerSpectr_32fc((const Ipp32fc*)(fft2_complex.raw_ptr() + f2), fft2_linear.raw_ptr() + f2, fft2_size.width);
 			ippsLog10_32f_A11(fft2_linear.raw_ptr() + f2, img + f2, fft2_size.width);
 			ippsMulC_32f_I(10.0f, img + f2, fft2_size.width);
+
+#ifdef FREQ_SHIFTING
+			// 9. Circshift by -nfft/2 (1 msec)
+			std::rotate(img + f2, img + f2 + fft2_size.width / 2, img + f2 + fft2_size.width);
+#endif
+#else
+			// 3. Dispersion compensation
+			ippsMul_32f32fc((const Ipp32f*)signal.raw_ptr() + f1, (const Ipp32fc*)dispersion1.raw_ptr(), (Ipp32fc*)complex_signal.raw_ptr() + f1, raw_size.width);
+
+			// 4. Fourier transform
+			fft3.forward((Ipp32fc*)(fft_complex.raw_ptr() + f1), (const Ipp32fc*)(complex_signal.raw_ptr() + f1));
+
+			// 5. dB Scaling
+			ippsPowerSpectr_32fc((const Ipp32fc*)(fft_complex.raw_ptr() + f1), fft2_linear.raw_ptr() + f2, fft2_size.width);
+			ippsLog10_32f_A11(fft2_linear.raw_ptr() + f2, img + f2, fft2_size.width);
+			ippsMulC_32f_I(10.0f, img + f2, fft2_size.width);
+#endif
 		}
 	});
 }

@@ -29,7 +29,7 @@
 #error("STANDALONE_OCT and OCT_FLIM cannot be defined at the same time.");
 #endif
 
-#define AXSUN_OCT_LASER
+//#define AXSUN_OCT_LASER
 #ifdef AXSUN_OCT_LASER
 #define AXSUN_VDL_K_CLOCK_DELAY
 #endif
@@ -45,7 +45,7 @@
 #endif
 //#define TWO_CHANNEL_NIRF
 #endif
-//#define GALVANO_MIRROR
+#define GALVANO_MIRROR
 //#define PULLBACK_DEVICE
 #ifdef PULLBACK_DEVICE
 //#define DOTTER_STAGE
@@ -139,7 +139,7 @@
 #endif
 
 //////////////////////// Processing /////////////////////////
-#define CUDA_ENABLED				// Only valid in visual studio environment
+//#define CUDA_ENABLED				// Only valid in visual studio environment
 
 #ifdef CUDA_ENABLED
 #define N_CUDA_THREADS				32
@@ -147,7 +147,7 @@
 #define N_CUDA_PARTITIONS			4
 #endif
 
-//#define FREQ_SHIFTING
+#define FREQ_SHIFTING
 //#define K_CLOCKING
 
 //#define OCT_VERTICAL_MIRRORING

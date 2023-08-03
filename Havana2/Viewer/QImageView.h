@@ -71,7 +71,8 @@ public:
 public slots:
 	void drawImage(uint8_t* pImage);
 	void drawRgbImage(uint8_t* pImage);
-
+	void showContextMenu(const QPoint &);
+	
 private:
     QHBoxLayout *m_pHBoxLayout;
 

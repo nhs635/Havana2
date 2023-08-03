@@ -337,6 +337,27 @@ void QResultTab::createDataLoadingWritingTab()
 	m_pLineEdit_DiscomValue->setAlignment(Qt::AlignCenter);
 	m_pLineEdit_DiscomValue->setDisabled(true);
 
+	m_pCheckBox_SpecifiedRange = new QCheckBox(this);
+	m_pCheckBox_SpecifiedRange->setText("User-Specified Range ");
+
+	m_pLineEdit_SpecifiedRangeStart = new QLineEdit(this);
+	m_pLineEdit_SpecifiedRangeStart->setText(QString::number(1));
+	m_pLineEdit_SpecifiedRangeStart->setFixedWidth(35);
+	m_pLineEdit_SpecifiedRangeStart->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_SpecifiedRangeStart->setDisabled(true);
+
+	m_pLineEdit_SpecifiedRangeSpacing = new QLineEdit(this);
+	m_pLineEdit_SpecifiedRangeSpacing->setText(QString::number(1));
+	m_pLineEdit_SpecifiedRangeSpacing->setFixedWidth(25);
+	m_pLineEdit_SpecifiedRangeSpacing->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_SpecifiedRangeSpacing->setDisabled(true);
+
+	m_pLineEdit_SpecifiedRangeEnd = new QLineEdit(this);
+	m_pLineEdit_SpecifiedRangeEnd->setText(QString::number(100));
+	m_pLineEdit_SpecifiedRangeEnd->setFixedWidth(35);
+	m_pLineEdit_SpecifiedRangeEnd->setAlignment(Qt::AlignCenter);
+	m_pLineEdit_SpecifiedRangeEnd->setDisabled(true);
+
 	// Create progress bar
 	m_pProgressBar_PostProcessing = new QProgressBar(this);
 	m_pProgressBar_PostProcessing->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -366,10 +387,20 @@ void QResultTab::createDataLoadingWritingTab()
 	pHBoxLayout_SingleFrameDiscomValue->addWidget(m_pCheckBox_DiscomValue);
 	pHBoxLayout_SingleFrameDiscomValue->addWidget(m_pLineEdit_DiscomValue);
 
+	QHBoxLayout *pHBoxLayout_SpecifiedRange = new QHBoxLayout;
+	pHBoxLayout_SpecifiedRange->setSpacing(3);
+
+	pHBoxLayout_SpecifiedRange->addWidget(m_pCheckBox_SpecifiedRange);
+	pHBoxLayout_SpecifiedRange->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	pHBoxLayout_SpecifiedRange->addWidget(m_pLineEdit_SpecifiedRangeStart);
+	pHBoxLayout_SpecifiedRange->addWidget(m_pLineEdit_SpecifiedRangeSpacing);
+	pHBoxLayout_SpecifiedRange->addWidget(m_pLineEdit_SpecifiedRangeEnd);
+
 	pGridLayout_DataLoadingWriting->addItem(pHBoxLayout_UserDefined, 2, 1, 1, 2);
 	pGridLayout_DataLoadingWriting->addItem(pHBoxLayout_SingleFrameDiscomValue, 3, 1, 1, 2);
+	pGridLayout_DataLoadingWriting->addItem(pHBoxLayout_SpecifiedRange, 4, 1, 1, 2);
 
-	pGridLayout_DataLoadingWriting->addWidget(m_pProgressBar_PostProcessing, 4, 1, 1, 2);
+	pGridLayout_DataLoadingWriting->addWidget(m_pProgressBar_PostProcessing, 5, 1, 1, 2);
 
 	pGridLayout_DataLoadingWriting->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, 3, 3, 1);
 
@@ -382,6 +413,7 @@ void QResultTab::createDataLoadingWritingTab()
 	connect(m_pPushButton_SaveResults, SIGNAL(clicked(bool)), this, SLOT(createSaveResultDlg()));
 	connect(m_pCheckBox_UserDefinedAlines, SIGNAL(toggled(bool)), this, SLOT(enableUserDefinedAlines(bool)));
 	connect(m_pCheckBox_DiscomValue, SIGNAL(toggled(bool)), this, SLOT(enableDiscomValue(bool)));
+	connect(m_pCheckBox_SpecifiedRange, SIGNAL(toggled(bool)), this, SLOT(enableSpecifiedRange(bool)));
 
 	connect(this, SIGNAL(processedSingleFrame(int)), m_pProgressBar_PostProcessing, SLOT(setValue(int)));
 }
@@ -1282,6 +1314,13 @@ void QResultTab::enableDiscomValue(bool checked)
 	else
 		if (m_pConfigTemp)
 			m_pLineEdit_DiscomValue->setText(QString::number(m_pConfigTemp->octDiscomVal));
+}
+
+void QResultTab::enableSpecifiedRange(bool checked)
+{
+	m_pLineEdit_SpecifiedRangeStart->setEnabled(checked);
+	m_pLineEdit_SpecifiedRangeSpacing->setEnabled(checked);
+	m_pLineEdit_SpecifiedRangeEnd->setEnabled(checked);
 }
 
 void QResultTab::visualizeImage(int frame)
@@ -3246,7 +3285,7 @@ void QResultTab::externalDataProcessing()
 		std::thread t1([&, fileName]() {
 
 			std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-			
+
 			QFile file(fileName);
 			if (false == file.open(QFile::ReadOnly))
 				printf("[ERROR] Invalid external data!\n");
@@ -3283,15 +3322,15 @@ void QResultTab::externalDataProcessing()
 					m_pConfigTemp->nAlines4 = ((m_pConfigTemp->nAlines + 3) >> 2) << 2;
 					m_pConfigTemp->n4Alines4 = ((m_pConfigTemp->n4Alines + 3) >> 2) << 2;
 #ifdef OCT_FLIM
-                    if (m_pConfigTemp->nAlines != m_pConfigTemp->nAlines4)
-                    {
-                        printf("[ERROR] nAlines should be a multiple of 4.\n");
-                        file.close();
-                        return;
-                    }
+					if (m_pConfigTemp->nAlines != m_pConfigTemp->nAlines4)
+					{
+						printf("[ERROR] nAlines should be a multiple of 4.\n");
+						file.close();
+						return;
+				}
 #endif
 					m_pConfigTemp->nFrameSize = m_pConfigTemp->nChannels * m_pConfigTemp->nScans * m_pConfigTemp->nAlines;
-				}
+			}
 
 				if (!m_pCheckBox_DiscomValue->isChecked())
 				{
@@ -3308,9 +3347,29 @@ void QResultTab::externalDataProcessing()
 					m_pConfigTemp->circRadius = m_pConfigTemp->n2ScansFFT - m_pConfig->circCenter - 1;
 					m_pConfigTemp->circRadius = (m_pConfigTemp->circRadius % 2) ? m_pConfigTemp->circRadius - 1 : m_pConfigTemp->circRadius;
 				}
-				
+
 				m_pConfigTemp->nFrames = (int)(file.size() / (qint64)m_pConfigTemp->nChannels / (qint64)m_pConfigTemp->nScans / (qint64)m_pConfigTemp->nAlines / sizeof(uint16_t));
+				printf("Original total frame: %d\n", m_pConfigTemp->nFrames);
+
+				int spacing = 1;
 				if (m_pCheckBox_SingleFrame->isChecked()) m_pConfigTemp->nFrames = 1;
+				if (m_pCheckBox_SpecifiedRange->isChecked())
+				{
+					int start = m_pLineEdit_SpecifiedRangeStart->text().toInt();
+					int end = m_pLineEdit_SpecifiedRangeEnd->text().toInt();
+					spacing = m_pLineEdit_SpecifiedRangeSpacing->text().toInt();
+
+					if (start < 1) start = 1;
+					if (end > m_pConfigTemp->nFrames) end = m_pConfigTemp->nFrames;
+					if (start > end)
+					{
+						start = end;
+						m_pLineEdit_SpecifiedRangeStart->setText(QString::number(start));
+					}
+					
+					m_pConfigTemp->nFrames = int((end - start + 1) / spacing);
+					file.seek((qint64)(start - 1) * (qint64)m_pConfigTemp->nChannels * (qint64)m_pConfigTemp->nScans * (qint64)m_pConfigTemp->nAlines * sizeof(uint16_t));
+				}
 #ifdef OCT_NIRF
 				if (m_pConfigTemp->erasmus)
 					nirfName = m_path + "/NIRF.txt";
@@ -3388,7 +3447,7 @@ void QResultTab::externalDataProcessing()
 #endif
 #endif				
 				// Get external data ////////////////////////////////////////////////////////////////////////
-				std::thread load_data([&]() { loadingRawData(&file, m_pConfigTemp); });
+				std::thread load_data([&]() { loadingRawData(&file, m_pConfigTemp, spacing); });
 
 				// Data DeInterleaving & FLIM Process ///////////////////////////////////////////////////////
 				std::thread deinterleave([&]() { deinterleaving(m_pConfigTemp); });
@@ -3682,6 +3741,13 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pCheckBox_DiscomValue->setEnabled(true);
 		if (m_pCheckBox_DiscomValue->isChecked())
 			m_pLineEdit_DiscomValue->setEnabled(true);
+		m_pCheckBox_SpecifiedRange->setEnabled(true);
+		if (m_pCheckBox_SpecifiedRange->isChecked())
+		{
+			m_pLineEdit_SpecifiedRangeStart->setEnabled(true);
+			m_pLineEdit_SpecifiedRangeSpacing->setEnabled(true);
+			m_pLineEdit_SpecifiedRangeEnd->setEnabled(true);
+		}
 
 		m_pProgressBar_PostProcessing->setFormat("");
         m_pProgressBar_PostProcessing->setValue(0);
@@ -3817,6 +3883,10 @@ void QResultTab::setWidgetsEnabled(bool enabled, Configuration* pConfig)
 		m_pLineEdit_UserDefinedAlines->setDisabled(true);
 		m_pCheckBox_DiscomValue->setDisabled(true);
 		m_pLineEdit_DiscomValue->setDisabled(true);
+		m_pCheckBox_SpecifiedRange->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeStart->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeSpacing->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeEnd->setDisabled(true);
 
 		int id = m_pButtonGroup_DataSelection->checkedId();
 		switch (id)
@@ -3953,6 +4023,13 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pCheckBox_DiscomValue->setEnabled(true);
 		if (m_pCheckBox_DiscomValue->isChecked())
 			m_pLineEdit_DiscomValue->setEnabled(true);
+		m_pCheckBox_SpecifiedRange->setEnabled(true);
+		if (m_pCheckBox_SpecifiedRange->isChecked())
+		{
+			m_pLineEdit_SpecifiedRangeStart->setEnabled(true);
+			m_pLineEdit_SpecifiedRangeSpacing->setEnabled(true);
+			m_pLineEdit_SpecifiedRangeEnd->setEnabled(true);
+		}
 
 		m_pProgressBar_PostProcessing->setFormat("");
 
@@ -4071,6 +4148,10 @@ void QResultTab::setWidgetsEnabled(bool enabled)
 		m_pLineEdit_UserDefinedAlines->setDisabled(true);
 		m_pCheckBox_DiscomValue->setDisabled(true);
 		m_pLineEdit_DiscomValue->setDisabled(true);
+		m_pCheckBox_SpecifiedRange->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeStart->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeSpacing->setDisabled(true);
+		m_pLineEdit_SpecifiedRangeEnd->setDisabled(true);
 
 		m_pProgressBar_PostProcessing->setFormat("Saving results... %p%");
 		m_pProgressBar_PostProcessing->setRange(0, (int)m_vectorOctImage.size() * 2 - 1);
@@ -4276,7 +4357,7 @@ void QResultTab::setObjects(Configuration* pConfig)
 #endif
 }
 
-void QResultTab::loadingRawData(QFile* pFile, Configuration* pConfig)
+void QResultTab::loadingRawData(QFile* pFile, Configuration* pConfig, int spacing)
 {
 	int frameCount = 0;
 
@@ -4299,6 +4380,12 @@ void QResultTab::loadingRawData(QFile* pFile, Configuration* pConfig)
 			{
 				// Read data from the external data 
 				pFile->read(reinterpret_cast<char *>(frame_data), sizeof(uint16_t) * pConfig->nFrameSize);
+				if (spacing != 1)
+				{
+					qint64 pos = pFile->pos();					
+					pFile->seek(pos + (qint64)(spacing - 1) * (qint64)m_pConfigTemp->nChannels * (qint64)m_pConfigTemp->nScans * (qint64)m_pConfigTemp->nAlines * sizeof(uint16_t));
+				}
+
 				frameCount++;
 
 				// Push the buffers to sync Queues``

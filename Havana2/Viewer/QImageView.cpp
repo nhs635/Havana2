@@ -100,6 +100,10 @@ QImageView::QImageView(ColorTable::colortable ctable, int width, int height, flo
 
     // Initialization
     setUpdatesEnabled(true);
+
+	// Pop-up menu
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
 }
 
 QImageView::~QImageView()
@@ -302,6 +306,23 @@ void QImageView::drawRgbImage(uint8_t* pImage)
 	m_pRenderImage->update();
 }
 
+void QImageView::showContextMenu(const QPoint &p)
+{
+	QPoint gp = mapToGlobal(p);
+
+	QMenu menu;
+	menu.addAction("Copy Image");
+
+	QAction* pSelectionItem = menu.exec(gp);
+	if (pSelectionItem)
+	{
+		if (pSelectionItem->text() == "Copy Image")
+		{
+			QApplication::clipboard()->setImage(*(m_pRenderImage->m_pImage));
+			m_pRenderImage->m_pImage->save("capture.bmp");
+		}
+	}
+}
 
 
 
